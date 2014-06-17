@@ -1,0 +1,13 @@
+
+This is my TO DO list which is hardly exhaustive...
+
+  1. support so wpkg can update itself (--install for upgrade)
+  2. create a version -> resource tool
+  3. create additional cmake projects so we can get .so's
+  4. create packages for runtime, dev, doc, ... of wpkg
+  5. fully doxygenize the libraries
+  6. write unit tests
+  7. write an exhaustive test suite of the wpkg command line
+  8. add support for zip files (instead of ar+tar)
+  9. add support for lzma and xz formats
+

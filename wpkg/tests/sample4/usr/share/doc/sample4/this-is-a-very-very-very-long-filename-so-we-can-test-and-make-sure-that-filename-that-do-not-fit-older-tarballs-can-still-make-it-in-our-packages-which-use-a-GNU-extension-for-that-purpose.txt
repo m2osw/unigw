@@ -1,0 +1,7 @@
+
+This file is to test that the --build command is capable of creating
+packages with files that have incredibly long names.
+
+This may seem weird, but we ran in this problem with a customer so we
+have to support the feat.
+

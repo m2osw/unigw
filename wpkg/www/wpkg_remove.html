@@ -1,0 +1,66 @@
+<html>
+<head>
+	<title>Unix/GNU Windows</title>
+	<link rel="stylesheet" href="wpkg.css" type="text/css"/>
+</head>
+<body>
+
+<p class="par">
+	WARNING: this page is the raw page. Look in the doc/* directory instead. If it
+	does not exist, generate it with dev/create_docs
+</p>
+
+@TITLE: Removing a package@
+@UP: wpkg@
+@PREVIOUS: wpkg_install@
+@NEXT: wpkg_build@
+@START@
+<p class="par">
+	<font size="+4">R</font>emoving a package with wpkg is very simple. The
+	following is the command to type:
+</p>
+
+<pre>	wpkg --remove <i>&lt;package-name&gt;</i></pre>
+
+<p class="par">
+	<font size="+4">N</font>otice that <i>&lt;package-name&gt;</i> is not the name
+	of the .deb you installed, but the name of the package which was installed
+	through that .deb file. In general, when a .deb package is named:
+</p>
+<pre>
+	&lt;name&gt;-&lt;sub-project&gt;_&lt;version&gt;_&lt;architecture&gt;.deb,
+</pre>
+<p>
+	Then the package name is the &lt;name&gt;
+	part without the sub-project, version or architecture (thought many
+	projects now include a version number such as 2 or 3 in their name.)
+	If you are not sure, you can check the name of an installed package with
+	the --list command as in:
+</p>
+
+<pre>	wpkg --list</pre>
+
+<p class="par">
+	<font size="+4">I</font>f you still have the .deb file, then you
+	can check the name with the --field, --info or --show commands.
+	In case of the fields, you need to look at the field named
+	<a class="anchor" href="wpkg_control.html#package">Package</a>
+	as follow:
+</p>
+
+<pre>	wpkg --field my-package.deb Package</pre>
+
+<table class="warning"><tbody><tr>
+	<td valign="top"><span class="warn_title">WARNING:</span></td>
+	<td class="warn_body">
+		wpkg must be installed as <code>/mingw/bin/wpkg.exe</code> for
+		this command to work properly. This is automatic when you install USYS.
+	</td>
+</tr></tbody></table>
+@END@
+
+</body>
+<!--
+	vim: ts=2
+-->
+</html>

@@ -1,0 +1,75 @@
+#!/bin/sh
+#
+#    wpkg -- a windows packager
+#    Copyright (C) 2006-2007  Made to Order Software Corporation
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License along
+#    with this program; if not, write to the Free Software Foundation, Inc.,
+#    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+#    Authors
+#    Alexis Wilke   alexis@m2osw.com
+#
+
+set -e
+
+HELP=false
+OPTIONS=
+while test -n "$1"
+do
+	case "$1" in
+	--help|-h)
+		HELP=true
+		;;
+
+	--autogen|-a)
+		./autogen.sh
+		;;
+
+	--debug)
+		OPTIONS="$OPTIONS --enable-debug"
+		;;
+
+	*)
+		echo "wpkg: error: unknown option $1; try --help"
+		exit 1;
+	esac
+	shift
+done
+
+if $HELP
+then
+	echo
+	echo "wpkg: help: Usage dev/dist [-opt]"
+	echo "wpkg: help: This script MUST be started from the main directory"
+	echo "wpkg: help: options are:"
+	echo "wpkg: help:   --autogen or -a   re-run the autogen.sh script"
+	echo "wpkg: help:   --debug           configure with --enable-debug"
+	echo "wpkg: help:   --help or -h      show this help screen"
+	echo
+	exit 1;
+fi
+
+if ! test -f configure
+then
+	./autogen.sh
+fi
+
+rm -rf BUILD
+mkdir -p BUILD
+cd BUILD
+../configure --prefix=/ $OPTIONS
+make dist
+VERSION=`grep '^Version: ' dev/control-bin | sed -e 's/Version: //'`
+mv -f wpkg-${VERSION}.tar.gz ../../packages/wpkg_${VERSION}_src.tar.gz
+

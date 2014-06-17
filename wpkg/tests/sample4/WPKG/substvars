@@ -1,0 +1,7 @@
+# List substitution variables that appear in fields in your control file
+# The fields use ${<varname>} to reference a variable defined here
+# This file supports empty lines, lines starting with # as comments, and
+# lines with <varname>=<value>
+
+COLOR=orange
+

@@ -1,0 +1,44 @@
+#!/bin/sh
+#
+# This script makes use of wpkg to build the .deb packages of the wpkg
+# environment; at some point this should be done with CMakeLists.txt though
+
+# End of first error
+set -e
+
+# Your WPKG tool
+WPKG=../BUILD/tools/wpkg
+
+# Get the current version
+VERSION=`$WPKG --version`
+echo "Compiling wpkg version $VERSION"
+
+# Location for a target
+DB=../tmp/db
+
+# Output
+OUTPUT=../BUILD/WPKG/src-packages
+
+# Filename for the administration directory settings
+ADMINDIR=../tmp
+
+# Reset the output directory
+rm -rf $OUTPUT
+mkdir -p $OUTPUT
+
+# First make sure we can create a source package
+echo "$WPKG --build --output-dir $OUTPUT"
+$WPKG --build --output-dir $OUTPUT
+
+# Reset the database
+rm -rf $DB
+mkdir -p $DB
+echo "$WPKG --create-admindir dev/sample.admindir"
+echo "Architecture: linux-amd64" >$ADMINDIR/linux.admindir
+echo "Maintainer: Alexis Wilke <alexis@m2osw.com>" >>$ADMINDIR/linux.admindir
+$WPKG --root $DB --create-admindir $ADMINDIR/linux.admindir
+
+# Run the process of building the binary packages
+echo "$WPKG --build $OUTPUT/wpkg-src_$VERSION.deb --root $DB --force-file-info --output-dir $OUTPUT"
+$WPKG --build $OUTPUT/wpkg-src_$VERSION.deb --root $DB --force-file-info --output-dir $OUTPUT
+

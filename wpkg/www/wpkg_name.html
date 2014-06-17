@@ -1,0 +1,109 @@
+<html>
+<head>
+	<title>Unix/GNU Windows</title>
+	<link rel="stylesheet" href="wpkg.css" type="text/css"/>
+</head>
+<body>
+
+<p class="par">
+	WARNING: this page is the raw page. Look in the doc/* directory instead. If it
+	does not exist, generate it with dev/create_docs
+</p>
+
+@TITLE: Naming convention@
+@UP: wpkg@
+@NEXT: wpkg_versions@
+@START@
+<p class="par">
+	<font size="+4">O</font>ne of the most important feature, in order
+	to manage many packages, is to properly name all the files coming
+	along. For this reason, there is a page explaining the naming
+	convention used for wpkg packages (which happens to be the same
+	as the one used by debian packages.)
+</p>
+
+<p class="par">
+	<font size="+4">A</font>ny package filename is composed of three parts.
+	Each part is separated by one underscore (_) character. The filename ends
+	with the <code>.deb</code> extension.
+	The three parts are the package name, its version and for binary packages,
+	the architecture it was compiled for.
+</p>
+
+<pre>
+	&lt;package-name&gt;_&lt;version&gt;_&lt;architecture&gt;.deb
+</pre>
+
+<p class="par">
+	<font size="+4">U</font>sually, the <u>package-name</u> part is
+	the same as the name found in the
+	<a class="anchor" href="wpkg_control.html#package">Package</a>
+	field of your control file. At times, there are additional
+	fields written after a minus (-) character such as
+	<code>-devel</code> for a package needed only by developers.
+	<!-- TODO: add all the standard extensions like -devel -->
+</p>
+
+<p class="par">
+	<font size="+4">W</font>hen building a package using the --build
+	option and a .info file, the <u>package-name</u> is generated
+	out of the concatenation of the
+	<a class="anchor" href="wpkg_control.html#package">Package</a>
+	and
+	<a class="anchor" href="wpkg_control.html#sub_packages">Sub-Package</a>
+	names. For instance, a package named <code>sswf</code> with
+	two sub-packages named <code>bin</code> and <code>lib</code>
+	would have two .deb files named <code>sswf-bin</code> and
+	<code>sswf-lib</code>. Note that there are two exceptions:
+	(1) if the Architecture is set to <code>source</code> then
+	the Sub-Package name is not used; instead it sets the
+	Architecture to <code>src</code>; (2) if the Sub-Package
+	name ends with an asterisk, it is not used to mangle the
+	package name.
+</p>
+
+<p class="par">
+	<font size="+4">S</font>ay, for instance, that you compile the z
+	library twice: once with the assembly language extensions and
+	once without these extensions. You can then create two packages
+	named like this:
+</p>
+
+<pre>
+	zlib-safe_1.2.3_win32-i386.deb
+	zlib-fast_1.2.3_win32-i386.deb
+</pre>
+
+<p class="par">
+	<font size="+4">T</font>he <u>version</u> part of the package
+	filename must match the
+	<a class="anchor" href="wpkg_control.html#version">Version</a>
+	field in your control file exactly. For more information about
+	versions, read the
+	<a class="anchor" href="wpkg_versions.html">Versions</a> page.
+</p>
+
+<p class="par">
+	<font size="+4">F</font>or binary packages, the <u>architecture</u>
+	part of the package filename must match the
+	<a class="anchor" href="wpkg_control.html#architecture">Architecture</a>
+	field in your control file exactly. For source packages, you can
+	either put <b>src</b> or nothing. The following shows two samples
+	of source package filenames and one for the corresponding binary
+	filename:
+</p>
+
+<pre>
+	wpkg_0.1.deb <strike>             </strike> <i>source</i>
+	wpkg_0.1_src.deb <strike>         </strike> <i>source</i>
+	wpkg_0.1_win32-i386.deb <strike>  </strike> <i>binary</i>
+</pre>
+
+
+@END@
+
+</body>
+<!--
+	vim: ts=2
+-->
+</html>

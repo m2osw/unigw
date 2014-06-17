@@ -1,0 +1,3 @@
+#!/bin/sh
+
+echo "prerm script called with: [$*] from [`pwd`]"

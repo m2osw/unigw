@@ -1,0 +1,56 @@
+
+Version 0.8
+
+  * Got the cmake working in many cases.
+
+Version 0.7
+
+  * Converted the project to work with cmake
+
+  * Completely removed the boost dependencies
+
+  * Changed the design to load complete files in memory at once instead of
+    using pipes; it makes it a lot easier to manage package archives
+
+  * Fully implemented the --install and --remove (handles upgrades and
+    configuration files); both can install/uninstall recursively
+
+  * Includes all display functions as dpkg
+
+  * Added an audit command line option
+
+  * Writing documentation directly online instead of HTML in the package
+    see http://windowspackager.org/
+
+  * Corrections to the version syntax (rewritten to work like dpkg)
+
+  * Fixed bugs in existing tools and libraries
+
+  * Support full globbing for --list command line other other options
+
+  * Include dot file support while creating the installation tree (i.e. you
+    can ask the system to generate .dot files so you can see what your
+    installation looks like)
+
+  * Supports hundreds of verifications run before installation making it
+    that much more secure
+
+  * Includes a new tool called dar that can be used to list files from a
+    Debian package (d[ebian] ar[chive]); this is a mix of ar and tar with
+    compression/decompression support
+
+  * Better organized the project folders
+
+Version 0.6
+
+  * Got this version to compile under Linux with boost (same as 0.5 otherwise)
+
+Version 0.5
+
+  * This version supports for the --build command line option with:
+    . a directory tree like under Debian; or
+    . a .info file and multiple directory trees.
+
+  * I started to create a library to be able to handle Debian
+    packages from any software without having to run wpkg.
+

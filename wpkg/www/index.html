@@ -1,0 +1,52 @@
+<html>
+<head>
+	<title>Unix/GNU Windows</title>
+	<link rel="stylesheet" href="wpkg.css" type="text/css"/>
+</head>
+<body>
+
+<p class="par">
+	WARNING: this page is the raw page. Look in the doc/* directory instead. If it
+	does not exist, generate it with dev/create_docs
+</p>
+
+@START@
+<p class="par">
+	<font size="+4">W</font>elcome to the <b>Unix/GNU Windows</b> home page.
+</p>
+<p class="par">
+	<font size="+4">T</font>he aim of this projects is to provide the community with
+	a valuable tool for any Unix like environment: a packager. We started
+	to work on <a class="anchor" href="wpkg.html">wpkg</a>,
+	based on dpkg, the famous
+	<a class="anchor" href="http://www.debian.org/">Debian</a> packager.
+</p>
+<p class="par">
+	<font size="+4">O</font>ur packager, wpkg, is a rewrite in C++.
+	It is heavily based on
+	<a class="anchor" href="http://www.boost.org/">Boost</a>
+	and <a class="anchor" href="http://boost-extras.sourceforge.net/">Boost-Extras</a>.
+	Since it is a rewrite, it is far from being complete, yet it should
+	already offer enough functionality. Version @VERSION@ can install a new
+	package checking for dependencies, remove, purge and list installed
+	packages, extract package files anywhere, list information about a
+	package (control file content and list of files available in a
+	package.)
+</p>
+<p class="par">
+	<font size="+4">A</font>t first, we foresee converting the .zip
+	packages available on
+	<a class="anchor" href="http://mingw.sourceforge.net/">MinGW/MSYS</a>
+	and
+	<a class="anchor" href="http://gnuwin32.sourceforge.net/">gnuwin32</a>.
+	As we move forward, we will create USYS which we hope will help
+	in porting other packages to the MSYS environment without having
+	to change the code much.
+</p>
+@END@
+
+</body>
+<!--
+	vim: ts=2
+-->
+</html>

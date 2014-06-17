@@ -1,0 +1,325 @@
+<html>
+<head>
+	<title>Unix/GNU Windows</title>
+	<link rel="stylesheet" href="wpkg.css" type="text/css"/>
+</head>
+<body>
+
+<p class="par">
+	WARNING: this page is the raw page. Look in the doc/* directory instead. If it
+	does not exist, generate it with dev/create_docs
+</p>
+
+@TITLE: Command line flags@
+@UP: wpkg@
+@START@
+<p class="par">
+	<font size="+4">T</font>here are two set of command line flags in <b>wpkg</b>: commands
+	and options. Exactly one command must be specified. Any number of options can be
+	used.
+</p>
+
+<table cellpadding="5" cellspacing="0" style="margin-right: 10px">
+	<tbody>
+		<tr>
+			<th style="border-bottom: 1px black solid; background-color: #f8f8f8;">Commands</th>
+			<th width="5">&nbsp;</th>
+			<th style="border-bottom: 1px black solid; background-color: #f8f8f8;">Comments</th>
+		</tr>
+		<tr>
+			<td valign="top"><code><a name="build">--build</a><br/>-b</code></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">Build the specified
+				package (i.e. generate the .deb file) <small><i>[implemented since version 0.5, see
+				<a class="anchor" href="wpkg_build.html">Building a package</a> for more
+				info on how to build a package.]</i></small></td>
+		</tr>
+		<tr>
+			<td valign="top"><code>--contents<br/>-c</code></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">Display the list
+				of files available in packages. These are the files which will be installed.</td>
+		</tr>
+		<tr>
+			<td valign="top"><code><a name="directory_size">--directory-size</a></code></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">Gather the size
+				in kilo bytes of the files present in the set of paths specified after
+				this command. This is similar to 'du -ks' without the name of the directory
+				printed.
+				<br/>
+				&nbsp;
+				<table class="warning"><tbody><tr>
+					<td valign="top"><span class="warn_title">Rational:</span></td>
+					<td class="warn_body">
+						This let's us bypass the use of <b>du</b> which otherwise
+						requires the MinGW library and requires a properly working <b>sed</b>
+						to remove the directory name from the result. Also, this option can
+						be tweaked as required to work properly for the target system.
+					</td>
+				</tr></tbody></table>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top"><code>--extract&nbsp;&lt;dir&gt;<br/>-x&nbsp;&lt;dir&gt;<br/>
+						--vextract&nbsp;&lt;dir&gt;<br/>-X&nbsp;&lt;dir&gt;</code></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">Extract the
+				specified package in the specified directory (dir). Use the --vextract
+				(or -X) to see the file names as they are being extracted.</td>
+		</tr>
+		<tr>
+			<td valign="top"><code>--field&nbsp;&lt;package&gt;&nbsp;&lt;fields&gt;<br/>-f&nbsp;&lt;package&gt;&nbsp;&lt;fields&gt;</code></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">Extract the
+				specified fields from the specified package. When only one field is
+				specified, only the content of the field is printed. When multiple
+				fields are requested (separate their names with spaces), each is
+				printed as it appears in the
+				<a class="anchor" href="wpkg_control.html">control file</a>.</td>
+		</tr>
+		<tr>
+			<td valign="top"><code><a name="info">--info</a><br/>-I</code></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">Print out
+				information about the specified packages. This includes the version
+				of the package, the version of the software inside the package, the
+				name of the package, and the other fields available in the control
+				file.</td>
+		</tr>
+		<tr>
+			<td valign="top"><code>--install<br/>-i</code></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">
+				<a class="anchor" href="wpkg_install.html">Installs</a>
+				the specified packages. It needs to either be non-specific to
+				any architecture or have the architecture win32-i386. You can
+				check the architecture of a package with the --info command line
+				instruction.</td>
+		</tr>
+		<tr>
+			<td valign="top"><code>--license<br/>--licence</code></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">Prints
+				out the license of <b>wpkg</b> and exists.</td>
+		</tr>
+		<tr>
+			<td valign="top"><code>--list</code></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">Prints
+				out the name, version and status of installed packages. With the
+				--verbose option, also prints out information about the uninstalled
+				packages.</td>
+		</tr>
+		<tr>
+			<td valign="top"><code>--purge<br/>-P</code></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">Remove a
+				package and it's configuration files.</td>
+		</tr>
+		<tr>
+			<td valign="top"><code>--remove<br/>-r</code></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">
+				<a class="anchor" href="wpkg_remove.html">Remove</a>
+				a package except it's configuration files.
+				Since version 0.3, a package can be removed only if no
+				other packages depend on it.
+				<br/>
+
+				<table class="warning"><tbody><tr>
+					<td valign="top"><span class="warn_title">WARNING:</span></td>
+					<td class="warn_body">
+						in version @VERSION@, --remove is just the same as --purge. This
+						is not so much a problem at this time since packages under Win32
+						do not yet install configuration files.
+					</td>
+				</tr></tbody></table>
+
+				</td>
+		</tr>
+		<tr>
+			<td valign="top"><code>--remove-database-lock</code></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">
+				I added this option since once in a while the software either
+				crashes or hangs (Since I'm still working on versions 0.x...)
+				and thus the locking file stays in place. This may change in
+				order to avoid problems by adding another tool to do that
+				job.
+				</td>
+		</tr>
+		<tr>
+			<td valign="top"><code>--show<br/>-W</code></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">Show the
+				<a class="anchor" href="wpkg_control.html#package">name</a> and
+				<a class="anchor" href="wpkg_control.html#version">version</a>
+				of the specified packages. The information comes
+				from the control file Package and Version fields.</td>
+		</tr>
+		<tr>
+			<td valign="top"><code><a name="version">--version</a></code></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">Print
+				the
+				<a class="anchor" href="wpkg_control.html#version">Version</a>
+				field of <b>wpkg</b> and exit.</td>
+		</tr>
+	</tbody>
+</table>
+
+<p><small>&nbsp;</small></p>
+
+<table cellpadding="5" cellspacing="0" style="margin-right: 10px">
+	<tbody>
+		<tr>
+			<th style="border-bottom: 1px black solid; background-color: #f8f8f8;">Options</th>
+			<th width="5">&nbsp;</th>
+			<th style="border-bottom: 1px black solid; background-color: #f8f8f8;">Comments</th>
+		</tr>
+		<tr>
+			<td valign="top"><code>--admindir&nbsp;&lt;path&gt;</code></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">Specify the
+				administration directory. This is where the database resides. You must
+				have at most one administration directory. Do not change
+				this path unless you know what you are doing. The default is
+				<code>/var/lib/wpkg</code>.</td>
+		</tr>
+		<tr>
+			<td valign="top"><code><a name="force">--force-&lt;name&gt;</a></code></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">The
+				--force options are used to transform errors in warnings so a command
+				can proceed.
+				<p>
+				For instance, the --install fails if a file to be installed already
+				exists on your system. The --force-overwrite option will let you
+				install the package anyway.
+				</p>
+				<div style="padding-left: 20px;">
+					<p>
+						<code>--force-architecture</code><br/>
+						<i>only warns about an incompatible <b>Architecture</b>
+						field</i>
+					</p>
+					<p>
+						<code>--force-conflicts</code> <font color="red">*</font><br/>
+						<i>only warns about conflicting packages already installed</i>
+					</p>
+					<p>
+						<code>--force-depends</code> <font color="red">*</font><br/>
+						<i>only warns about missing dependencies or dependencies with
+						the wrong version</i>
+					</p>
+					<p>
+						<code>--force-depends-version</code> <font color="red">*</font><br/>
+						<i>only warns about dependencies with the wrong version</i>
+					</p>
+					<p>
+						<code>--force-overwrite</code> <font color="red">*</font><br/>
+						<i>only warns about an existing file which is about to be
+						overwritten</i>
+					</p>
+					<p>
+						<code>--force-remove-essential</code> <font color="red">*</font><br/>
+						<i>only warns about removing a package marked as required; this
+						can break your system, though only <b>wpkg</b> is absolutly necessary
+						for the correct functioning of the USYS system; everything else
+						can be reinstalled from scratch</i>
+					</p>
+					<p>
+						<small><font color="red">*</font> options mark with a red
+						asterisk are considered dangerous and should be used with
+						great care</small>
+					</p>
+				</div>
+				<p>
+					For each --force-&lt;name&gt; there is a corresponding
+					<a class="anchor" href="#no-force">--no-force-&lt;name&gt;</a>
+					and
+					<a class="anchor" href="#refuse">--refuse-&lt;name&gt;</a>
+					which, to the contrary, ensures that errors and not warnings
+					occur; meaning that the function will not proceed.
+				</p>
+				</td>
+		</tr>
+		<tr>
+			<td valign="top"><code>--help<br/>-h</code></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">Print out
+				a brief help screen about all the command line options.</td>
+		</tr>
+		<tr>
+			<td valign="top"><code>--instdir&nbsp;&lt;path&gt;</code></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">Specify the
+				path where the package will be installed. By default, this is the root
+				(i.e. <code>"/"</code>). This should not be changed unless you know
+				what you are doing.</td>
+		</tr>
+		<tr>
+			<td valign="top"><code><a name="no-force">--no-force-&lt;name&gt;</a></code></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">This option
+				cancels the <a class="anchor" href="#force">--force</a> of the same
+				name. All the --no-force have priority over the --force. In other words,
+				if --no-force is specified once, the --force will have no effect whatever
+				the order in which these are defined on the command line.
+				</td>
+		</tr>
+		<tr>
+			<td valign="top"><code>--package&nbsp;&lt;package&gt;<br/>-p&nbsp;&lt;package&gt;</code></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">Specify the
+				list of packages to act on. This option does not need to be specified.<br/>
+
+				<table class="warning"><tbody><tr>
+					<td valign="top"><span class="warn_title">WARNING:</span></td>
+					<td class="warn_body">
+						when the --field command is used, the list of packages is
+						actually the list of fields and the package name appears
+						after the --field command.
+					</td>
+				</tr></tbody></table>
+
+				</td>
+		</tr>
+		<tr>
+			<td valign="top"><code><a name="refuse">--refuse-&lt;name&gt;</a></code></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">This option
+				cancels the <a class="anchor" href="#force">--force</a> of the same
+				name. All the --refuse have priority over the --force. In other words,
+				if --refuse is specified once, the --force will have no effect whatever
+				the order in which these are defined on the command line.
+				</td>
+		</tr>
+		<tr>
+			<td valign="top"><a name="tempdir"><code>--tempdir &lt;path&gt;</code></a></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">This option
+				defines an alternate path to the temporary directory <b>wpkg</b> shall use.
+				This can also be set with the <code>WPKG_TEMP</code>, <code>TEMP</code> or
+				<code>TMP</code> environment variables (checked in that order.) If all
+				fails, <b>wpkg</b> tries with <code>/tmp</code> and if that is not a
+				directory, it uses the current directory (i.e. ".").
+				</td>
+		</tr>
+		<tr>
+			<td valign="top"><code>--verbose<br/>-v</code></td>
+			<td width="5">&nbsp;</td>
+			<td valign="top" style="border-bottom: 1px #dddddd solid;">Make <b>wpkg</b>
+				talkative. This option asks the different commands to print out information
+				about the different actions they perform.</td>
+		</tr>
+	</tbody>
+</table>
+@END@
+
+</body>
+<!--
+	vim: ts=2
+-->
+</html>

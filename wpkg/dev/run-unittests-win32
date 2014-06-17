@@ -1,0 +1,24 @@
+#!/bin/sh
+# This script assumes that you created a directory named BUILD and compiled
+# the software using the Visual Studio 2010 environment (although newer
+# version should do the same thing.)
+#
+# The software should be initialized with the following steps:
+#    
+#    [...somehow copy the wpkg tarball here...]
+#    tar xf wpkg_0.9.1.tar.gz
+#    cp -r cppunit wpkg_0.9.1/test/unittests
+#    mkdir BUILD
+#    cd BUILD
+#
+#    [WARNING: the following line needs to be run in an MS-DOS window
+#              properly initialized with VS Win64]
+#    cmake -G "Visual Studio 10" ../wpkg_0.9.1
+#
+# Then open your IDE and run Build on the BUILD_ALL target after switching
+# to the Release configuration.
+#
+# Essentially, I wanted to keep track of the command line for myself but
+# thought that this may help others one day.
+
+BUILD/test/unittests/Release/unittest.exe --tmp tmp/sb --wpkg BUILD\\tools\\Release\\wpkg.exe

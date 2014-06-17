@@ -1,0 +1,12 @@
+#!/bin/sh
+
+if test -d sample1
+then
+	cd sample1
+fi
+tar --exclude='*.svn' -cjf data.tar.bz2 usr
+md5sum -b >md5sums `find usr -type f`
+tar czf control.tar.gz control md5sums preinst postinst prerm postrm
+echo 2.0 >debian-binary
+rm -f sample.deb
+ar cqS sample.deb debian-binary control.tar.gz data.tar.bz2

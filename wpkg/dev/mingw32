@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+# Under Ubuntu and most certainly Debian, you may install mingw using
+# the following:
+#
+#    sudo apt-get install g++-mingw-w64-i686 g++-mingw-w64-x86-64 gcc-mingw-w64-i686 gcc-mingw-w64-x86-64
+#
+# It should also install gcc-mingw-w64-base, binutils-mingw-w64-i686,
+# binutils-mingw-w64-x86-64, mingw-w64-dev, which gives you everything
+# you need to compile with the mingw environment; the names should not
+# change between versions of the OS, however, if you are running under
+# 32 bit the -w64- may not be available to you.
+#
+
+SRC=`pwd`
+
+# Ready the build directory
+rm -rf ../tmp/mingw32
+mkdir -p ../tmp/mingw32
+cd ../tmp/mingw32
+
+# Change the GNU_HOST as necessary on your computer
+cmake -DGNU_HOST=i686-w64-mingw32 -DCMAKE_TOOLCHAIN_FILE=$SRC/dev/mingw32-toolchain.cmake $SRC
+
+# Compiler
+VERBOSE=1 make
+
+# At this point we cannot cross-generate the packages since the wpkg we just
+# created is for Win32 and we're under Linux.
+#make wpkg_package

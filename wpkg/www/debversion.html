@@ -1,0 +1,90 @@
+<html>
+<head>
+	<title>Unix/GNU Windows</title>
+	<link rel="stylesheet" href="wpkg.css" type="text/css"/>
+</head>
+<body>
+
+<p class="par">
+	WARNING: this page is the raw page. Look in the doc/* directory instead. If it
+	does not exist, generate it with dev/create_docs
+</p>
+
+@TITLE: debversion@
+@UP: documentation@
+@START@
+<h2 align="center">debversion</h2>
+
+<p class="par">
+	<font size="+4">T</font>esting that a version string is a valid Debian
+	version string can be done with this tool: <b>debversion</b>
+</p>
+
+<p class="par">
+	<font size="+4">T</font>here are two possible command lines. One to test the
+	validity of a version and one to compare two versions against each others.
+</p>
+
+<p class="par">
+	<font size="+4">V</font>erify a version string with the first form:<br/>
+	<center><code>debversion &lt;Debian version&gt;</code></center><br/>
+	In this case, debversion returns 0 if the version string is a valid
+	Debian version and 1 if not.
+</p>
+
+<p class="par">
+	<font size="+4">O</font>ne command line option can be used with the first
+	form:
+</p>
+
+<ul>
+	<li>--canonicalize (or -c) to transform the input into the shortest possible
+			form (i.e. 1.0.0 becomes 1.0; 0:3.5.9 becomes 3.5.9; etc.)</li>
+	<li>--print (or -p) to print the version string as is.</li>
+</ul>
+
+<p class="par">
+	<font size="+4">C</font>ompare two versions using the second form
+	of the command line:<br/>
+	<center><code>debversion &lt;v1&gt; -op &lt;v2&gt;</code></center><br/>
+	In this case the <b>debversion</b> tool compares v1 against v2 and
+	returns one of:
+</p>
+
+<ul>
+	<li><b>0</b> when v1 -op v2 is true;</li>
+	<li><b>1</b> when v1 -op v2 is false;</li>
+	<li><b>2</b> when one of v1 or v2 or both are not valid Debian versions;</li>
+	<li><b>3</b> when -op is not a valid operator.</li>
+</ul>
+
+<p>
+	<font size="+4">T</font>he valid operators are -lt (less than),
+	-le (less or equal), -eq (equal), -ne (not equal), -ge (greater or equal)
+	and -gt (greater.) These are the same as the test command line tool.
+</p>
+
+<p>
+	<font size="+4">W</font>ith --help/-h or no options/version, the tool
+	prints out a usage screen in stderr and exits with 1.
+</p>
+
+<p>
+	<font size="+4">E</font>xamples:
+</p>
+
+<pre>
+  debversion 0:1.2.0-1 -eq 1.2   is true
+  debversion 0:1.2.0-1 -ge 1.2   is true
+  debversion 0:1.2.0-1 -lt 1.2   is false
+  debversion 1:1.2.0-1 -ne 1.2   is true
+  debversion -c 0:1.2.0-1        prints 1.2
+  debversion -c 3:1.2.5-2        prints 3:1.2.5-2
+</pre>
+@END@
+
+</body>
+<!--
+	vim: ts=2
+-->
+</html>

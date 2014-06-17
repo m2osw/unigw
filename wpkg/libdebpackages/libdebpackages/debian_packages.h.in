@@ -1,0 +1,69 @@
+/*    debian_packages -- a library to work with debian packages
+ *    Copyright (C) 2006-2013  Made to Order Software Corporation
+ *
+ *    This program is free software; you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation; either version 2 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License along
+ *    with this program; if not, write to the Free Software Foundation, Inc.,
+ *    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ *    Authors
+ *    Alexis Wilke   alexis@m2osw.com
+ */
+#ifndef DEBIAN_PACKAGES_H
+#define DEBIAN_PACKAGES_H 1
+
+/** \file
+ * \brief Basic definitions for the Debian Packages library.
+ *
+ * This file includes basic definitions and functions that one can access in
+ * C or C++ to determine the library version information as well as the
+ * architecture, processor, operating system, vendor it was built for.
+ *
+ * Other details are also available such as the time when it was built and
+ * the machine on which it is currently running.
+ */
+#include    "libdebpackages/debian_export.h"
+
+/* version of the library */
+#define DEBIAN_PACKAGES_VERSION_MAJOR       @WPKG_VERSION_MAJOR@
+#define DEBIAN_PACKAGES_VERSION_MINOR       @WPKG_VERSION_MINOR@
+#define DEBIAN_PACKAGES_VERSION_PATCH       @WPKG_VERSION_PATCH@
+#define DEBIAN_PACKAGES_VERSION_STRING      "@WPKG_VERSION_MAJOR@.@WPKG_VERSION_MINOR@.@WPKG_VERSION_PATCH@"
+#define DEBIAN_PACKAGES_ARCHITECTURE        "@WPKG_ARCHITECTURE@"
+#define DEBIAN_PACKAGES_PROCESSOR           "@WPKG_PROCESSOR@"
+#define DEBIAN_PACKAGES_OS                  "@WPKG_OS@"
+#define DEBIAN_PACKAGES_VENDOR              "@WPKG_VENDOR@"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+DEBIAN_PACKAGE_EXPORT int debian_packages_version_major();
+DEBIAN_PACKAGE_EXPORT int debian_packages_version_minor();
+DEBIAN_PACKAGE_EXPORT int debian_packages_version_patch();
+DEBIAN_PACKAGE_EXPORT const char *debian_packages_version_string();
+DEBIAN_PACKAGE_EXPORT const char *debian_packages_build_time();
+DEBIAN_PACKAGE_EXPORT const char *debian_packages_architecture();
+DEBIAN_PACKAGE_EXPORT const char *debian_packages_processor();
+DEBIAN_PACKAGE_EXPORT const char *debian_packages_os();
+DEBIAN_PACKAGE_EXPORT const char *debian_packages_vendor();
+DEBIAN_PACKAGE_EXPORT const char *debian_packages_triplet();
+DEBIAN_PACKAGE_EXPORT const char *debian_packages_machine();
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
+// #ifndef DEBIAN_PACKAGES_H
+// vim: ts=4 sw=4 et

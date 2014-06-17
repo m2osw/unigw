@@ -1,0 +1,8 @@
+Package: sample6
+Version: 0.7.0
+Section: admin
+Priority: required
+Essential: Yes
+Architecture: win64-amd64
+Maintainer: alexis@m2sow.com
+Description: Best packager for Windows

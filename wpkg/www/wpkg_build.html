@@ -1,0 +1,443 @@
+<html>
+<head>
+	<title>Unix/GNU Windows</title>
+	<link rel="stylesheet" href="wpkg.css" type="text/css"/>
+</head>
+<body>
+
+<p class="par">
+	WARNING: this page is the raw page. Look in the doc/* directory instead. If it
+	does not exist, generate it with dev/create_docs
+</p>
+
+@TITLE: Building a package@
+@UP: wpkg@
+@PREVIOUS: wpkg_remove@
+@START@
+<p class="par">
+	<font size="+4">B</font>uilding a package with <b>wpkg</b> is done with the
+	<a class="anchor" href="wpkg_opts.html#build">--build</a>
+	option. Though, you can still create the different files
+	<a class="anchor" href="#by_hand">by hand</a>, it is recommended and prefered that you
+	use the <a class="anchor" href="wpkg_opts.html#build">--build</a>
+	command line option from now on.
+</p>
+
+<p class="par">
+	<div class="summary_level1">
+		<li><a href="#debian">Creating a package a la Debian</a></li>
+		<li><a href="#info">Creating packages from a .info file</a></li>
+		<li><a href="#by_hand">Creating a package by hand</a></li>
+		<li><a href="#bugs">Known Bugs</a></li>
+	</div>
+</p>
+
+<h2><a name="debian">Creating a package a la Debian</a></h2>
+
+<p class="par">
+	<font size="+4">T</font>o create a package as you would do with dpkg under Debian,
+	you need to create:
+</p>
+
+<ul>
+	<li>A WPKG (or DEBIAN) folder where you put the different control files;</li>
+	<li>A set of directories and files to be installed on the target machines.</li>
+</ul>
+
+<p class="par">
+	<font size="+4">T</font>he WPKG directory <b>must</b> include a control file. This
+	has to be a valid
+	<a class="anchor" href="wpkg_control.html">control file</a>
+	as defined in this documentation.
+</p>
+
+<table class="warning"><tbody><tr>
+	<td valign="top"><span class="warn_title">WARNING:</span></td>
+	<td class="warn_body">
+		The control file is rewritten by <b>wpkg</b> in order to remove the comments,
+		empty lines and other <b>wpkg</b> acceptable artifacts. It is strongly
+		recommanded that you keep a copy of the control file in a different
+		place. <b>wpkg</b> creates a backup (control.bak) but there is no guarantee
+		that it will work properly. The backup is never included in the output.
+	</td>
+</tr></tbody></table>
+
+<p class="par">
+	<font size="+4">T</font>he other files that are usually put in the WPKG directory
+	are as follow:
+</p>
+
+<ul>
+	<li>preinst &mdash; script executed before the installation begins</li>
+	<li>postinst &mdash; script executed after the installation begins</li>
+	<li>prerm &mdash; script executed before the removal begins</li>
+	<li>postrm &mdash; script executed after the removal begins</li>
+</ul>
+
+<p class="par">
+	<font size="+4">T</font>he md5sums file is automatically created and thus
+	you do not need to include it. <b>wpkg</b> will silently overwrite it if it exists.
+	<b>wpkg</b> never deletes this file.
+</p>
+
+<p class="par">
+	<font size="+4">A</font>t the same level as the <code>WPKG</code> directory,
+	create other directories with the files you want to install. These directories
+	form a structure similar to the structure used on the target machine. For
+	instance, under MinGW, we install the runtime DLLs and executable under the
+	directory named <code>bin</code> or <code>mingw/bin</code>. This is done by
+	creating a <code>bin</code> or <code>mingw/bin</code> directory along the
+	<code>WPKG</code> directory and putting the necessary dynamic libraries and
+	executables in it.
+	<br/>
+	<br/>
+	Examples:<br/>
+		&nbsp; <code>WPKG/control</code><br/>
+		&nbsp; <code>WPKG/postinst</code><br/>
+		&nbsp; <code>bin/wpkg.exe</code><br/>
+		&nbsp; <code>bin/dirsize.exe</code><br/>
+		&nbsp; <code>share/wpkg-0.5/doc/index.html</code><br/>
+		&nbsp; <i>etc.</i>
+</p>
+
+<p class="par">
+	<font size="+4">O</font>nce all of these directories and files are ready,
+	use the following command to build your .deb package:
+</p>
+
+<pre>
+	wpkg --build &lt;path&gt; [&lt;output.deb&gt;]
+</pre>
+
+<p class="par">
+	<font size="+4">T</font>he <code>&lt;path&gt;</code> points to the directory
+	including the WPKG directory (i.e. the parent directory.) If an
+	<code>&lt;output.deb&gt;</code> path and filename are specified, it is used.
+	Otherwise the name is built from the name, version and architecture of the
+	package (i.e. <code>wpkg_@VERSION@_win32-i386.deb</code>). Notice that the
+	package is created in the current directory. Using the
+	<code>&lt;output.deb&gt;</code> extension let's you place the output in a
+	different directory.
+</p>
+
+<h2><a name="info">Creating packages from a .info file</a></h2>
+
+<p class="par">
+	<font size="+4">M</font>ost of the time, when you create a project, you will
+	endup with multiple packages. For instance, you probably want to create one
+	runtime package (.exe and .dll), one documentation package (.html, .info, etc.),
+	one library package (.h and .a), one source package (.c, .pas, .ada, etc.).
+</p>
+
+<p class="par">
+	<font size="+4">B</font>ecause it is tedious to create one control file for
+	each package with the correct description, version, and other common fields,
+	plus create each package one by one making sure you install the right files
+	in each one (and never install the same file twice), <b>wpkg</b> offers a
+	way to create one <i>control</i> file and one directory tree which in
+	general will help you reduce the number of errors dramatically. This
+	special <i>control</i> file is the
+	<a class="anchor" href="wpkg_info.html">info file</a>.
+</p>
+
+<p class="par">
+	<font size="+4">F</font>irst, <b>wpkg</b> checks that all the files in each package
+	do not overlap. This tells you that they will be installed only once and
+	that you can install all the packages without having to force <b>wpkg</b> to do
+	so.
+</p>
+
+<p class="par">
+	<font size="+4">S</font>econd, you create that single <i>control</i> file called
+	the .info file. In general, you name it after your project and append the
+	.info extension (i.e. <code>wpkg.info</code>). This control file includes
+	definitions to let <b>wpkg</b> know how to build all the different packages for
+	your project.
+</p>
+
+<p class="par">
+	<font size="+4">P</font>lease read the description of the
+	<a class="anchor" href="wpkg_info.html">.info file</a> format for
+	detailed information about it. In brief, it looks like a control file
+	with extra fields. Especially, the Sub-Packages field is used to indicate
+	the name of all the sub-packages to create from this .info file.
+</p>
+
+<p class="par">
+	<font size="+4">T</font>hird, you create a WPKG (or DEBIAN) sub-directory
+	in each sub-package directory if you need to include special scripts such
+	as the preinst, prerm, postinst and postrm scripts. If no special scripts
+	or data is necessary, you do not need to create the WPKG directory, <b>wpkg</b>
+	will create it for you.
+</p>
+
+<p class="par">
+	<font size="+4">N</font>ow you are ready to run <b>wpkg</b> to build your packages:
+</p>
+
+<pre>
+	wpkg --build &lt;info file&gt; &lt;root tree&gt;
+</pre>
+
+<p class="par">
+	<font size="+4">U</font>sing the --build command with a plain file as the
+	first parameter tells <b>wpkg</b> that it is used with a .info file.
+	The second parameter (which is mandatory in this case) is the path to the
+	root tree including all the sub-packages data and control files.
+	It is also possible to indicate the root tree path in the .info file
+	using the ROOT_TREE variable.
+</p>
+
+
+
+
+<h2><a name="by_hand">Creating a package by hand</a></h2>
+
+<p class="par">
+	<i><font size="+4">N</font>ote that <b>wpkg</b> now supports the
+	<a class="anchor" href="wpkg_opts.html#build">--build</a>
+	command line option that is the prefered method to create packages.
+	Please, try to use it instead of creating packages by hand.</i>
+</p>
+
+<p class="par">
+	<font size="+4">T</font>he sample coming with <b>wpkg</b> includes a script called
+	<code>build-script</code> which shows each step of the process. There is the script:
+</p>
+
+<pre style="background-color: #f8f8f8;">
+<span style="background-color: #eeeeee;"> 1: </span> <font color="blue">#!/bin/sh</font>
+<span style="background-color: #eeeeee;"> 2: </span> 
+<span style="background-color: #eeeeee;"> 3: </span> tar cjf data.tar.bz2 usr
+<span style="background-color: #eeeeee;"> 4: </span> md5sum -b &gt;md5sums `find usr -type f`
+<span style="background-color: #eeeeee;"> 5: </span> tar czf control.tar.gz control md5sums preinst postinst prerm postrm
+<span style="background-color: #eeeeee;"> 6: </span> echo 2.0 &gt;debian-binary
+<span style="background-color: #eeeeee;"> 7: </span> rm -f sample.deb
+<span style="background-color: #eeeeee;"> 8: </span> ar cqS sample.deb debian-binary control.tar.gz data.tar.bz2
+</pre>
+
+<p class="par">
+	<font size="+4">A</font> .deb package includes at least three files:
+	the debian-binary version specification, the control file and the data
+	file.
+</p>
+
+<p class="par">
+	<font size="+4">T</font>he <b>debian-binary</b> file is used as a mark meaning
+	that this file is a debian package (<b>wpkg</b> does not test the file extension,
+	only this debian-binary file.) The content of the file is only one line of
+	text with the version of the package (notice that this is not the version
+	of what's inside the package!) followed by a new-line character. At this
+	time, we support any version 2 (more precisly, we expect 2.0, 2.1, 2.2, etc.)
+</p>
+
+<p class="par">
+	<font size="+4">C</font>reating the <b>debian-binary</b> file is very easy [line 6]:
+</p>
+
+<pre style="background-color: #f8f8f8;">
+<span style="background-color: #eeeeee;"> 6: </span> echo 2.0 &gt;debian-binary
+</pre>
+
+<p class="par">
+	<font size="+4">T</font>he content of the .deb is described in the <b>control</b>
+	file. The control file is a tarball composed of at least two files. <b>wpkg</b>
+	supports tarballs being compressed using gzip or bzip2&mdash;however, dpkg does
+	not support bzip2 compression of the control file. The corresponding extension
+	must be used or the .deb will not be considered valid by <b>wpkg</b> or dpkg. The two files
+	required are: control and md5sums. Without these two files, the .deb cannot
+	be used for anything. The control file is a list of fields used to
+	describe the package, especially its name, version and the architecture on
+	which is can be installed (see the
+	<a class="anchor" href="wpkg_control.html"><b>wpkg</b> control file</a>
+	for more information.) The md5sums is a list of all the files in the
+	data file with their md5sum. This can be used to make sure that each file
+	is correct when being installed and later to check that installed files
+	have not been modified (especially before being removed, though in version
+	@VERSION@ the md5sums are ignored.)
+</p>
+
+<p class="par">
+	<font size="+4">T</font>he <b>control</b> file can also include scripts
+	to be executed as the package is being installed (<b>preinst</b> and
+	<b>postinst</b>) or removed (<b>prerm</b> and <b>postrm</b>.) All these
+	scripts are also executed when a package is being up- or down-graded
+	(not supported in version 0.1). These scripts are
+	simple shell scripts expected to run with <code>/bin/sh.exe</code>
+	(your PATH needs to be properly setup since <b>wpkg</b> will only use
+	sh.exe as the command and not the full path.)
+</p>
+
+<p class="par">
+	<font size="+4">T</font>he creation of the <b>control</b> file is done
+	with the following few steps.
+</p>
+
+<ol>
+	<li>
+		Create the md5sums file. This is archived using the md5sums tool.
+		You need to have access to the tree of files being packaged. Use the find
+		command to find all the files which need to appear in the md5sums.
+		Notice that we do not include directories in the md5sums list.
+		[line 4]
+	</li>
+<pre style="background-color: #f8f8f8;">
+<span style="background-color: #eeeeee;"> 4: </span> md5sum -b &gt;md5sums `find usr -type f`
+</pre>
+
+	<li>
+		Second you need to create the control file, and if necessary, the
+		preinst, postinst, prerm and postrm scripts. This is not part of
+		the sample script since it is expected to be a one time human
+		effort that cannot be automated.
+	</li>
+
+	<p style="font-style: italic;">
+		Note, however, that this process can be simplified with the use of
+		default scripts that you concatenate to generate the final script.
+	</p>
+
+	<li>
+		Finally, you create the control tarball with tar and compress the
+		tarball. (note: if you write a script to run under MSYS, consider
+		using two lines to create the tar file and one to compress it
+		since the z and j options do not always work correctly under
+		MSYS, especially older versions; also that way you can specify
+		the compression level)
+	</li>
+<pre style="background-color: #f8f8f8;">
+<span style="background-color: #eeeeee;"> 5: </span> tar czf control.tar.gz control md5sums preinst postinst prerm postrm
+</pre>
+or
+<pre style="background-color: #f8f8f8;">
+<span style="background-color: #eeeeee;"> 5: </span> tar cf control.tar control md5sums preinst postinst prerm postrm
+<span style="background-color: #eeeeee;"> 5: </span> gzip -9f control.tar
+</pre>
+</ol>
+
+
+<p class="par">
+	<font size="+4">F</font>inally, the <b>data</b> file is the tarball
+	of all the files to be installed (and removed). The tarball can be
+	compressed with gzip or bzip2 and must have the corresponding
+	extension to work properly. The files saved in this tarball represent
+	your binaries, configuration files, locale text files, manual pages,
+	themes, etc. This is usually what you get when you type the following
+	commands to build your software:
+</p>
+
+<pre>
+	<font color="blue">#!/bin/sh
+	# if any error, stop script</font>
+	set -e
+	configure --prefix=/mingw
+	make
+	make prefix=`pwd`/BUILD install-strip
+	cd BUILD
+	<font color="blue"># generate data tarball for wpkg</font>
+	tar czf ../data.tar.gz *
+</pre>
+
+<p class="par">
+	<font size="+4">T</font>hese files are put in a tarball with their full path
+	but usually without the starting / (it is valid to use "./").
+	Under the MSYS/gnuwin32 system, most user files are expected to be
+	installed under /mingw. However, <b>wpkg</b> root path is /. If the
+	package has files to be installed under /usr, they will instead
+	be placed under /mingw (which is somewhat contrary to what
+	MSYS does since MSYS considers /usr to be equivalent to /.).
+	So for instance, if you create a package with a file in:
+	<code>/usr/bin/my-app.exe</code>, it will be installed as:
+	<code>/mingw/bin/my-app.exe</code>.
+</p>
+
+	<table class="warning"><tbody><tr>
+		<td valign="top"><span class="warn_title">Rational:</span></td>
+		<td class="warn_body">
+			We expect win32 packages to use the proper path,
+			but since it will be possible to install debian packages
+			which are not architecture specific, it is important to
+			include this conversion.
+		</td>
+	</tr></tbody></table>
+
+<p class="par">
+	<font size="+4">I</font>n our sample script, line 3 presents the
+	creation of the tarball compressed with bzip2 and specifically
+	packaging the usr directory.
+</p>
+
+<pre style="background-color: #f8f8f8;">
+<span style="background-color: #eeeeee;"> 3: </span> tar cjf data.tar.bz2 usr
+</pre>
+
+<p class="par">
+	<font size="+4">N</font>ow we have all the elements necessary for
+	the .deb file so we can create it. To create the .deb file you need
+	the ar tool (archive tool used under Unix to create static libraries.)
+	Because this archiver will usually extend an existing file, you must
+	make sure to delete the file if it exists before to recreate it. The
+	file is created using the <b>cqS</b> options (c&mdash;create, q&mdash;quick,
+	S&mdash;no symbol table) followed by the name of the output .deb,
+	and then the debian-binary file which must be the first file added
+	to the archive. The other files can appear in any order though
+	it is usual to put the control file before anything else.
+</p>
+
+<pre style="background-color: #f8f8f8;">
+<span style="background-color: #eeeeee;"> 7: </span> rm -f sample.deb
+<span style="background-color: #eeeeee;"> 8: </span> ar cqS sample.deb debian-binary control.tar.gz data.tar.bz2
+</pre>
+
+<p class="par">
+	<font size="+4">Y</font>ou can use the following command
+	to verify that you got the right files in your package.
+</p>
+
+<pre>
+	<code>ar tv &lt;package&gt;.deb</code>
+</pre>
+
+<p class="par">
+	<font size="+4">I</font>t is possible to include extension files
+	in a package. <b>wpkg</b> (like dpkg) ignores files added in the ar
+	archive when their name start with an underscore (_). For instance,
+	you could include a blog speaking about changes you made in your
+	package but that you do not really want to have installed, yet you
+	still want people to be able to access that file... then name it
+	_blog and add it to the ar command line. Users can extract
+	such files using the --extract or --vextract
+	<a class="anchor" href="wpkg_opts.html">command line flags</a>.
+</p>
+
+<pre>
+	ar cqS sample.deb debian-binary control.tar.gz data.tar.bz2 <font color="#cc5500">_blog</font>
+</pre>
+
+
+<h2><a name="bugs">Known Bugs</a></h2>
+
+<p class="par">
+	<font size="+4">T</font>he --build option makes use of a temporary
+	directory to temporarily save the control.tar.gz, data.tar.gz and
+	debian-binary files in a sub-directory. <b>wpkg</b> needs to be able to
+	create that sub-directory or it will fail building the packages.
+	If you have problems with the default temporary folder, try the
+	<a class="anchor" href="wpkg_opts.html#tempdir">--tempdir</a>
+	option to specify a directory you have access to and
+	is readable and writable by you (i.e. $HOME/tmp).
+</p>
+
+<p class="par">
+	<font size="+4">N</font>ote that the sub-directory is named
+	<code>wpkg-&lt;process id&gt;</code> which should be unique.
+</p>
+
+
+@END@
+
+</body>
+<!--
+	vim: ts=2
+-->
+</html>

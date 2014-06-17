@@ -1,0 +1,14 @@
+Package: arthur
+Version: 1.299-2
+Architecture: win32-i386
+Description: This is a sample to test wpkg
+  This sample is used to test wpkg and make sure that things happen in
+  the right order (such as the preinst and postinst, etc.)
+  .
+  Testing the -I option and empty lines.
+Maintainer: Alexis Wilke <alexis@m2osw.com>
+Extra-Size: 2048
+X-Built-On: $(ctime(time()))
+X-Packager-Version: ${wpkg:Version}
+X-Developer-Name: ${DEVNAME}
+X-Color-Code: ${COLOR}

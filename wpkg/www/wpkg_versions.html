@@ -1,0 +1,553 @@
+<html>
+<head>
+	<title>Unix/GNU Windows</title>
+	<link rel="stylesheet" href="wpkg.css" type="text/css"/>
+</head>
+<body>
+
+<p class="par">
+	WARNING: this page is the raw page. Look in the doc/* directory instead. If it
+	does not exist, generate it with dev/create_docs
+</p>
+
+@TITLE: Versions@
+@UP: wpkg@
+@NEXT: wpkg_control@
+@PREVIOUS: wpkg_name@
+@START@
+<p class="par">
+	<font size="+4">T</font>here are many versions dealt with in a
+	package and this page will tries to answer all of the questions
+	in that regard.
+</p>
+
+<p class="par">
+	<div class="summary_level1">
+		<a class="anchor" href="#format">Format</a><br/>
+		<a class="anchor" href="#comparison">Comparison</a><br/>
+		<a class="anchor" href="#package">Package</a><br/>
+		<a class="anchor" href="#depends">Depends</a><br/>
+		<a class="anchor" href="#build-depends">Build-Depends</a><br/>
+		<a class="anchor" href="#deb">.deb file</a><br/>
+		<a class="anchor" href="#wpkg">wpkg</a><br/>
+	</div>
+</p>
+
+<br/>
+
+<h2><a name="format">Format</a></h2>
+
+<p class="par">
+	<font size="+4">F</font>irst there is a description of how one
+	can write a package version. It is important to understand that
+	you cannot write a version with any random character. The different
+	software which have to deal with a version number need to be
+	able to sort packages in the right order using their version
+	numbers.
+</p>
+
+	<table class="warning"><tbody><tr>
+		<td valign="top"><span class="warn_title">Rational:</span></td>
+		<td class="warn_body">
+			In order for the packager to know whether it is installing a
+			newer or older version, it is necessary for it to know exactly
+			whether one version is smaller or larger than the other. This
+			gives the packager the possibility to down-grade and up-grade
+			your software.
+		</td>
+	</tr></tbody></table>
+
+<p class="par">
+	<font size="+4">A</font> version is composed of one to three parts,
+	the simplified syntax is:
+</p>
+<pre>
+	[epoch:]source_version[-revision]
+</pre>
+<p>
+	The epoch and revision numbers are optional simple decimal numbers
+	([0-9]). The source version can include multiple numbers ([0-9])
+	and letters ([a-zA-Z]) separated by periods (.). The following
+	explains what each part is used for.
+</p>
+
+<ul>
+	<li>epoch</li>
+	<p>
+		The epoch is one integer number ([0-9]+) assumed to start at
+		zero (0) followed by a colon (:).
+	</p>
+	<p>
+		The epoch is used when a newer version would otherwise compare
+		as older in regard to any one older version of the package.
+		The epoch is tested first. Within an epoch, the source_version
+		much be unique and must properly identify the order of the
+		packages.
+	</p>
+	<p>
+		When is this necessary? Say you find a package with version 1.3.
+		You decide to create a package for UniGW and name it 1.3. Later,
+		the author of the source makes a small fix and calls the newer
+		version 1.31. Again, you can create a new package and use that
+		version 1.31. Some time later, the author comes up with a new
+		version. This one is named 1.4. If you want to keep the author
+		version (which is the usual way to do things), you still need
+		to make sure that wpkg recognizes 1.4 as newer than 1.31. This
+		is done with the epoch. 1.3 and 1.31 are considered as being
+		0:1.3 and 0:1.31 respectively. You can therefore create a newer
+		version 1:1.4.
+	</p>
+
+		<table class="warning"><tbody><tr>
+			<td valign="top"><span class="warn_title">Note:</span></td>
+			<td class="warn_body">
+				In this case you may instead want to correct the source version
+				and either use:
+				<ul>
+					<li>1.30 and 1.40 for main versions, or</li>
+					<li>1.3.1 for the intermediate release.</li>
+				</ul>
+				Yet, in some cases, this can also be really confusing!
+			</td>
+		</tr></tbody</table>
+
+	<p>
+		It is rather rare that you will need to use the epoch, so before
+		you do that, think about it.
+	</p>
+
+	<li>source_version</li>
+	<p>
+		This version is usually what the source tarball uses as its
+		version. It is also called the upstream version.
+		The source version can include digits ([0-9]), letters ([a-zA-Z])
+		and periods (.). If the source package uses any other character,
+		it will need to be transformed to fit this scheme.
+	</p>
+	<p>
+		It is suggested that you should not use a source_version composed
+		exclusively of zeroes (i.e. 0, 0.0, 0.0.0, etc.)
+	</p>
+	<p>
+		wpkg, for instance, started with source version 0.1.
+	</p>
+
+	<li>revision</li>
+	<p>
+		The revision is an integer ([0-9]+) preceded by a minus (-). The
+		default is 1 (i.e. you do not need to put -1 at the end of a version).
+	</p>
+	<p>
+		The revision is used as the revision number of the package. It is
+		assumed to start at 1 and goes up incrementally each time you
+		change the control information of the package (i.e. each time
+		you change something in the control file other than the version
+		of the package.)
+	</p>
+	<p>
+		It is useful each time you find a bug in your package and create
+		a new package from the same source tarball. It usually is reset
+		each time you change the source version (some people prefer to
+		keep increasing the revision number since that represents the
+		version of their package.)
+	</p>
+	<p>
+		The revision number cannot be set to 0.
+	</p>
+</ul>
+
+<h2><a name="comparison">Comparison</a><sup><a class="anchor" href="#comparison_note1">1</a></sup></h2>
+
+<p class="par">
+	<font size="+4">T</font>o compare two versions between each others,
+	the system compares each part of the version one by one always
+	starting from the left.
+</p>
+
+<p class="par">
+	<font size="+4">T</font>he comparison stops as soon as a part is
+	not equal. The result of that non-equal part comparison is the
+	result of the whole version comparison. If all the parts are
+	equal, then the versions are equal.
+</p>
+
+		<table class="warning"><tbody><tr>
+			<td valign="top"><span class="warn_title">Note:</span></td>
+			<td class="warn_body">
+				You cannot simply test two strings for equality since the version
+				strings "1.2.0" and "1.2" are not equal if directly compared with
+				strcmp() but will be found as equal with the version comparison.
+			</td>
+		</tr></tbody</table>
+
+<p class="par">
+	<font size="+4">T</font>here are two types of parts: major and minor.
+	The system compares minor parts one by one within one major part
+	before to move on to the next major part.
+</p>
+
+	<ul>
+		<li>Major</li>
+		<p>
+			The major parts one those separated the colon (:), period (.) and
+			minus (-) characters.
+		</p>
+		<p>
+			Note, however, that the epoch and revision parts of two versions
+			are always compared together. Thus, if the <code>source_version</code>
+			is <i>missing</i> some entries in one of the input versions,
+			empty strings for letters and zeroes (0) for numerical comparisons
+			are appended except for the revision. When a revision is missing
+			one (1) is used instead of zero (0).
+		</p>
+<pre>
+	2:5.3.2a-5 compared with 5.3
+	becomes
+	2:5.3.2a-5 compared with 0:5.3.0-1
+	                               /\
+	       empty string compared against "a"
+</pre>
+		<li>Minor</li>
+		<p>
+			Each major part is composed of one or more minor parts. One minor
+			part is either a string of letters ([a-zA-Z]+) or a decimal number
+			composed exclusively of digits ([0-9]+).
+		</p>
+		<p>
+			In the following figure, the third major part is <b>ab57pre</b>. It
+			is composed of three minor parts: <b>ab</b>, <b>57</b> and
+			<b>pre</b>.
+		</p>
+	</ul>
+
+<p>
+	<center>
+		<img src="images/version-sample.png" border="1"/>
+		<br/>
+		<span class="figure">Fig 1. how a version string is cut in pieces</span>
+	</center>
+</p>
+
+<p class="par">
+	<font size="+4">T</font>he strings of letters in minor parts are compared
+	lexically not taking the case in account (i.e. 'a' equals 'A'.) When
+	one version has a string minor part and not the other, the other is assumed
+	to have an empty string minor part (""). A string minor part has priority
+	over an integer minor part.
+</p>
+
+<pre>
+	1.a3 &gt; 1.4 because "a" &gt; ""
+	1.3a &lt; 1.4 because 3 &lt; 4
+	1.abc &lt; 1.b because "abc" &lt; "b"
+</pre>
+
+<p class="par">
+	<font size="+4">T</font>he decimal numbers in minor parts are compared
+	numerically. Leading zeroes are ignored. When the minor part of one of
+	the versions is empty or undefined, it is considered to be the decimal
+	number zero.
+</p>
+
+<pre>
+	1.2 &gt; 1.0.5 because 2 &gt; 0
+	3.5.0 = 3.5 since the 3rd part in 3.5 is considered to be 0
+	2.5a &lt; 2.5a1 because 0 &lt; 1
+	4.2a34 &lt; 4.2a100 because 34 &lt; 100
+</pre>
+
+<p class="par">
+  <font size="+4">T</font>o compare the full version A <b>2:3p.g.2q3-5</b>
+	against the version B <b>2:3p.g.2q4</b> we generate the following
+	table:
+</p>
+
+<table align="center" bgcolor="#f8f8f8" border="1" cellspacing="0" cellpadding="3">
+	<tbody>
+		<tr>
+			<th bgcolor="#f6fcff" rowspan="2">Name</th>
+			<th bgcolor="#f6fcff" colspan="2">Major</th>
+			<th bgcolor="#f6fcff" colspan="2">Minor</th>
+			<th bgcolor="#f6fcff" rowspan="2">Result</th>
+		</tr>
+		<tr>
+			<th bgcolor="#f6fcff">A</th>
+			<th bgcolor="#f6fcff">B</th>
+			<th bgcolor="#f6fcff">A</th>
+			<th bgcolor="#f6fcff">B</th>
+		</tr>
+		<tr>
+			<td valign="top">Epoch</td>
+			<td valign="top">2</td>
+			<td valign="top">2</td>
+			<td valign="top">2</td>
+			<td valign="top">2</td>
+			<td valign="top">equal</td>
+		</tr>
+		<tr>
+			<td valign="top" rowspan="2">Source<br/><small>Major</small></td>
+			<td valign="top" rowspan="2">3p</td>
+			<td valign="top" rowspan="2">3p</td>
+			<td valign="top">3</td>
+			<td valign="top">3</td>
+			<td valign="top">equal</td>
+		</tr>
+		<tr>
+			<td valign="top">p</td>
+			<td valign="top">p</td>
+			<td valign="top">equal</td>
+		</tr>
+		<tr>
+			<td valign="top">Source<br/><small>Minor</small></td>
+			<td valign="top">g</td>
+			<td valign="top">g</td>
+			<td valign="top">g</td>
+			<td valign="top">g</td>
+			<td valign="top">equal</td>
+		</tr>
+		<tr>
+			<td valign="top" rowspan="3">Source<br/><small>Bug&nbsp;Fixes</small></td>
+			<td valign="top" rowspan="3">2q3</td>
+			<td valign="top" rowspan="3">2q4</td>
+			<td valign="top">2</td>
+			<td valign="top">2</td>
+			<td valign="top">equal</td>
+		</tr>
+		<tr>
+			<td valign="top">q</td>
+			<td valign="top">q</td>
+			<td valign="top">equal</td>
+		</tr>
+		<tr>
+			<td valign="top">3</td>
+			<td valign="top">4</td>
+			<td valign="top">A &lt; B<sup>(1)</sup></td>
+		</tr>
+		<tr>
+			<td valign="top">Revision</td>
+			<td valign="top">5</td>
+			<td valign="top">5</td>
+			<td valign="top">1<sup>(2)</sup></td>
+			<td valign="top">1<sup>(2)</sup></td>
+			<td valign="top">&mdash;</td>
+		</tr>
+		<tr>
+			<td bgcolor="white" colspan="6">
+				<small><sup>(1)</sup> comparison stops here</small>
+				<br/>
+				<small><sup>(2)</sup> defaults to 1 when not included</small>
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<p class="par">
+	<font size="+4">W</font>hen it is necessary to compare a
+	version such as 1.2 with 1.2.3, it is assumed that 1.2
+	represents 1.2.0 and thus is older. For this reason, it
+	is important to keep the epoch and revision numbers
+	clearly separate from the source version. The following
+	table shows the comparison between the version A
+	<b>3:2.5.7.4-2</b> and version B <b>3:2.5-2</b>.
+</p>
+
+<table align="center" bgcolor="#fafafa" border="1" cellspacing="0" cellpadding="5">
+	<tbody>
+		<tr>
+			<th bgcolor="#f6fcff">Name</th>
+			<th bgcolor="#f6fcff">A</th>
+			<th bgcolor="#f6fcff">B</th>
+			<th bgcolor="#f6fcff">Result</th>
+		</tr>
+		<tr>
+			<td>epoch</td>
+			<td align="right">3</td>
+			<td align="right">3</td>
+			<td>equal</td>
+		</tr>
+		<tr>
+			<td>source_version</td>
+			<td align="right">2</td>
+			<td align="right">2</td>
+			<td>equal</td>
+		</tr>
+		<tr>
+			<td>source_version</td>
+			<td align="right">5</td>
+			<td align="right">5</td>
+			<td>equal</td>
+		</tr>
+		<tr>
+			<td>source_version</td>
+			<td align="right">7</td>
+			<td align="right">0</td>
+			<td>A &gt; B</td>
+		</tr>
+		<tr>
+			<td>source_version</td>
+			<td align="right">4</td>
+			<td align="right">0</td>
+			<td>&mdash;</td>
+		</tr>
+		<tr>
+			<td>revision</td>
+			<td align="right">2</td>
+			<td align="right">2</td>
+			<td>&mdash;</td>
+		</tr>
+	</tbody>
+</table>
+
+<p class="par">
+	<font size="+4">A</font>s we can see, the comparison stops as soon
+	as one of the numbers does not match. The result of the whole comparison
+	is the result of that specific pair of numbers. Note that the two
+	<i>missing</i> sub-versions in 3:2.5-2 are replaced by 0.
+</p>
+
+		<table class="warning"><tbody><tr>
+			<td valign="top"><span class="warn_title"><a name="comparison_note1">Note&nbsp;1:</a></span></td>
+			<td class="warn_body">
+				Debian also support the character plus (+) in their versions.
+				That character would need to be considered as larger than 'z'
+				and 'Z'. At this time, there does not seem much of a need
+				to include that character in a version, however. Thus
+				wpkg will not accept a plus in a version.
+			</td>
+		</tr></tbody</table>
+
+
+
+<h2><a name="package">Package</a></h2>
+
+<p class="par">
+	<font size="+4">E</font>ach package has a version. This version is
+	saved in the <a class="anchor" href="wpkg_control.html#version">Version</a>
+	field of the control file.
+</p>
+
+<p class="par">
+	<font size="+4">T</font>his is the version used to know whether you
+	are upgrading or downgrading a package you are trying to install.
+	It is also the version used to compare between modules to know whether
+	you have a compatible version of a required package.
+</p>
+
+
+
+<h2><a name="depends">Depends</a></h2>
+
+<table align="center" class="warning"><tbody><tr>
+	<td valign="top"><span class="warn_title">WARNING:</span></td>
+	<td class="warn_body">
+		The Depends field is not checked in version 0.1 of wpkg.
+	</td>
+</tr></tbody></table>
+
+<p class="par">
+	<font size="+4">M</font>ost packages will have a list of sub-packages they
+	depend on. For instance, the DLL version of the z library depends on the
+	base mingw package which includes the MinGW DLL library. And the
+	international version of bison depends on gettext to print out messages
+	properly.
+</p>
+
+<p class="par">
+	<font size="+4">T</font>he
+	<a class="anchor" href="wpkg_control.html#depends">Depends</a> field
+	is a list of package names optionaly followed by a minimum, maximum, equal
+	or range of versions for that package. When such a version is specified,
+	it is compared against the
+	<a class="anchor" href="wpkg_control.html#version">Version</a>
+	field of the named package.
+</p>
+
+<pre>
+  Depends: sswf (&gt;= 1.6.1)
+  <i>means the following test must be true</i>
+  installed_packages["sswf"].version &gt;= 1.6.1
+</pre>
+
+
+
+
+<h2><a name="build-depends">Build-Depends</a></h2>
+
+<table align="center" class="warning"><tbody><tr>
+	<td valign="top"><span class="warn_title">WARNING:</span></td>
+	<td class="warn_body">
+		The Build-Depends field is not checked in version 0.1 of wpkg.
+	</td>
+</tr></tbody></table>
+
+<p class="par">
+	<font size="+4">L</font>ike Depends, you have a
+	<a class="anchor" href="wpkg_control.html#build-depends">Build-Depends</a>
+	field which lists packages with their versions. This part is used whenever
+	you want to build the package to make sure that you have all the necessary
+	tools to build the package successfully.
+</p>
+
+
+
+
+<h2><a name="deb">.deb file</a></h2>
+
+<p class="par">
+	<font size="+4">T</font>he .deb files have a version embedded in
+	them. That version is currently 2.0 (which is also what dpkg currently
+	supports.) This version is written on one line including one new-line
+	character (\n only, no \r!). That one line is saved in a file named
+	<code>debian-binary</code>. This <code>debian-binary</code> file is
+	added first in the .deb package.
+</p>
+
+<p class="par">
+	<font size="+4">I</font>t is assumed that all versions of wpkg which
+	support a version 2, will be capable of supporting all the versions
+	2.x (2.0, 2.1, 2.2, etc.)
+</p>
+
+<p class="par">
+	<font size="+4">T</font>o check the version of a .deb file, use the
+	<a class="anchor" href="wpkg_opts.html#info">--info command</a>.
+	The version is displayed as the <i>Debian package version</i>.
+	Because this is mainly for the different wpkg tools to check for
+	compatibility, there is no great interface to extract this version
+	(and it should not be necessary anyway.)
+</p>
+
+
+
+
+<h2><a name="wpkg">wpkg</a></h2>
+
+<p class="par">
+	<font size="+4">O</font>f course, wpkg, the tool, also has a version
+	of its own. You can query the wpkg version with the
+	<a class="anchor" href="wpkg_opts.html#version">--version</a>
+	option.
+</p>
+
+<p class="par">
+	<font size="+4">T</font>he wpkg version is composed of two decimal
+	numbers separated by a period as in <b>0.1</b>.
+</p>
+
+<p class="par">
+	<font size="+4">I</font>t is likely that the wpkg packages will also
+	be as simple since in most cases the maintainer of wpkg will make sure
+	the package is working as expected. Yet, once in a while, you may see
+	a revision number on the package name (as in:
+	<code>wpkg_0.1-2_win32-i386.deb</code>)
+</p>
+
+
+
+@END@
+
+</body>
+<!--
+	vim: ts=2
+-->
+</html>

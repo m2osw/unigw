@@ -1,0 +1,12 @@
+prefix=${instdir}${install_prefix}
+exec_prefix=${prefix}
+includedir=${prefix}/include
+libdir=${exec_prefix}/lib
+
+Source-Project: wpkg
+Name: libutf8
+Cflags: -I${includedir}/wpkg -I${includedir}
+Libs: -L${libdir} -lutf8
+Version: ${version}
+Description: Library used to convert UTF-8 to wide characters (UTF-16 or UCS-4)
+URL: ${homepage}

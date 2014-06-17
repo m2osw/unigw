@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+
+rm -rf tmp/freebsd
+mkdir -p tmp/freebsd
+cd tmp/freebsd
+
+cmake -DCMAKE_TOOLCHAIN_FILE=../../dev/freebsd-toolchain.cmake ../..
+
+VERBOSE=1 make
+
+export LD_LIBRARY_PATH=/usr/local/lib/gcc48
+make wpkg_package
+

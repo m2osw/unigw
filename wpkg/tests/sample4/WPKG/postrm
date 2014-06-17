@@ -1,0 +1,3 @@
+#!/bin/sh
+
+echo "postrm script called with: [$*] from [`pwd`]"

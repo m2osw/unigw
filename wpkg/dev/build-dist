@@ -1,0 +1,18 @@
+#!/bin/sh
+# Script used to create a dist directory that I can in turn use to build
+# the pkg-explorer tool.
+
+set -e
+
+SRC="`pwd`"
+rm -rf ../tmp/build-dist
+mkdir -p ../tmp/build-dist
+#mkdir -p ../tmp/build-dist/documentation
+cd ..
+DIST="`pwd`/dist"
+rm -rf $DIST
+cd tmp/build-dist
+cmake -DCMAKE_INSTALL_PREFIX=$DIST $SRC
+make
+make install
+

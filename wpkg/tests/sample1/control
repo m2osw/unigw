@@ -1,0 +1,6 @@
+Package: sample1
+Version: 3.0
+Architecture: win32-i386
+Description: This is a sample to test wpkg
+  This sample is used to test wpkg and make sure that things happen in
+  the right order (such as the preinst and postinst, etc.)

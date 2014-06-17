@@ -1,0 +1,97 @@
+/* Style Sheet for wpkg home page */
+body {
+	font-family: serif;
+}
+.authors {
+	padding: 5px;
+	color: grey;
+	font-style: italic;
+	font-height: 80%;
+}
+a.menu {
+	color: black;
+	text-decoration: none;
+}
+a.menu:hover {
+	color: white;
+	background-color: #888888;
+}
+a.anchor {
+	color: #8888ff;
+	text-decoration: none;
+	font-style: italic;
+}
+a.anchor:hover {
+	color: #003388;
+	background-color: #cccccc;
+}
+a.note_link {
+	color: #8888ff;
+	text-decoration: none;
+	vertical-align: super;
+	font-size: 70%;
+}
+a.note_link:hover {
+	color: #003388;
+	background-color: #cccccc;
+}
+.par {
+	padding-top: 5px;
+	text-indent: 20px;
+	letter-spacing: 0.05em;
+	line-height: 1.4em;
+}
+.note {
+	border-top: 1px solid #cccccc;
+	margin-top: 5px;
+	padding-top: 5px;
+	padding-left: 20px;
+	text-indent: -20px;
+	font-size: 80%;
+	letter-spacing: 0.05em;
+	line-height: 1.4em;
+}
+.warning {
+	border: 1px #ffe8e8 solid;
+	background-color: #fff8f8;
+	padding-top: 5px;
+	font-size: 80%;
+	font-style: italic;
+}
+.warn_title {
+	color: red;
+}
+.foot_note {
+	font-size: 80%;
+}
+.summary_level1 {
+	margin-left: 20px;
+}
+.summary_level2 {
+	margin-left: 40px;
+}
+.field-info {
+	color: #aaaaaa;
+	font-size: 70%;
+	font-style: italic;
+}
+.subpackage-asterisk {
+	color: #8888ff;
+	font-size: 70%;
+	font-style: italic;
+	vertical-align: super;
+	text-decoration: none;
+}
+.subpackage-asterisk:hover {
+	color: #003388;
+}
+.figure {
+	color: #888888;
+	font-size: 75%;
+	font-style: italic;
+}
+.copyright {
+	color: #888888;
+	font-size: 80%;
+	font-style: italic;
+}

@@ -1,0 +1,58 @@
+/*    expr.h -- an expression evaluator implementation
+ *    Copyright (C) 2007-2013  Made to Order Software Corporation
+ *
+ *    This program is free software; you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation; either version 2 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License along
+ *    with this program; if not, write to the Free Software Foundation, Inc.,
+ *    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ *    Authors
+ *    Alexis Wilke   alexis@m2osw.com
+ */
+#ifndef LIBEXPR_EXPR_H
+#define LIBEXPR_EXPR_H
+
+/** \file
+ * \brief The expression evaluator.
+ *
+ * The expression library has an internal expression class used to compute
+ * a result. The evaluator gives you access to that expression and computes
+ * the result for you. The advantage is that you are given a way to
+ * add your own user functions to the evaluation mechanism.
+ */
+#include	"libexpr/variable.h"
+#include	<vector>
+
+namespace libexpr
+{
+
+#define LIBEXPR_VERSION_STRING "@WPKG_VERSION_MAJOR@.@WPKG_VERSION_MINOR@.@WPKG_VERSION_PATCH@"
+
+
+
+class EXPR_EXPORT expr_evaluator : public variable_list
+{
+public:
+	typedef std::vector<variable>	arglist;
+
+	virtual ~expr_evaluator();
+
+	void eval(const std::string& expr, variable& result);
+
+	virtual void call_function(std::string& name, arglist& list, variable& result);
+};
+
+
+
+}	// namespace libexpr
+#endif
+// LIBEXPR_EXPR_H

@@ -1,0 +1,12 @@
+prefix=${instdir}${install_prefix}
+exec_prefix=${prefix}
+includedir=${prefix}/include
+libdir=${exec_prefix}/lib
+
+Source-Project: wpkg
+Name: libexpr
+Cflags: -I${includedir}/wpkg -I${includedir}
+Libs: -L${libdir} -lexpr
+Version: ${version}
+Description: Library used to compute C-like expressions.
+URL: ${homepage}

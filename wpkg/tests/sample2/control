@@ -1,0 +1,12 @@
+Package: sample2
+Version: 3.0
+Depends: sample1 (> 3.0)
+#Priority: required
+#Priority: important
+#Essential: yes
+Conflicts: sample3 (< 2.0)
+Architecture: win32-i386
+Description: This is a sample to test wpkg
+  This sample was added to test the Depends field. To be able to
+  install this sample, you need to install sample1 first.
+  (unless you use --force-depends)

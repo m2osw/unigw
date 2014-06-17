@@ -1,0 +1,77 @@
+[ENVIRONMENT]
+The wpkg tool accept
+.B $WPKG_OPTIONS
+with additional options.
+.PP
+The libdebpackages library understands the
+.B $HOME
+variable for filenames that start with a tilde (~).
+.PP
+The libdebpackages library reads the
+.B $WPKG_SUBST
+variable to replace drive letters with the corresponding directory.
+This is used to simulate the Microsoft DOS drive letters on any platforms.
+.PP
+Under MS-Windows, the libdebpackages library understands several variables
+used to determine the machine being used (see wpkg --machine). Those
+variables are:
+.IP
+.BR %PROCESSOR_ARCHITEW6432% ,
+.br
+.BR %PROCESSOR_ARCHITECTURE% ,
+and
+.br
+.B %PROCESSOR_IDENTIFIER%
+.PP
+The libdebpackages library and tools that need to run a batch script under
+Microsoft Windows make use of the
+.B %COMPSPEC%
+variable as the command interpreter.
+[FILES]
+The wpkg tool makes use of the
+.B wpkg.conf
+file found in:
+.IP
+.B /etc/wpkg/wpkg.conf
+.PP
+and under your HOME directory:
+.IP
+.B $HOME/.config/wpkg/wpkg.conf
+.PP
+The libdebpackages library makes use of files saved under the specified
+administration directory. The default is
+.B /var/lib/wpkg
+using the current letter drive under a MS-Windows operating system.
+[REPORTING BUGS]
+Please, report bugs on SourceForge.net using the following address:
+.IP
+.B http://sourceforge.net/projects/unigw/
+.PP
+We'll be glad to help with any problem that you find with wpkg.
+[AUTHOR]
+Alexis Wilke (alexis@m2osw.com)
+.br
+Doug Barbieri (doug@m2osw.com)
+[SEE ALSO]
+.BR dar (1),
+.BR deb2graph (1),
+.BR deb2html (1),
+.BR debversion (1),
+.BR dirsize (1),
+.BR rc-version (1),
+.BR wpkg (1)
+.PP
+The full documentation for
+.B "@TOOL@"
+is maintained as HTML on this page:
+.IP
+.B http://windowspackager.org/documentation
+.PP
+Those pages will give you all the details you need to understand each
+command line instruction appearing in this manual.
+[COPYRIGHT]
+The wpkg suite is a copyright of:
+.IP
+Made to Order Software Corporation (c) 2006-2013
+.br
+All rights reserved.

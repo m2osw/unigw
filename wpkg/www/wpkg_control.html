@@ -1,0 +1,489 @@
+<html>
+<head>
+	<title>Unix/GNU Windows</title>
+	<link rel="stylesheet" href="wpkg.css" type="text/css"/>
+</head>
+<body>
+
+<p class="par">
+	WARNING: this page is the raw page. Look in the doc/* directory instead. If it
+	does not exist, generate it with dev/create_docs
+</p>
+
+@TITLE: Control file fields@
+@UP: wpkg@
+@PREVIOUS: wpkg_versions@
+@START@
+<p class="par">
+	<font size="+4">T</font>he following table describes the fields and variables
+	currently understood by <b>wpkg</b>. It also includes those reserved for later
+	versions of <b>wpkg</b>. The order of the fields is not important.
+</p>
+
+<p class="par">
+	<font size="+4">Y</font>ou will find the
+	<a class="anchor" href="#grammar">complete control file grammar</a>
+	as supported by <b>wpkg</b> at the bottom of this page. However, there is a
+	brief overview of what is supported in this file format:
+</p>
+
+<ul>
+	<li>Empty lines (ignored)</li>
+	<li>Comments (ignored)</li>
+	<li>Fields; a name followed by a colon (:) and an optional value</li>
+	<li>Variables; a name followed by an equal (=) and an optional value</li>
+</ul>
+
+<p class="par">
+	<font size="+4">L</font>ong field and variable lines are supported.
+	To continue a field or a variable on the following lines, hit enter
+	and put at least one space before the content. This can be done on
+	any number of lines as required.
+</p>
+
+<p class="par">
+	<font size="+4">N</font>ot standard for debian control files,
+	<b>wpkg</b> supports empty lines and comments introduced with
+	the # character. If you use the
+	<a class="anchor" href="wpkg_opts.html#build">--build</a>
+	command with <b>wpkg</b>, empty lines and comments will be removed
+	before saving the control file in the binary package. This ensures
+	better compatibility. As a side effect, the fields are saved in
+	alphabetical order.
+</p>
+
+<table border="1" cellspacing="0" cellpadding="5">
+	<tbody>
+		<tr>
+			<th>Field</th>
+			<th>Comment</th>
+		</tr>
+		<tr>
+			<td valign="top"><a name="architecture">Architecture</a><a class="note_link" href="#subpackage">[1]</a><br/>
+				<span class="field-info">mandatory</span></td>
+			<td valign="top"><b>wpkg</b> supports:
+					<ul>
+						<li>win32-i386</li>
+						<li>any</li>
+						<li>all</li>
+						<li>source</li>
+					</ul>
+					Trying to install or build a package with another architecture will
+					fail with an error.
+					<br/>
+					<br/>
+					The --build option manages an architecture of <code>source</code>
+					in a special way when it comes to automatically name an output
+					package. A source package gets <code>src</code> as its architecture
+					in the filename. For instance, for the <b>wpkg</b> project it would
+					be <code>wpkg_@VERSION@_src.deb</code>.
+					</td>
+		</tr>
+		<tr>
+			<td valign="top"><a name="bugs">Bugs</a></td>
+			<td valign="top">URL to a page where bugs in link with this package
+					can be reported.</td>
+		</tr>
+		<tr>
+			<td valign="top"><a name="build-depends">Build-Depends</a><a class="note_link" href="#subpackage">[1]</a></td>
+			<td valign="top">Binary dependencies required to build (i.e. compile) this
+					package. This is the same as the <a class="anchor" href="#depends">Depends</a>
+					field but for developers.
+					<br/>
+					&nbsp;
+					<table class="warning"><tbody><tr>
+						<td valign="top"><span class="warn_title">Rational:</span></td>
+						<td class="warn_body">
+							No other source package can be required. This makes sense since header
+							files, static and dynamic libraries are put in binary packages with
+							the -devel added to the package name. Also it would not make sense
+							that you'd need to include files from the source directory of another
+							package without having to install that package first.
+						</td>
+					</tr></tbody></table>
+					<br/>
+					<table class="warning"><tbody><tr>
+						<td valign="top"><span class="warn_title">WARNING:</span></td>
+						<td class="warn_body">
+							This is ignored by version @VERSION@ of <b>wpkg</b>.
+						</td>
+					</tr></tbody></table>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top"><a name="conflicts">Conflicts</a><a class="note_link" href="#subpackage">[1]</a></td>
+			<td valign="top">Defines the list of packages that cannot be installed
+					at the same time as this one. For instance, there are two regex libraries
+					one from Spencer and one from GNU. Both define the same POSIX header file:
+					regex.h and thus both cannot be installed simultaneously (and since both
+					offer the same functionality, it would not be necessary to have both at
+					once.) This Conflicts field can be used to make sure both packages
+					cannot be installed simultaneously.
+			</td>
+		</tr>
+		<tr>
+			<td valign="top"><a name="depends">Depends</a><a class="note_link" href="#subpackage">[1]</a></td>
+			<td valign="top">Dependencies required to install this package
+					on your system. The installation of a package fails until all
+					of of its dependencies are satisfied. In general these are
+					binary dependencies, yet it is possible for a documentation
+					or other non-binary package to reference another.
+					<br/>
+					<br/>
+					The syntax of this field is a list of library names separated
+					by commas and optionally followed by a version between parenthesis.
+					The version number can be preceeded by a comparison operator.
+					There is no comparison for a range. If you want to support only
+					a library within only a small range of versions, then you need to
+					define the lower bound and the higher bound separately.
+					<br/>
+<pre>
+<font color="blue"># Example</font>
+Depends: libz (&gt;= 1.2.3), jpeg (= 6b),
+	png (&gt;= 1.2.3), png (&lt; 2.0)
+</pre>
+					The following is the full grammar for this entry:
+<pre>
+depends:
+	  DEPENDS ':' depends_list
+
+depends_list:
+	  depspec
+	| depspec ',' depends_list
+
+depspec:
+	  DEPNAME
+	| DEPNAME depversion
+
+depversion:
+	  '(' VERSION ')'
+	| '(' '&lt;&lt;' VERSION ')'
+	| '(' '&lt;=' VERSION ')'
+	| '(' '&gt;&gt;' VERSION ')'
+	| '(' '&gt;=' VERSION ')'
+	| '(' '=' VERSION ')'
+</pre>
+					The version comparisons are strictly equal (=), strictly earlier (&lt;&lt;),
+					strictly later (&gt;&gt;), earlier or equal (&lt;=) and later or equal (&gt;=).
+					By default, when no operator is specified, it is assumed that later or
+					equal (&gt;=) was specified.
+			</td>
+		</tr>
+		<tr>
+			<td valign="top"><a name="description">Description</a><a class="note_link" href="#subpackage">[1]</a><br/>
+				<span class="field-info">mandatory</span></td>
+			<td valign="top">Describe the package on one short line (max. about 70 chars)
+					followed by a long description. The long description must start on the
+					next line. The long description is optional.</td>
+		</tr>
+		<tr>
+			<td valign="top"><a name="essential">Essential</a><a class="note_link" href="#subpackage">[1]</a><br/>
+				<span class="field-info">required if <b>yes</b></span></td>
+			<td valign="top">This flag is a boolean value, which by default is assumed to be
+					set to <b>no</b>. When set to <b>yes</b>, the corresponding package cannot be
+					removed. In general, this is used for system packages that cannot be removed
+					without breaking your system (in which case you could as well delete the
+					whole directory tree.)</td>
+		</tr>
+		<tr>
+			<td valign="top"><a name="installed-size">Installed-Size</a><a class="note_link" href="#subpackage">[1]</a></td>
+			<td valign="top">The size in kilobytes (1024 bytes round up) written in decimal of
+					the amount of disk space necessary to install the files from this package.
+					One can use <b>wpkg</b> with
+					<a class="anchor" href="wpkg_opts.html#directory_size">--directory-size &lt;path&gt;</a>
+					or the <a class="anchor" href="dirsize.html">dirsize</a> tool to define this size.<br/>
+					<br/>
+					When using the <a class="anchor" href="wpkg_opts.html#build">--build</a>
+					option, the Installed-Size field is automatically added if not already
+					defined. It is strongly suggested that, unless you do some magic such as
+					create large files in a postinst script, you let <b>wpkg</b> define this
+					field.</td>
+		</tr>
+		<tr>
+			<td valign="top"><a name="maintainer">Maintainer</a><br/>
+				<span class="field-info">mandatory</span></td>
+			<td valign="top">The name and email address of the maintainer of this package.
+					For example:
+<pre>
+	<span style="padding-bottom: 2px; border-bottom: 1px solid #ccccff;">Alexis Wilke (alexis_wilke@sourceforge.net)</span>
+</pre>
+					</td>
+		</tr>
+		<tr>
+			<td valign="top"><a name="origin">Origin</a></td>
+			<td valign="top">The name of the project where the source comes from
+					(UniGW, GNU, Debian, Gnome, etc.)</td>
+		</tr>
+		<tr>
+			<td valign="top"><a name="package">Package</a><a class="note_link" href="#subpackage">[1]</a><br/>
+				<span class="field-info">mandatory</span></td>
+			<td valign="top">Specify the exact name of the package. Any package name
+					can include letters [a-zA-Z], digits [0-9], plus (+), minus (-) and
+					periods (.). It must start with a letter or a digit and be at least
+					2 characters. It is prefered to use an English name for packages
+					to be used worldwide.</td>
+		</tr>
+		<tr>
+			<td valign="top"><a name="pre-depends">Pre-Depends</a><a class="note_link" href="#subpackage">[1]</a></td>
+			<td valign="top">Name of the packages that must be installed <u>and configured</u> before
+					this package can be installed at all. Otherwise, this is the same as the
+					<a class="anchor" href="#depends">Depends</a> field.</td>
+		</tr>
+		<tr>
+			<td valign="top"><a name="package">Priority</a><a class="note_link" href="#subpackage">[1]</a><br/>
+				<span class="field-info">recommended</span></td>
+			<td valign="top">One of:
+					<ul>
+						<li>required <i>(cannot be removed with <b>wpkg</b>)</i></li>
+						<li>important</li>
+						<li>standard</li>
+						<li>optional</li>
+						<li>extra</li>
+					</ul>
+					<b>wpkg</b> is a required package. It is the minimum package necessary
+					to run <b>wpkg</b> properly and add new software to your environment.
+					Some of the MSYS packages are marked important (so your configure scripts
+					function) or standard (these are not required for a configure script to
+					work.) Most of the gnuwin32 packages are marked optional unless they
+					are used by most of the other software (i.e. gettext) in which case
+					they are marked standard. Those packages that conflict with any
+					others are marked extra. This means you may have to remove some other
+					packages to install a given extra package.
+			</td>
+		</tr>
+		<tr>
+			<td valign="top"><a name="package">Provides</a><a class="note_link" href="#subpackage">[1]</a></td>
+			<td valign="top">The name following the Provides field must follow the same rules
+					the name of a <a class="anchor" href="#package">Package</a> follows. This can
+					later be used as the name of a package in the
+					<a class="anchor" href="#depends">Depends</a> fields of another package as long
+					as no version is specified.
+
+					In general, it is used when two completely different projects offer exactly
+					the same functionality. The most common example are two packages offering
+					a mail server. The Depends field can be written like this:
+<pre>
+Depends: mail-server
+</pre>
+					If the packages providing the mail server define a Provides field like this:
+<pre>
+Provides: mail-server
+</pre>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top"><a name="root_tree">ROOT_TREE</a><br/><span class="field-info">info file variable</span></td>
+			<td valign="top">The ROOT_TREE variable can be used in a .info file to specify
+				the directory where the files to be packaged are. It is possible to specify
+				the path to the root tree on the command line in which case the ROOT_TREE
+				variable is ignored.
+				<br/>
+				<br/>
+				When the variable ROOT_TREE is not an absolute path, it is taken as a local
+				path from the directory where the .info file is located (i.e. if you create
+				<code>C:\MyProject\fields.info</code> and have a <code>ROOT_TREE=packages</code>,
+				then the root is expected to be: <code>C:\MyProject\packages</code>). This is
+				different from a local path on the command line that is instead taken from the
+				current directory.
+			</td>
+		</tr>
+		<tr>
+			<td valign="top"><a name="section">Section</a><br/><span class="field-info">recommended</span></td>
+			<td valign="top">The Section field describes what this package is used for. The
+					currently valid section names are:
+					<i>[To Be Determined! these are from Debian]</i>
+					<ul>
+						<li>admin</li>
+						<li>base</li>
+						<li>comm</li>
+						<li>contrib</li>
+						<li>devel</li>
+						<li>doc</li>
+						<li>editors</li>
+						<li>electronics</li>
+						<li>embedded</li>
+						<li>games</li>
+						<li>gnome</li>
+						<li>graphics</li>
+						<li>hamradio</li>
+						<li>interpreters</li>
+						<li>kde</li>
+						<li>libs</li>
+						<li>libdevel</li>
+						<li>mail</li>
+						<li>math</li>
+						<li>misc</li>
+						<li>net</li>
+						<li>news</li>
+						<li>non-free</li>
+						<li>oldlibs</li>
+						<li>otherosfs</li>
+						<li>perl</li>
+						<li>python</li>
+						<li>science</li>
+						<li>shells</li>
+						<li>sound</li>
+						<li>tex</li>
+						<li>text</li>
+						<li>utils</li>
+						<li>web</li>
+						<li>x11</li>
+					</ul>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top"><a name="sub_packages">Sub-Packages</a><br/>
+				<span class="field-info">mandatory in info files,<br/>forbidden in control files</span></td>
+			<td valign="top">This field is used to list all the sub-packages that <b>wpkg</b> needs to create.
+				It is part of the info file and not the control file. If it appears in a control file,
+				<b>wpkg</b> fails creating the package. Each sub-package name must be separated by a comma.
+				For instance:
+				<br/>
+				<br/>
+				<code>&nbsp; Sub-Packages: runtime*, devel, doc, src</code>
+				<br/>
+				<br/>
+				The sub-package names are used to generate the mangled name of a package:
+				<br/>
+				<br/>
+				<code>&lt;Package&gt;-&lt;Sub-Packages&gt;_&lt;version&gt;_&lt;architecture&gt;.deb</code>
+				<br/>
+				<br/>
+				The Sub-Packages name is not used when it ends with an asterisk. In that case it is
+				totally ignored.
+				<br/>
+				<br/>
+				There is one other case when the mangling is different: when the Architecture is set to
+				<code>source</code>. In that case, the Package name is used and the &lt;architecture&gt;
+				part of the name is set to <code>src</code>.
+			</td>
+		</tr>
+		<tr>
+			<td valign="top"><a name="version">Version</a><br/><span class="field-info">mandatory</span></td>
+			<td valign="top">Specify the exact version of the package content. The
+					format is [epoch:]source_version[-revision].
+					<br/>
+					<a class="anchor" href="wpkg_versions.html">More about versions</a>.
+			</td>
+		</tr>
+		<tr>
+			<td valign="top"><a name="source">X-Source</a></td>
+			<td valign="top">URL to the source tarball</td>
+		</tr>
+	</tbody>
+</table>
+<br/>
+<table>
+	<tbody>
+		<tr>
+			<td valign="top">
+				<a class="note_link" name="subpackage">[1]</a>
+			</td>
+			<td>
+				<span class="foot_note">
+				This field can be made specific to a sub-package by appending
+				the sub-package name after a foreward slash (/). For instance,
+				if you have a <b>doc</b> sub-package, you can write:
+				<br/>
+				<br/>
+				<code>&nbsp; Architecture/doc: any</code>
+				<br/>
+				<br/>
+				meaning that the doc sub-package has no
+				architecture specific requirements. See the
+				<a class="anchor" href="wpkg_info.html">info file</a>
+				definition for more information.
+				</span>
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<h2><a name="grammar">Control file grammar</a></h2>
+<p class="par">
+	<font size="+4">T</font>his section is highly technical and it should only
+	interest developers who want to create tools parsing control files as supported
+	by <b>wpkg</b>. Though, in the next version of <b>wpkg</b> (0.6, I hope) you
+	will be able to use the libdebpackages.a library instead. That way you will be
+	100% compatible!
+</p>
+
+<p class="par">
+	<font size="+4">T</font>his information is based on the dpkg definitions:
+	<a class="anchor" href="http://www.debian.org/doc/debian-policy/ch-controlfields.html#s-binarycontrolfiles">5.3 Binary package control files -- DEBIAN/control</a>
+</p>
+
+<pre>
+start:
+	  fields_and_comments
+
+fields_and_comments:
+	  field_or_comment
+	| field_or_comment fields_and_comments
+
+field_or_comment
+	  field_list
+	| variable_list
+	| comment
+	| nl		<font color="blue">// empty lines</font>
+
+field_list:
+	  field
+	| field field_list
+
+field:
+	  name ':' value
+	| name ':' value extended_field
+
+variable_list:
+	  variable
+	| variable variable_list
+
+variable:
+	  name '=' value
+	| name '=' value extended_field
+
+extended_field:
+	  nl_value
+	| nl_value extended_field
+
+nl_value:
+	  nl space value
+
+name:
+	  letter_or_digit
+	| letter_or_digit name
+
+letter_or_digit:
+	  'A' through 'Z' case insensitive
+	| '0' through '9'
+	| '-'
+
+value:
+	  char
+	| char value
+
+char:
+	  <i>any non-control character (' '..0x7E)</i>
+
+comment:
+	  '#' char '\n'
+
+space:
+	  ' '
+	| '\t'
+
+nl:
+	  '\n'
+	| '\r'
+	| '\r' '\n'
+</pre>
+
+
+@END@
+
+</body>
+<!--
+	vim: ts=2
+-->
+</html>

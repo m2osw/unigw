@@ -1,0 +1,33 @@
+Package: sample4
+Version: 5.0
+#Architecture: win32-i386
+Architecture: $(architecture())
+Priority: required
+Description: This is a sample to test wpkg
+ This sample is used to test wpkg and make sure that things happen in
+ the right order (such as the preinst and postinst, etc.)
+ .
+ Testing the -I option and empty lines.
+Maintainer: Alexis Wilke <alexis@m2osw.com>
+Copyright: 2006-2013 (c) Made to Order Software Corporation
+Urgency: CRITICAL (dead stupid mistake resulting in an SSA)
+Provides: electricity
+Extra-Size: 3
+Essential: Yes
+Pre-Depends: boost-dev (>> 1.30) [amd64]
+Depends: arthur (>> 1.34) [linux-i386 win32] | arthur (>> 1.38) [linux-amd64 win64], foo-bar
+Build-Depends: wpkg-dev (>> 0.7.1)
+Build-Conflicts: radio-dev (>> 3.2.7)
+#Files-Owner: 0/root
+#Files-Group: 0/root
+Bugs: https://sourceforge.net/p/unigw/discussion/647573/
+Homepage: http://windowspackager.org/
+Section: ocaml
+Distribution: wpkg/samples
+DM-Upload-Allowed: Yes
+Vcs-Browser: https://sourceforge.net/p/snapcpp/code/ci/288267168f09e0b4674e8b6559aadf1dd388ac49/tree/
+Standards-Version: 3.9.4.0
+X-Built-On: $(ctime(time()))
+X-Packager-Version: ${wpkg:Version}
+X-Developer-Name: ${DEVNAME}
+X-Color-Code: ${COLOR}

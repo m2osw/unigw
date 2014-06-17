@@ -1,0 +1,48 @@
+<html>
+<head>
+	<title>Unix/GNU Windows</title>
+	<link rel="stylesheet" href="wpkg.css" type="text/css"/>
+</head>
+<body>
+
+<p class="par">
+	WARNING: this page is the raw page. Look in the doc/* directory instead. If it
+	does not exist, generate it with dev/create_docs
+</p>
+
+@TITLE: Installing a package@
+@UP: wpkg@
+@NEXT: wpkg_remove@
+@START@
+<p class="par">
+	<font size="+4">I</font>nstalling a UniGW package with wpkg is very simple.
+	The following are the two steps process:
+</p>
+
+<ol>
+	<li>Download the .deb that you want to install</li>
+	<li>In your MSYS console, type:</li>
+	<pre>	wpkg --install <i>&lt;package-name&gt;</i>.deb</pre>
+</ol>
+
+<p class="par">
+	<font size="+4">O</font>nce the package was installed, you can delete the
+	.deb file. It it not necessary for the good functioning of the installed
+	package. wpkg keeps the necessary files in its datbase to know how to
+	configure and remove the package as required.
+</p>
+
+<table class="warning"><tbody><tr>
+	<td valign="top"><span class="warn_title">WARNING:</span></td>
+	<td class="warn_body">
+		wpkg must be installed as <code>/mingw/bin/wpkg.exe</code> for
+		this command to work properly. This is automatic when you install USYS.
+	</td>
+</tr></tbody></table>
+@END@
+
+</body>
+<!--
+	vim: ts=2
+-->
+</html>

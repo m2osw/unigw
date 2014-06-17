@@ -1,0 +1,79 @@
+#!/bin/sh
+set -e
+rm -rf BUILD/pack
+mkdir -p BUILD/pack
+cd BUILD/pack
+# We have to regenerate everything to get the right folder
+cmake -D CMAKE_INSTALL_PREFIX=/usr ../..
+make
+
+# Runtime
+mkdir -p out/WPKG
+DESTDIR=`pwd`/out cmake -D COMPONENT=runtime -P cmake_install.cmake
+echo 'Package: wpkg
+Version: ${wpkg:Version}
+Architecture: linux-amd64
+Description: wpkg to package and manage complex installations under MS-Windows
+  The wpkg tool allows you to package, install, remove, and purge packages on
+  a MS-Windows environment. It supports any number of installations, packages
+  up to 2Gb in size, dependencies, many very dynamic capabilities, auto-install
+  dependencies from a repository, and much more.
+  .
+  This packager is a clone of dpkg. It is written in C++ with a library so you
+  can write your own tools using the exact same code and quickly browse
+  packages created with wpkg or dpkg alike.
+Maintainer: Alexis Wilke <alexis@m2osw.com>
+Copyright: 2006-2013 (c) Made to Order Software Corporation
+Essential: Yes' >out/WPKG/control
+tools/wpkg -b out
+
+# Development
+rm -rf out
+mkdir -p out/WPKG
+DESTDIR=`pwd`/out cmake -D COMPONENT=development -P cmake_install.cmake
+echo 'Package: wpkg-dev
+Version: ${wpkg:Version}
+Architecture: linux-amd64
+Description: wpkg to package and manage complex installations under MS-Windows
+  The wpkg tool allows you to package, install, remove, and purge packages on
+  a MS-Windows environment. It supports any number of installations, packages
+  up to 2Gb in size, dependencies, many very dynamic capabilities, auto-install
+  dependencies from a repository, and much more.
+  .
+  This packager is a clone of dpkg. It is written in C++ with a library so you
+  can write your own tools using the exact same code and quickly browse
+  packages created with wpkg or dpkg alike.
+  .
+  This package includes the files you need to build your own tools to manage
+  Debian packages.
+Maintainer: Alexis Wilke <alexis@m2osw.com>
+Depends: wpkg
+Copyright: 2006-2013 (c) Made to Order Software Corporation
+Essential: Yes' >out/WPKG/control
+tools/wpkg -b out
+
+# Documentation
+rm -rf out
+mkdir -p out/WPKG
+DESTDIR=`pwd`/out cmake -D COMPONENT=documentation -P cmake_install.cmake
+echo 'Package: wpkg-doc
+Version: ${wpkg:Version}
+Architecture: all
+Description: wpkg to package and manage complex installations under MS-Windows
+  The wpkg tool allows you to package, install, remove, and purge packages on
+  a MS-Windows environment. It supports any number of installations, packages
+  up to 2Gb in size, dependencies, many very dynamic capabilities, auto-install
+  dependencies from a repository, and much more.
+  .
+  This packager is a clone of dpkg. It is written in C++ with a library so you
+  can write your own tools using the exact same code and quickly browse
+  packages created with wpkg or dpkg alike.
+  .
+  This package includes the files you need to build your own tools to manage
+  Debian packages.
+Maintainer: Alexis Wilke <alexis@m2osw.com>
+Copyright: 2006-2013 (c) Made to Order Software Corporation
+Recommended: wpkg
+Essential: Yes' >out/WPKG/control
+tools/wpkg -b out
+

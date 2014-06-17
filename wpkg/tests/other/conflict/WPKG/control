@@ -1,0 +1,13 @@
+Package: conflict
+Version: 2.1a
+Architecture: win32
+Description: This is the conflict sample which is part of wpkg
+  This sample is used to test wpkg and make sure that things happen in
+  the right order (such as the preinst and postinst, etc.)
+  .
+  Testing the -I option and empty lines.
+Maintainer: Alexis Wilke <alexis@m2osw.com>
+X-Built-On: $(ctime(time()))
+X-Packager-Version: ${wpkg:Version}
+X-Developer-Name: ${DEVNAME}
+X-Color-Code: ${COLOR}

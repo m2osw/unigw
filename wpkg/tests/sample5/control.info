@@ -1,0 +1,13 @@
+Sub-Packages: runtime*, doc, src
+Package: sample5
+Package/doc: sample5-documentation
+Version: 2.450.12.4
+Architecture/runtime: win64-amd64
+Architecture/doc: all
+Architecture/src: source
+Description: This is a sample to test wpkg
+  This sample is used to test wpkg and make sure that things happen in
+  the right order (such as the preinst and postinst, etc.)
+Maintainer: Alexis Wilke <alexis@m2osw.com>
+ROOT_TREE=.
+Section: video

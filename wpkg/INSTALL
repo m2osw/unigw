@@ -1,0 +1,243 @@
+Installation Instructions
+*************************
+
+Copyright (c) 2006-2013 by Made to Order Software Corporation
+
+This file is part of the wpkg project.
+http://windowspackager.org/
+
+Supported Platforms
+===================
+
+At this point wpkg has been compiled and running under Linux
+(Ubuntu), MS-Windows (32/64), and Mac OS/C (Darwin 10.6+).
+You may compile wpkg with gcc/g++ or MSC (Visual Studio or
+NMake and cl/link.)
+
+Under MS-Windows you may use the Microsoft IDE, mingw32, or
+cygwin. In case of mingw32 and cygwin dependencies to those
+implementations are created. With the Microsoft IDE, you can
+get wpkg.exe and run it without any additional dependencies.
+
+Creating a Target Installation
+==============================
+
+Now you have wpkg installed (see below) and you want to manage a
+target installation tree on your MS-Windows system. This is done
+with the creation of a directory where you install the "core package".
+This is a fake package that has information about the wpkg tool
+handling that installation. There is a sample in the dev directory
+named sample.admindir. This is installed with wpkg using this
+command line:
+
+  cd <target-directory>
+  wpkg --root . --create-admindir sample.admindir
+
+You should edit the sample.admindir to your liking, especially you
+want to change the architecture to your system (win32-i386 is for
+Windows 32bit, use win64-amd64 for Windows 64bit.) The name and
+email address of the maintainer can be fake information as long as
+it can be considered a valid email address.
+
+Architectures: Windows 32 bit   win32-i386
+               Windows 64 bit   win64-amd64
+               Linux 32 bit     linux-i386
+               Linux 64 bit     linux-amd64
+               Darwin 32 bit    darwin-i386
+               Darwin 64 bit    darwin-amd64
+
+
+Installing the Binary
+=====================
+
+Since wpkg is a tool to install packages needed to build that tool,
+we generally offer a compiled version of the tool. No special DLL
+libraries are required. The tool should work as is on your system.
+(i.e. we offer the .exe as is, not a setup.exe!)
+
+Download the latest version of wpkg.exe from SourceForget.net
+
+     http://sourceforge.net/projects/unigw/files/
+
+ . 64 bit version
+
+   If you have a 64 bit platform, you may find a wpkg64.exe instead.
+   You may want to rename the wpkg64.exe file to wpkg.exe because it
+   will be named that way in the .deb packages.
+
+ . No executable
+
+   If you do not see a wpkg.exe or they do not work with your version
+   of MS-Windows, then you will have to look for the source code and
+   compile. Note that all dependencies are included in the project
+   so the only thing you will need is a build environment (VC++ IDE,
+   nmake, etc.) We'll try to always offer a pre-compiled
+   version though.
+
+If you are downloading wpkg to install many Unix like packages, then
+you want to create a target installation directory that looks like a
+Unix environment. In other words, place wpkg in a bin directory and
+add that directory your %PATH% environment variable.
+
+   C:\Program Files (x86)\mingw32\bin
+
+Know however that wpkg makes use of an installation directory placed
+under \var\lib\wpkg by default. You'll want to use the --root command
+like option to specify your target directory:
+
+   wpkg --root "C:/Program File (x86)/mingw32" ...
+
+The one advantage with this technique is that you can create as many
+environment as you need on a single computer.
+
+
+Installing the Package
+======================
+
+If you already have wpkg installed, you may want to upgrade it using
+the wpkg package instead of the binary. This way you will get additional
+files installed (copyright information, documentation, development
+files, other tools such as dar and debversion, etc.)
+
+Since version 0.8.0 wpkg knows how to upgrade itself. This works by
+having the tool copy itself using a different executable filename
+and running that copy to do the installation. The result is that the
+wpkg.exe file can be overwritten. This is completely transparent to
+you.
+
+However, if you installed an older version, this won't happen since
+older versions did not know how to do that. So with an older version
+you have to manually rename your existing wpkg.exe tool in something
+else (i.e. wpkg-old.exe) and run that renamed tool. This will install
+the new wpkg.exe and all the other goodies offered in the installation
+package(s) of wpkg.
+
+Note that the wpkg package is marked as being Essential and Required.
+This means you cannot remove it by mistake (i.e. even the
+--force-remove-essentials is not enough to remove wpkg.)
+
+Obviously, before you can install the wpkg package, you must have a
+binary version of wpkg. The easiest is to start by downloading the
+wpkg.exe as described in the previous paragraph.
+
+
+Compiling wpkg
+==============
+
+Dependencies:
+
+All the include and source files used by wpkg are included in the package
+(i.e. 100% self-contained.) We only use the default system headers.
+
+  Under a Unix system (Linux, mingw32/MSYS, cygwin, etc.)
+
+  . cmake -- tool used to generate the Makefile
+  . make -- execute the Makefile instructions
+  . g++ -- C++ compiler (should also work with other compilers like icc)
+  . tar -- tool to manage tarballs (to extract the source)
+  . gzip -- tool to handle compressed tarballs (to extract the source)
+
+  Under MS-Windows (Visual Studio)
+
+  . cmake -- tool used to generate the project and solution files
+  . VC++ -- Visual Studio (tested with VC2010)
+  . 7zip -- tool to manage compressed tarballs (to extract the source)
+
+The new version of wpkg makes use of cmake to build the necessary project
+files and solution (for MSVC IDE or NMake) or Makefiles (for mingw32 or
+Linux). The process should be quite painless, although at this point we
+have not been testing mingw32 nor cygwin at all.
+
+The following are the steps you should have to follow to get wpkg
+recompiled:
+
+  1. Download the source code from SourceForge.net
+
+     http://sourceforge.net/projects/unigw/files/
+
+  2. Extract the source code
+
+     gunzip wpkg-0.7.0.tar.gz
+     tar xf wpkg-0.7.0.tar
+
+     Note:
+       tar xzf works under Linux, it does not always work under mingw32/MSYS.
+
+  3. Create a BUILD directory (i.e. output)
+
+     mkdir BUILD
+
+     Note:
+       It is generally done OUTSIDE of the newly decompressed source
+       directory so that way we avoid spoiling the source with the
+       cmake and compiler generated files.
+
+  4. Run cmake from inside the BUILD directory
+
+     cd BUILD
+     cmake ../wpkg-0.8.0
+
+     Note:
+       You may have to select what compiler suite you want cmake to
+       use before cmake works properly. Under Linux, that's generally
+       done automatically. Under MS-Windows, to use NMake you need to
+       start a console with the corresponding Visual Studio studio
+       (look in the Visual Studio folder, you'll find a console entry
+       there) and you select the compiler with the -G command line
+       option of cmake. To get a list of generators, run cmake --help,
+       it appears at the end of the help.
+
+     Warning:
+       Note that I have had many problems with the cmake configuration
+       in the Visual Studio environment. If you make changes to the
+       CMakeLists.txt files, once in a while, you may have to exit
+       Visual Studio, delete your entire BUILD folder and regenerate
+       the files with cmake (from scratch! which is why you want
+       a separate BUILD folder as it makes it very easy to rerun this
+       procedure.)
+
+  5a. Run make to build the source code (console based)
+
+     make
+
+     nmake     (if you used -G "NMake Makefiles")
+
+     Note:
+       Under Linux, you may run make from the source directory with
+       a command similar to this one:
+
+         make -C ../BUILD
+
+  5b. Run the build from within Visual Studio (IDE based)
+
+     From the IDE, build the ALL_BUILD target (not the entire solution).
+     Once the Release target was built, you can run the build of the
+     wpkg_package to create the wpkg packages. After that you can use
+     the Build Solution option and it will work although it will
+     regenerate the packages each time.
+
+
+Under MS-Windows, you may want to make use of the graphical version of
+cmake. In that case, you want to specify the build directory and the
+source directory and click on Configure once or twice, then on Generate
+once. The output will depend on what you selected when asked by cmake.
+
+To package the result, do:
+
+     make package
+
+To repackage the source code, do:
+
+     make package_source
+
+To create the wpkg project packages, do:
+
+     make wpkg_package
+
+For other instructions, look at the output of:
+
+     make help
+
+
+
+

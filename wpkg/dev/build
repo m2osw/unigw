@@ -1,0 +1,127 @@
+#!/bin/sh
+#
+#    wpkg -- a windows packager
+#    Copyright (C) 2006-2013  Made to Order Software Corporation
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License along
+#    with this program; if not, write to the Free Software Foundation, Inc.,
+#    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+#    Authors
+#    Alexis Wilke   alexis@m2osw.com
+#
+
+set -e
+
+SRC=`pwd`
+HELP=false
+OPTIONS=
+while test -n "$1"
+do
+    case "$1" in
+    --help|-h)
+        HELP=true
+        ;;
+
+    #--debug)
+    #    # TODO: fix this for cmake / make combo
+    #    OPTIONS="$OPTIONS --enable-debug"
+    #    ;;
+
+    *)
+        echo "wpkg: error: unknown option $1; try --help"
+        exit 1;
+
+    esac
+    shift
+done
+
+if $HELP
+then
+    echo
+    echo "wpkg: help: Usage dev/build [-opt]"
+    echo "wpkg: help: This script MUST be started from the main directory"
+    echo "wpkg: help: options are:"
+    #echo "wpkg: help:   --debug           create debug version"
+    echo "wpkg: help:   --help or -h      show this help screen"
+    echo
+    exit 1;
+fi
+
+
+
+# Build everything, run the unit tests, package the result
+# If an error occurs, the process stops early
+
+rm -rf ../tmp/build
+mkdir -p ../tmp/build/tests/output
+mkdir -p ../tmp/build/documentation
+cd ../tmp/build
+cmake $SRC
+make
+
+# Retrieve the version
+VERSION=`tools/wpkg --version`
+OUTPUTDIR="$SRC/../packages/$VERSION"
+
+echo "Compiled version $VERSION"
+echo "Saving all output in $OUTPUTDIR, overwriting previous copy if any..."
+
+mkdir -p "$OUTPUTDIR"
+
+cp documentation/wpkg-doc_*.tar.gz "$OUTPUTDIR"
+
+# Now that we have a copy of wpkg, let's create a source package
+(
+    cd $SRC
+    ../tmp/build/tools/wpkg --build --output-dir "$OUTPUTDIR"
+)
+
+# Unit tests run when you do dev/coverage and that's better because we have
+# more debug turned on!
+#tests/unittest/unittest --tmp tests/output --wpkg tools/wpkg
+
+for prog in tools/dar tools/deb2graph tools/deb2html tools/debversion tools/dirsize tools/rc-version tools/wpkg libexpr/c_expr
+do
+    p=`basename $prog`
+    case $p in
+    dar) name="manage Debian archives" ;;
+    deb2graph) name="create graphics of Debian packages and their dependencies" ;;
+    deb2html) name="create HTML pages from Debian packages linking them together and creating an index" ;;
+    debversion) name="validate, canonicalize, and compare Debian versions" ;;
+    dirsize) name="compute the size of a directory (similar to du)" ;;
+    rc-version) name="generate a resource file to incorporate a MS-Windows version in your application" ;;
+    wpkg) name="generate and manage Debian packages" ;;
+    c_expr) name="evaluate a C like expressions from a command line prompt" ;;
+    esac
+    sed -e "s/@TOOL@/$p/g" $SRC/documentation/manual-see_also.h2m.in >documentation/manual-see_also.h2m
+    help2man --name="$name" --section=1 --source=m2osw --output="$SRC/documentation/$p.1" \
+            --help-option=--help-nobr --no-info --include=documentation/manual-see_also.h2m $prog
+    tools/wpkg --quiet --force-overwrite --compress $SRC/documentation/$p.1 --compressor gzip
+done
+
+# Get the source tarball
+make package_source
+cp wpkg_${VERSION}.tar.gz $OUTPUTDIR
+# Put a copy on my website so I can wget it from anywhere
+cp wpkg_${VERSION}.tar.gz /usr/clients/www/alexis.m2osw.com/public_html/usys/
+
+# Get the binary packages
+make wpkg_package
+cp WPKG/packages/*.deb $OUTPUTDIR
+
+# Finally copy our current README file
+cp $SRC/README $OUTPUTDIR
+
+
+# vim: ts=4 sw=4 et

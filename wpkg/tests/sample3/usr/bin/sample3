@@ -1,0 +1,3 @@
+#!/bin/sh
+
+echo "sample3: Looks like the sample worked."

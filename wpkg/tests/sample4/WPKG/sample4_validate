@@ -1,0 +1,3 @@
+#!/bin/sh
+
+echo "global hook sample4_validate script called with: [$*] from [`pwd`]"

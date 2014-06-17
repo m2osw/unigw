@@ -1,0 +1,18 @@
+# File Meta Data for the data.tar.gz files in this package
+# Only files that need specialized information need to be listed here
+#
+# Format as shown below. A dash is used when the default is good enough.
+# Special files (links, character, block, fifo, etc.) can be defined here
+# only and they will be added to the data.tar.gz file automatically.
+#
+# Type/Mode  User       Group     Date             Device   Filename
+-rw-r--r--   1/adm      1/adm     20130101T000000  -        /usr/share/doc/sample4/copyright
+#crw-r--r--   3/console  101/user  20130101T000000  5,1      +/dev/console
+#brw-rw-rw-   4/lp       102/lp    20130101T000000  7,2      +/dev/lp
+#drwxr-xr-x   0/root     0/root    20130101T000000  -        +/dev/bus
+#prw-rw-rw-   0/root     0/root    20130101T000000  -        +/dev/com
+#lrwxrwxrwx   1/adm      0/root    20130101T000000  -        +/dev/modem -> ../sr0
+-r--r--r--   -          -         20130101T000000  -        /usr/share/doc/sample4/README.txt
+#-r--r--r--   0/root     0/root    20130101T000000  -        +/usr/share/doc/sample4/ChangeLog
+#-r--r--r--   0/root     0/root    20130101T000000  -        /usr/*
+#drwxr-xr-x   0/root     0/root    20130101T000000  -        /usr/*

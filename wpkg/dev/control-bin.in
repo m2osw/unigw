@@ -1,0 +1,16 @@
+Package: wpkg
+Version: @WPKG_VERSION_MAJOR@.@WPKG_VERSION_MINOR@.@WPKG_VERSION_PATCH@
+Section: base
+Priority: required
+Maintainer: Alexis Wilke <alexis@m2osw.com>
+Source: http://downloads.sourceforge.net/unigw/wpkg_@WPKG_VERSION_MAJOR@.@WPKG_VERSION_MINOR@.@WPKG_VERSION_PATCH@_src.tar.gz
+Origin: UniGW
+Bugs: https://sourceforge.net/tracker/?group_id=183451&atid=905294
+Build-Depends: cmake
+Installed-Size: %SIZE%
+Architecture: win32-i386
+Distribution: @WPKG_DISTRIBUTION@
+Essential: yes
+Description: The Win32 packager tool
+  This package is the Win32 packager used to install, remove and otherwise
+  manage your packages under the MSYS/GnuWin32 systems.

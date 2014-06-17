@@ -1,0 +1,24 @@
+Source Maintainers:
+
+  Alexis Wilke <alexis@m2osw.com>
+  Doug Barbieri <doug@m2osw.com>
+
+Copyright:
+
+  A variety of people and entities, as befits the nature of the package.
+  wpkg as a whole is copyrighted by Made to Order Software Corporation.
+  The package includes libraries such as zlib and bzip2 which have their
+  own copyright information.
+
+License:
+
+  wpkg is copyrighted under the GPL v2+ (GNU General Public License
+  version 2 or any later version.)
+
+  Some other licenses apply to other code such as the z and bz2
+  libraries.
+
+  Each source code file usually starts with a statement about its
+  license. The wpkg license can be found in the main folder of the
+  source as the COPYING file.
+

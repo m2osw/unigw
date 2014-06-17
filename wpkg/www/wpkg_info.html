@@ -1,0 +1,202 @@
+<html>
+<head>
+	<title>Unix/GNU Windows</title>
+	<link rel="stylesheet" href="wpkg.css" type="text/css"/>
+</head>
+<body>
+
+<p class="par">
+	WARNING: this page is the raw page. Look in the doc/* directory instead. If it
+	does not exist, generate it with dev/create_docs
+</p>
+
+@TITLE: Control file fields@
+@UP: wpkg@
+@PREVIOUS: wpkg_versions@
+@START@
+<p class="par">
+	<font size="+4">W</font><b>pkg</b> can build multiple packages from a single tarball
+	using a single .info file (read <i>"a dot info file"</i>.) A .info file is similar
+	to a control file except that it can represent any number of packages whereas
+	a control file is specific to one package.
+</p>
+
+<p class="par">
+	<font size="+4">T</font>he idea of using a .info file with <b>wpkg</b> is based
+	on the .info file as used by the
+	<a class="anchor" href="http://www.finkproject.org/">fink project</a>.
+	However, the syntax to define sub-packages is quite different.
+</p>
+
+<p class="par">
+	<font size="+4">T</font>he .info file includes all the usual
+	<a class="anchor" href="wpkg_control.html">control file fields</a> plus the
+	<em>Sub-Packages</em> field which, in a .info file, is mandatory (and it is
+	forbidden in a valid control file.)
+</p>
+
+<p class="par">
+	<font size="+4">T</font>he list of sub-packages can include one name followed
+	by an asterisk (i.e. shlibs* or runtime*) and any number of other names.
+	The name followed by an asterisk does not appear in the mangled name of
+	the output package. The order is not important. The sub-package names
+	are limited to the same characters as a Package name, including the
+	first character limit (i.e. [A-Za-z0-9][A-Za-z0-9+-.]*). Yet, a sub-package
+	name can be 1 character if it makes sense to you. Each sub-package name
+	must be unique.
+	Usual sub-package names:
+	<ul>
+		<li>bin</li>
+		<li>lib</li>
+		<li>shlibs</li>
+		<li>runtime</li>
+		<li>devel</li>
+		<li>doc</li>
+		<li>src</li>
+	</ul>
+</p>
+
+<p class="par">
+	<font size="+4">S</font>ome of the fields in a .info file can be made specific
+	to a sub-package by appending a foreward slash (/) and the name of the sub-package
+	at the end of the field name. For instance, the Description field can be made
+	specific to each sub-package as follow:
+</p>
+
+<pre>
+	Sub-Packages: runtime*, doc, devel
+	Description: This is my project to do Foo
+	Description/doc: My project documentation, read it please!
+	Description/devel: If you're a programmer, you'll need this one too.
+</pre>
+
+<p class="par">
+	<font size="+4">N</font>otice that for some fields, it is an error to try to make
+	them sub-package specific. For instance, the Version field just cannot be specific
+	to a sub-package. The same version always applies to all the sub-packages. The fields
+	that can be made specific to a sub-package are marked with a [1] in the
+	<a class="anchor" href="wpkg_control.html">control file</a> documentation page.
+</p>
+
+<p class="par">
+	<font size="+4">T</font>o get everything ready, you need to create a directory
+	structure that <b>wpkg</b> will stick in the sub-packages. This is very similar
+	to the usual structure created for a Debian package with one additional level
+	so as to separate the different files according to the sub-package definitions.
+</p>
+
+<p class="par">
+	<font size="+4">S</font>ay your project includes three sub-packages, one for users
+	and two for developers as follow:
+	<ul>
+		<li>runtime*</li>
+		for	the .dll, .exe and corresponding manual pages;
+		<br/><br/>
+		<li>doc</li>
+		for the developer documentation; and
+		<br/><br/>
+		<li>devel</li>
+		for the .a and .h files.
+	</ul>
+</p>
+
+<p class="par">
+	<font size="+4">T</font>hen create a directory named package (that name can
+	be anything, really) and place in it three sub-directories named runtime, doc and
+	devel. Finally, place your files in sub-directories as required for your project.
+	For instance:
+</p>
+
+<pre>
+	<font color="blue"># Runtime sub-package</font>
+	package/runtime/bin/wpkg.exe
+	package/runtime/bin/dirsize.exe
+	package/runtime/man/man1/wpkg.1.gz
+	package/runtime/man/man1/dirsize.1.gz
+
+	<font color="blue"># Documentation sub-package</font>
+	package/doc/share/wpkg/README.txt
+	package/doc/share/wpkg/doc/html/index.html
+	package/doc/share/wpkg/doc/html/wpkg.html
+	package/doc/share/wpkg/doc/html/wpkg_info.html
+	...
+
+	<font color="blue"># Development sub-package</font>
+	package/devel/include/boost/iostreams/filtering_stream.hpp
+	package/devel/include/md5.hpp
+	package/devel/lib/libboost_iostreams.a
+	package/devel/lib/libmd5.a
+	...
+</pre>
+
+<table class="warning"><tbody><tr>
+	<td valign="top"><span class="warn_title">NOTE:</span></td>
+	<td class="warn_body">
+		The lack of /usr/ in these directories reflects the lack
+		of that directory in MinGW. Really, any valid tree will
+		work just fine with wpkg. <b>Don't forget that wpkg
+		transforms /usr into /mingw when installing a package.</b>
+	</td>
+</tr></tbody></table>
+
+<p class="par">
+	<font size="+4">A</font>ssuming that you are in the parent directory of the
+	package directory and that a file named wpkg.info exists in that directory,
+	you can type the following command to generate the three packages:
+</p>
+
+<pre>
+	wpkg --build wpkg.info package/
+</pre>
+
+<p class="par">
+	<font size="+4">W</font>ith wpkg.info file defined as follow:
+</p>
+
+<pre>
+	Package: wpkg
+	Sub-Packages: runtime*, doc, devel
+	Architecture: win32-i386
+	Architecture/doc: any
+	Version: @VERSION@
+	Maintainer: alexis_wilke@sourceforge.net
+	Description: The package manager for the MinGW environment
+	Description/doc: Documentation for the package manager developers
+	Description/devel: Extra libraries to link the package manager
+</pre>
+
+<p class="par">
+	<font size="+4">T</font>he output will be three .deb files named as
+	follow:
+</p>
+
+<pre>
+	wpkg_@VERSION@_win32-i386.deb
+	wpkg-doc_@VERSION@.deb
+	wpkg-devel_@VERSION@_win32-i386.deb
+</pre>
+
+<p class="par">
+	<font size="+4">N</font>otice that the documentation package has no
+	architecture specified. Also the documentation and development
+	packages got the extra -doc and -devel respectively. The runtime
+	package did not get -runtime since that sub-package name was
+	followed by an asterisk.
+</p>
+
+<p class="par">
+	<font size="+4">I</font>t is possible to define a specific Package
+	field for each sub-package in which case the name up to the first
+	underscore will be what you specify and not the automatically
+	generated name (&lt;Package name&gt;-&lt;Sub-Packages name&gt;).
+	It is advised, however, that you do not use this feature.
+</p>
+
+
+@END@
+
+</body>
+<!--
+	vim: ts=2
+-->
+</html>

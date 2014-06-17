@@ -1,0 +1,155 @@
+#!/bin/sh
+#
+#    wpkg -- a windows packager
+#    Copyright (C) 2006-2013  Made to Order Software Corporation
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License along
+#    with this program; if not, write to the Free Software Foundation, Inc.,
+#    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+#    Authors
+#    Alexis Wilke   alexis@m2osw.com
+#
+
+set -e
+
+HELP=false
+OPTIONS=
+DATA_GZIP=false
+CONTROL_GZIP=true
+AUTOGEN=false
+while test -n "$1"
+do
+	case "$1" in
+	--help|-h)
+		HELP=true
+		;;
+
+	--autogen|-a)
+		AUTOGEN=true
+		;;
+
+	--control-bzip2)
+		echo "error; The newer version does not yet support bzip2"
+		exit 1;
+		CONTROL_GZIP=false
+		;;
+
+	--control-gzip)
+		CONTROL_GZIP=true
+		;;
+
+	--data-bzip2)
+		echo "error; The newer version does not yet support bzip2"
+		exit 1;
+		DATA_GZIP=false
+		;;
+
+	--data-gzip)
+		DATA_GZIP=true
+		;;
+
+	--debug)
+		OPTIONS="$OPTIONS --enable-debug"
+		;;
+
+	*)
+		echo "wpkg: error: unknown option $1; try --help"
+		exit 1;
+
+	esac
+	shift
+done
+
+if $HELP
+then
+	echo
+	echo "wpkg: help: Usage dev/build-debs [-opt]"
+	echo "wpkg: help: This script MUST be started from the main directory."
+	echo "wpkg: help: Options are:"
+	echo "wpkg: help:   --autogen or -a   re-run the autogen.sh script"
+	echo "wpkg: help:   --control-bzip2   compress control using bzip2 [not implemented]"
+	echo "wpkg: help:   --control-gzip    compress control using gzip (default)"
+	echo "wpkg: help:   --data-bzip2      compress data using bzip2 (default) [not implemented]"
+	echo "wpkg: help:   --data-gzip       compress data using gzip"
+	echo "wpkg: help:   --debug           configure with --enable-debug"
+	echo "wpkg: help:   --help or -h      show this help screen"
+	echo
+	exit 1;
+fi
+
+dev/create_docs
+dev/build
+make -C BUILD package
+
+VERSION=`grep '^Version: ' BUILD/dev/control-bin | sed -e 's/Version: //'`
+ARCH=`uname`
+MACHINE=`uname -m`
+
+cd BUILD
+mkdir INSTALL
+cd INSTALL
+tar xf ../wpkg-$VERSION-$ARCH.tar.gz
+mkdir -p share/doc/wpkg-$VERSION share/wpkg-$VERSION/doc
+gzip -9c ../../ChangeLog >share/doc/wpkg-$VERSION/changelog.gz
+cp ../../COPYING share/doc/wpkg-$VERSION/copyright
+cp ../../README share/doc/wpkg-$VERSION/.
+cp ../../TODO share/doc/wpkg-$VERSION/.
+cp -r ../../doc/* share/wpkg-$VERSION/doc/.
+cp ../../README share/wpkg-$VERSION/README.txt
+SIZE=`du -ks . | sed -e 's/[ \t]\+.*//'`
+tar cf ../data.tar *
+md5sum -b >../md5sums `find * -type f`
+cd ..
+if $GZIP
+then
+	gzip -9f data.tar
+	DATA_EXT=tar.gz
+else
+	bzip2 -9f data.tar
+	DATA_EXT=tar.bz2
+fi
+
+sed -e "s/%SIZE%/$SIZE/" dev/control-bin >control
+tar cf control.tar control md5sums
+if $GZIP || $COMPAT
+then
+	gzip -9f control.tar
+	CONTROL=control.tar.gz
+else
+	bzip2 -9f control.tar
+	CONTROL=control.tar.bz2
+fi
+
+echo "2.0" >debian-binary
+
+rm -f wpkg_${VERSION}_${ARCH}-${MACHINE}.deb
+ar cqS wpkg_${VERSION}_${ARCH}-${MACHINE}.deb debian-binary $CONTROL data.${DATA_EXT}
+
+# Now that we have a .deb, we can create a .tar.gz
+cd INSTALL
+mkdir -p var/lib/wpkg/packages/wpkg
+	# Lose the extension here!
+cp ../$CONTROL var/lib/wpkg/packages/wpkg/control
+(
+	echo "State: installed"
+	echo "Selection: install"
+	echo "Hold: on"
+) >var/lib/wpkg/packages/wpkg/status
+cp var/lib/wpkg/packages/wpkg/status var/lib/wpkg/packages/wpkg/status.bak
+
+zip -rD ../wpkg_${VERSION}_${ARCH}-${MACHINE}.zip *
+tar cf ../wpkg_${VERSION}_${ARCH}-${MACHINE}.tar *
+cd ..
+gzip -9f wpkg_${VERSION}_${ARCH}-${MACHINE}.tar
+

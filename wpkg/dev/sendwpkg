@@ -1,0 +1,60 @@
+#!/bin/sh
+#
+#    wpkg -- a windows packager
+#    Copyright (C) 2006-2007  Made to Order Software Corporation
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License along
+#    with this program; if not, write to the Free Software Foundation, Inc.,
+#    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+#    Authors
+#    Alexis Wilke   alexis@m2osw.com
+#
+
+VERSION=$1
+
+if test "$VERSION" = ""
+then
+	echo "Usage: $0 <version>"
+	exit 1;
+fi
+
+cd ../packages
+
+FILES="
+	wpkg_${VERSION}_src.tar.gz
+	wpkg_${VERSION}_win32-i386.deb
+	wpkg_${VERSION}_win32-i386.tar.gz
+	wpkg_${VERSION}_win32-i386.zip
+	wpkg-${VERSION}.exe
+	"
+
+err=false
+for f in $FILES
+do
+	if test ! -f $f
+	then
+		echo "sendwpkg: error: you are missing $f files."
+		err=true
+	fi
+done
+if $err
+then
+	exit 1;
+fi
+
+for f in $FILES
+do
+	ncftpput upload.sourceforge.net incoming $f
+done
+

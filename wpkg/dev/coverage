@@ -1,0 +1,126 @@
+#!/bin/bash
+
+###
+### To run the Unit Tests under a Unix system use the following command:
+### (assuming you created your cmake directory under BUILD)
+###
+###   BUILD/tests/unittests/unittest --tmp tmp/sb --wpkg BUILD/tools/wpkg
+###
+### Under MS-Windows I run them from cygwin because the history works properly
+### in a Cygwin shell. But the syntax is nearly the same, only you still want
+### to use backslashes to the wpkg tool because internally the unit tests
+### make use of cmd.exe to run that tool and if you use slashes, it does not
+### work (it will not start). Note that to use backslashes under Cygwin they
+### need to be doubled.
+###
+###   REM Win32 console
+###   BUILD\tests\unittests\Release\unittest.exe --tmp tmp/sb --wpkg BUILD\tools\Release\wpkg
+###
+###   REM Cygwin console
+###   BUILD/tests/unittests/Release/unittest.exe --tmp tmp/sb --wpkg BUILD\\tools\\Release\\wpkg
+###
+
+set -e
+
+# This is a bash specific option which is used to break the script if any
+# one function in a list of piped functions fails
+set -o pipefail
+
+seed=""
+if test ! -z "$1"
+then
+	if test "$1" = "--help" -o "$1" = "-h"
+	then
+		echo "coverage: Usage coverage [--help] [unittests seed]"
+		exit 1;
+	fi
+	seed="--seed $1"
+fi
+
+start_date=`date`
+echo "***"
+echo "*** prepare environment `date`"
+echo "***"
+source=`pwd`
+mkdir -p ../tmp/coverage
+rm -rf ../tmp/coverage/*
+cd ../tmp/coverage
+mkdir BUILD
+cd BUILD
+# request coverage in this build
+export WPKG_COVERAGE=1
+export CONTROLLED_VARS_DEBUG=1
+export ADVGETOPT_THROW_FOR_EXIT=1
+cmake $source
+cd ..
+echo
+echo "***"
+echo "*** compile `date`"
+echo "***"
+make -C BUILD
+echo
+
+# Now that it was built, we can easily get the version
+set +e
+VERSION=`BUILD/tools/wpkg --version`
+set -e
+
+test_date=`date`
+echo "***"
+echo "*** run $test_date"
+echo "***"
+BUILD/tests/unittests/unittest $seed --tmp sb --wpkg BUILD/tools/wpkg 2>&1 | tee - tests.log
+test_end_date=`date`
+echo
+echo "***"
+echo "*** gcov/lcov `date`"
+echo "***"
+
+# Choose one of the following gcov commands
+mkdir -p gcov
+cd gcov
+#gcov -o ../BUILD/libexpr/CMakeFiles/expr_static.dir/variable.cpp.gcno $source/libexpr
+#gcov -o ../BUILD/libexpr/CMakeFiles/expr_static.dir/expr.cpp.gcno $source/libexpr/expr.cpp
+gcov -o ../BUILD/libdebpackages/CMakeFiles/debpackages_static.dir/wpkgar_install.cpp.gcno $source/libdebpackages/wpkgar_install.cpp
+cd ..
+
+
+lcov --capture --directory BUILD --output-file coverage.info
+mkdir -p html
+genhtml --legend --demangle-cpp --no-branch-coverage --html-prolog $source/dev/coverage-header.html --html-epilog $source/dev/coverage-footer.html --show-details coverage.info --output-directory html
+
+
+# Create a statistics report of wpkg code
+echo
+echo "***"
+echo "*** cloc `date`"
+echo "***"
+echo "<html><head><title>wpkg $VERSION statistics</title></head><body>" >html/statistics.html
+echo "<h3>Statistics of the wpkg $VERSION code</h3><pre>" >>html/statistics.html
+cloc $source/dev/ $source/documentation/ $source/libdebpackages/ $source/libexpr/ $source/libutf8/ $source/package/ $source/tools/ >>html/statistics.html
+echo "</pre><h3>Statistics of the wpkg $VERSION tests</h3><pre>" >>html/statistics.html
+cloc $source/tests/ >>html/statistics.html
+echo "</pre><h3>Statistics about contribution libraries used in wpkg $VERSION</h3><pre>" >>html/statistics.html
+cloc $source/bzip2/ $source/controlled_vars/ $source/libtld/ $source/tools/ $source/zlib/ >>html/statistics.html
+echo "</pre></body></html>" >>html/statistics.html
+
+# Create a report with the test logs
+echo
+echo "***"
+echo "*** test logs `date`"
+echo "***"
+echo "<html><head><title>wpkg $VERSION test log</title></head><body>" >html/test_log.html
+echo "<h3>Logs of the wpkg $VERSION tests</h3><p>The tests were started on $test_date and finished on $test_end_date on `hostname`<pre>" >>html/test_log.html
+cat tests.log >>html/test_log.html
+echo "</pre></body></html>" >>html/test_log.html
+
+
+if test -d /usr/clients/www/lcov.windowspackager.org/public_html
+then
+	mkdir -p /usr/clients/www/lcov.windowspackager.org/public_html/wpkg-$VERSION
+	cp -r html/* /usr/clients/www/lcov.windowspackager.org/public_html/wpkg-$VERSION/.
+	cp html/statistics.html /usr/clients/www/lcov.windowspackager.org/public_html/wpkg-$VERSION/.
+fi
+
+echo "Process started  on $start_date"
+echo "Process finished on `date`"

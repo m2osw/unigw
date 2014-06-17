@@ -1,0 +1,113 @@
+#!/bin/sh
+#
+#    wpkg -- a windows packager
+#    Copyright (C) 2006-2007  Made to Order Software Corporation
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License along
+#    with this program; if not, write to the Free Software Foundation, Inc.,
+#    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+#    Authors
+#    Alexis Wilke   alexis@m2osw.com
+#
+
+set -e
+
+WWW="
+	changelog
+	debversion
+	dirsize
+	documentation
+	download
+	index
+	usys
+	wpkg
+	wpkg_build
+	wpkg_control
+	wpkg_info
+	wpkg_install
+	wpkg_name
+	wpkg_opts
+	wpkg_remove
+	wpkg_versions
+"
+
+mkdir -p doc/images tmp
+
+YEAR=`date +%Y`
+VERSION=`grep ^AC_INIT configure.ac | sed -e 's/.*\[\([0-9]\+\.[0-9]\+\)\].*/\1/'`
+
+sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' \
+	ChangeLog >tmp/ChangeLog
+sed -e '/@CONTENT@/ r tmp/ChangeLog' -e '/@CONTENT@/ d' \
+	-e 's/%TITLE%/Change Log/' \
+	www/content.html >www/changelog.html
+
+#echo "Version: $VERSION"
+
+for f in $WWW
+do
+	# Extract the body
+	sed -e '1,/@START@/ d' -e '/@END@/,$ d' \
+		-e "s%@VERSION@%$VERSION%" \
+			www/$f.html >tmp/doc.html
+	# Check for documentation info
+	TITLE=`grep '@TITLE:' www/$f.html | sed -e 's/.*@TITLE:[ \t]\+//' -e 's/@.*//'`
+	if test -z "$TITLE" -a "$f" != "index"
+	then
+		echo "wpkg: warning: missing title in $f"
+	fi
+	UP=`grep '@UP:' www/$f.html | sed -e 's/.*@UP:[ \t]\+//' -e 's/@.*//'`
+	if test -n "$UP"
+	then
+		NEXT=`grep '@NEXT:' www/$f.html | sed -e 's/@NEXT:[ \t]\+//' -e 's/@.*//'`
+		PREVIOUS=`grep '@PREVIOUS:' www/$f.html | sed -e 's/@PREVIOUS:[ \t]\+//' -e 's/@.*//'`
+		if test -n "$NEXT"
+		then
+			N="-e 's%@NEXT@%$NEXT.html%g'"
+		else
+			N="-e '/@NEXT@/ d'"
+		fi
+		if test -n "$PREVIOUS"
+		then
+			P="-e 's/@PREVIOUS@/$PREVIOUS.html/g'"
+		else
+			P="-e '/@PREVIOUS@/ d'"
+		fi
+		echo "sed -e '1,/@START@/ d' -e '/@END@/,$ d' -e 's/@UP@/$UP.html/g' $N $P \\
+				www/doc_menu.html >tmp/doc_menu.html" >tmp/doc_gen.sh
+		chmod 700 tmp/doc_gen.sh
+		tmp/doc_gen.sh
+		DOC_MENU="-e '/@MENU@/ r tmp/doc_menu.html' -e '/@MENU@/ d'"
+	else
+		DOC_MENU="-e 's%@MENU@%<p><small>\&nbsp;</small></p>%'"
+	fi
+	# Apply the template
+	HTML_TITLE="Unix/GNU Windows"
+	if test -n "$TITLE"
+	then
+		HTML_TITLE="$TITLE\&mdash;$HTML_TITLE"
+	fi
+	echo "sed -e '/@CONTENT@/ r tmp/doc.html' -e '/@CONTENT@/ d' \\
+		-e 's%@TITLE@%$HTML_TITLE%' -e 's/@YEAR@/$YEAR/' \\
+		-e 's%@VERSION@%$VERSION%' \\
+		$DOC_MENU www/template.html >doc/$f.html" >tmp/page_gen.sh
+	chmod 700 tmp/page_gen.sh
+	tmp/page_gen.sh
+done
+
+rm tmp/doc.html
+
+cp www/unigw.css doc/.
+cp www/images/*.png doc/images/.
+

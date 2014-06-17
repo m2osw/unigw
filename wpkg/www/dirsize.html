@@ -1,0 +1,93 @@
+<html>
+<head>
+	<title>Unix/GNU Windows</title>
+	<link rel="stylesheet" href="wpkg.css" type="text/css"/>
+</head>
+<body>
+
+<p class="par">
+	WARNING: this page is the raw page. Look in the doc/* directory instead. If it
+	does not exist, generate it with dev/create_docs
+</p>
+
+@TITLE: dirsize@
+@UP: documentation@
+@START@
+<h2 align="center">dirsize</h2>
+
+<p class="par">
+	<font size="+4">C</font>omputing the size in bytes of all the files in a
+	directory can be achieved with the Unix tool called <b>du</b>. There are
+	two draw backs with that tool under MSYS/MinGW:
+</p>
+
+<ul>
+	<li>It is part of MinGW and thus requires the MinGW library.</li>
+	<li>It prints out the size <b>and</b> the name of the directory.</li>
+</ul>
+
+<p class="par">
+	<font size="+4">T</font>herefore, I created this tool that computes the
+	size exactly as required by the wpkg control files. There are two advantages:
+</p>
+
+<ul>
+	<li>It computes a <i>more realistic</i> size
+			<a class="note_link" href="#realistic">(1)</a>
+			for the control file.</li>
+	<li>It is not encumbered by the two disadvantages that <b>du</b> currently
+			has.</li>
+</ul>
+
+<p class="par">
+	<font size="+4">N</font>otice that this functionality is also available in
+	wpkg in the form of a command:
+	<a class="anchor" href="wpkg_opts.html#directory_size">--directory-size</a>.
+</p>
+
+<p class="par">
+	<font size="+4">U</font>sage is very simple:
+</p>
+
+<pre>
+	dirsize &lt;path&gt; ...
+	<font color="blue"># Nearly equivalent to:  du -ks &lt;path&gt; ...</font>
+</pre>
+
+<p class="par">
+	<font size="+4">Y</font>ou can also use the --help and --version options
+	that give you a help screen and the version of the dirsize tool.
+</p>
+
+<p class="par">
+	<font size="+4">S</font>ince version 0.5, this functionality was
+	incorporated with the
+	<a class="anchor" href="wpkg_opts.html#build">--build</a>
+	and thus it probably renders this tool much less useful.
+	The --build option will automatically generate the Installed-Size
+	field if you don't define it yourself. (You may still need to
+	define the size since what is compressed in the <code>data.tar.gz</code>
+	file may only be the tip of the iceberg! Yes! Your <code>postinst</code>
+	script may use the installed data files to generate other files and
+	make the installation grow much larger than what is compressed
+	in the <code>data.tar.gz</code> tarball.)
+</p>
+
+<p class="note">
+	<sup><a name="realistic">(1)</a></sup> The size of each item is rounded up
+	to 4Kb. This is what most people use under NTFS now a days, thought more and
+	more, with drives of 250Gb and larger, it is becoming 16Kb. At a later time, we
+	may decide to add a command line option to define this size. The size used
+	by du is 512 bytes. Now, to get a more realistic usage size for the target
+	system we should keep the size of each file in bytes. But that could really
+	be large and probably not help that much since we still would have no clue of
+	the size necessary to create the files in the first place (the space used in
+	the directory structures.)
+</p>
+@END@
+
+</body>
+<!--
+	vim: ts=2
+-->
+</html>

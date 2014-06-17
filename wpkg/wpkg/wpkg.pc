@@ -1,0 +1,11 @@
+prefix=${instdir}${install_prefix}
+exec_prefix=${prefix}
+includedir=${prefix}/include
+libdir=${exec_prefix}/lib
+
+Name: ${name}
+Cflags: -I${includedir}/wpkg -I${includedir}
+Libs: -L${libdir} -ldebpackages
+Version: ${version}
+Description: ${description}
+URL: ${homepage}

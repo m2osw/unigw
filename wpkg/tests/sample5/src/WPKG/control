@@ -1,0 +1,8 @@
+Package: sample5
+Version: 2.450.12.4
+Architecture: source
+Description: This is a sample to test wpkg
+ This sample is used to test wpkg and make sure that things happen in
+ the right order (such as the preinst and postinst, etc.)
+Maintainer: Alexis Wilke <alexis@m2osw.com>
+Section: video

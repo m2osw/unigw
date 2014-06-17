@@ -1,0 +1,180 @@
+<html>
+<head>
+	<title>Unix/GNU Windows</title>
+	<link rel="stylesheet" href="wpkg.css" type="text/css"/>
+</head>
+<body>
+
+<p class="par">
+	WARNING: this page is the raw page. Look in the doc/* directory instead. If it
+	does not exist, generate it with dev/create_docs
+</p>
+
+@TITLE: usys@
+@UP: documentation@
+@START@
+<p>
+	<li><a class="anchor" href="#usys">Installing USYS</a></li>
+	<li><a class="anchor" href="#why">But why USYS?</a></li>
+	<li><a class="anchor" href="#existing">Can I use my existing MSYS/MinGW/GnuWin32?</a></li>
+</p>
+
+<h2><a name="usys">Installing USYS</a></h2>
+
+<p class="par">
+	<font size="+4">A</font>t this time, USYS is just wpkg and a copy of
+	the MSYS basic environment.
+</p>
+<p class="par">
+	<font size="+4">F</font>irst you should download and install the
+	wpkg tool. That will get you the tool you need to install all the
+	.deb packages. Assuming that you do not have anything more than
+	MS-Windows, download the following and put it in any folder:
+</p>
+<ul>
+	<li><code>unzip.exe</code></li>
+	<li><code>wpkg_@VERSION@_win32-i386.zip</code></li>
+</ul>
+<p class="par">
+	<font size="+4">D</font>ecompress the wpkg tool and its documentation
+	from an MS-DOS console with the following commands:
+</p>
+<pre>
+	cd &lt;<i>path to wpkg_@VERSION@_win32-i386.zip</i>&gt;
+	unzip wpkg_@VERSION@_win32-i386.zip
+</pre>
+
+<p class="par">
+	<font size="+4">N</font>ow download the MSYS debian
+	package<a class="note_link" href="#files">(1)</a> and
+	put it under the newly extracted bin directory and type the
+	following commands in your still open console:
+</p>
+
+<pre>
+	cd bin
+	wpkg --install msys_1.0.11_win32-i386.deb
+</pre>
+
+<p class="par">
+	<font size="+4">A</font>fter this one command, you will have
+	a valid USYS installation. You can now start your new Unix
+	environment under MS-Windows by double clicking
+	<code>msys.bat</code> in the <i>root</i> directory or on
+	<code>rxvt</code> in the <i>/bin</i> directory.
+</p>
+
+<p class="par">
+	<font size="+4">M</font>ake sure you have the right PATH
+	environment variable so you can access your new tools.
+	This is done with the following command inside the
+	shell you just opened:
+</p>
+
+<pre>
+	export PATH=/mingw/bin:/bin
+</pre>
+
+<p class="par">
+	<font size="+4">O</font>f course, feel free to include a path to
+	<code>C:\WinNT\System32</code> and other MS-Windows directories
+	(but do not add some other versions of MSYS/MinGW/GnuWin32!) And
+	you can always make use of your .profile or .bashrc files, but
+	that may require a global HOME variable which you cannot easilly
+	change (i.e. you can have only one global HOME for Cygwin, MSYS,
+	USYS... but you can change it in the msys.bat to your liking and
+	maybe I will have a post process to automate that at some point!)
+</p>
+
+<p class="par">
+	<font size="+4">F</font>rom there on, any .deb package compatible with
+	USYS can be installed with the wpkg.exe tool (see
+	<a class="anchor" href="wpkg_install.html">Installing a package</a>.)
+	Note that you can install any package from anywhere, the wpkg tool assumes
+	it is installed under /bin and considers / as being the root. Everything
+	will always be installed under that root path (if not, that's a bug in wpkg!)
+	Thus, you can be in any folder to run wpkg as long as it is in your path or
+	you use the full path to the tool.
+</p>
+
+<p class="note">
+	<sup><a name="files">(1)</a></sup> The following is the list of files
+	present in the debian package <code>msys_1.0.11_win32-i386.deb</code>.
+</p>
+<pre>
+	MSYS-1.0.11-2004.04.30-1.exe		<font color="blue">Base</font>
+	MSYS-1.0.11-20060807.tar.bz2		<font color="blue">Fixes</font>
+	tar-1.13.19-MSYS-2005.06.08.tar.bz2	<font color="blue">Fixes</font>
+</pre>
+
+
+<h2><a name="why">But why USYS?</a></h2>
+
+<p class="par">
+	<font size="+4">A</font>t first, I would like to transform many of the
+	packages I need to .deb packages. This will very much simplify their
+	installation in this Unix like environment and thus help me in building
+	<a class="anchor" href="http://www.m2osw.com">Made to Order Software Corporation</a>
+	products.
+</p>
+
+<p class="par">
+	<font size="+4">S</font>econd, it will be to have my own version of the
+	gcc suite in order to get the library libusys.a (still to be created!)
+	to auto-link with the different software I build under USYS.
+	This library will offer support to ease the porting of projects to
+	MS-Windows by offering the POSIX API of what is directly available
+	under MS-Windows (at this time, the most problematic function is
+	fork(), most others are relatively simple to implement and some
+	already are available such as the pthread API from
+	<a class="anchor" href="http://www.redhat.com">RedHat</a>.)
+</p>
+
+<p class="par">
+	<font size="+4">F</font>or instance, USYS will transform the
+	<code>fopen()</code> call in two ways:
+</p>
+<ul>
+	<li>The mode will always be forced to binary like under Linux
+			(and most other Unices)</li>
+	<li>If the file being opened is a (soft-)link, then the target will
+			be opened instead.</li>
+</ul>
+
+<p class="par">
+	Some of that functionality is currently available under MSYS, but not
+	under GnuWin32. Also, MSYS makes heavy use of Cygwin source files
+	and thus it cannot directly be used in a commercial project.
+</p>
+
+
+
+<h2><a name="existing">Can I use my existing MSYS/MinGW/GnuWin32?</a></h2>
+
+<p class="par">
+	<font size="+4">Y</font>es.
+</p>
+
+<p class="par">
+	<font size="+4">H</font>owever, I suggest you be more careful in that
+	case since you may start mixing up packages you installed with wpkg
+	and packages you just uncompress in your environment. You may not be
+	able to install some packages because some files already exist. And
+	files which get modified cannot be removed without the --force flag
+	and you could end up with packages incompatible between each others.
+</p>
+
+<p class="par">
+	<font size="+4">T</font>his being said, for a little while, it is very
+	likely that you won't be able to find a .deb for a package you need.
+	In that case you will have to install it from its .zip or whatever
+	other archive currently available. The problem here is: you won't
+	be able to uninstall it without going through hoops.
+</p>
+@END@
+
+</body>
+<!--
+	vim: ts=2
+-->
+</html>
