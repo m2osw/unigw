@@ -1831,6 +1831,8 @@ std::string uri_filename::full_path(bool replace_slashes) const
     {
         std::replace(result.begin(), result.end(), '/', '\\');
     }
+#else
+    static_cast<void>(replace_slashes);
 #endif
 
     return result;

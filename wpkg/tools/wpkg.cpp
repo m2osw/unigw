@@ -1856,6 +1856,8 @@ void help_output_control_field(command_line& cl, wpkg_control::control_file::fie
 
 void help_control_field(command_line& cl, const help_t *h)
 {
+    static_cast<void>(h);
+
     const wpkg_control::control_file::field_factory_map_t *fields(wpkg_control::control_file::field_factory_map());
 
     const size_t max(cl.size());
@@ -1915,6 +1917,8 @@ void help_output_copyright_field(command_line& cl, wpkg_copyright::copyright_fil
 
 void help_copyright_field(command_line& cl, const help_t *h)
 {
+    static_cast<void>(h);
+
     const wpkg_copyright::copyright_file::field_factory_map_t *fields(wpkg_copyright::copyright_file::field_factory_map());
 
     const size_t max(cl.size());
@@ -1968,26 +1972,36 @@ void help_list_of_terms(command_line& cl, const char *msg, const wpkg_control::c
 
 void help_build_validations(command_line& cl, const help_t *h)
 {
+    static_cast<void>(h);
+
     help_list_of_terms(cl, "List of validations used against a project to build its source package", wpkgar::wpkgar_build::source_validation::list());
 }
 
 void help_priorities(command_line& cl, const help_t *h)
 {
+    static_cast<void>(h);
+
     help_list_of_terms(cl, "List of properties", wpkg_control::control_file::field_priority_t::list());
 }
 
 void help_sections(command_line& cl, const help_t *h)
 {
+    static_cast<void>(h);
+
     help_list_of_terms(cl, "List of sections", wpkg_control::control_file::field_section_t::list());
 }
 
 void help_urgencies(command_line& cl, const help_t *h)
 {
+    static_cast<void>(h);
+
     help_list_of_terms(cl, "List of urgency terms", wpkg_control::control_file::field_urgency_t::list());
 }
 
 void help_list(command_line& cl, const help_t *h)
 {
+    static_cast<void>(h);
+
     if(!cl.quiet())
     {
         printf("List of help commands:\n");
@@ -2007,6 +2021,8 @@ void help_list(command_line& cl, const help_t *h)
 
 void help_help(command_line& cl, const help_t *h)
 {
+    static_cast<void>(cl);
+
     // note that when f_name is NULL, f_help is still defined
     // (i.e. we have a default help in case the user did not enter a
     // name we know about)
