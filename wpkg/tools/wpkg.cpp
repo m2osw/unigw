@@ -3357,7 +3357,7 @@ void upgrade_info(command_line& cl)
                 case_insensitive::case_insensitive_string urgency(pkg.field_is_defined("Urgency") ? pkg.get_field("Urgency") : "low");
                 bool urgent(urgency == "high" || urgency == "emergency" || urgency == "critical");
                 printf("package \"%s\" will be upgraded to version %s the next time you run with --upgrade%s\n",
-                    package_name, pkg.get_version().c_str(),
+                    package_name.c_str(), pkg.get_version().c_str(),
                     urgent ? " or --upgrade-urgent" : "");
                 if(cl.verbose())
                 {

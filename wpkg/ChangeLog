@@ -1,6 +1,11 @@
 wpkg (0.9.3) stable unstable; urgency=medium
 
-  * Found out why the UTF-8 library documentation wasn't making it in.
+  * Found out why the UTF-8 library documentation was not making it in.
+  * Fixed the upgrade so it does not fail with remote URLs and paths.
+    (found by Trent Clarke, see
+    https://sourceforge.net/p/unigw/discussion/647573/thread/17a08da5/)
+  * Fixed the upgrade info prints which would use a temporary string
+    (also found by Trent Clarke, see same link)
 
  -- Alexis Wilke <alexis@m2osw.com>  Tue, 05 Sep 2013 21:50:30 -0800
 
