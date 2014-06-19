@@ -3340,45 +3340,47 @@ void upgrade_info(command_line& cl)
     size_t max(list.size());
     for(size_t i(0); i < max; ++i)
     {
-        const char *package_name(list[i].get_name().c_str());
-        switch(list[i].get_status())
+        const wpkgar::wpkgar_repository::package_item_t& pkg(list[i]);
+        const std::string package_name(pkg.get_name());
+
+        switch(pkg.get_status())
         {
         case wpkgar::wpkgar_repository::package_item_t::not_installed:
             if(cl.verbose())
             {
-                printf("package \"%s\" version %s is available for installation.\n", package_name, list[i].get_version().c_str());
+                printf("package \"%s\" version %s is available for installation.\n", package_name.c_str(), pkg.get_version().c_str());
             }
             break;
 
         case wpkgar::wpkgar_repository::package_item_t::need_upgrade:
             {
-                case_insensitive::case_insensitive_string urgency(list[i].field_is_defined("Urgency") ? list[i].get_field("Urgency") : "low");
+                case_insensitive::case_insensitive_string urgency(pkg.field_is_defined("Urgency") ? pkg.get_field("Urgency") : "low");
                 bool urgent(urgency == "high" || urgency == "emergency" || urgency == "critical");
                 printf("package \"%s\" will be upgraded to version %s the next time you run with --upgrade%s\n",
-                    package_name, list[i].get_version().c_str(),
+                    package_name, pkg.get_version().c_str(),
                     urgent ? " or --upgrade-urgent" : "");
                 if(cl.verbose())
                 {
-                    printf("   full URI is \"%s\"\n", list[i].get_info().get_uri().full_path().c_str());
+                    printf("   full URI is \"%s\"\n", pkg.get_info().get_uri().full_path().c_str());
                 }
             }
             break;
 
         case wpkgar::wpkgar_repository::package_item_t::blocked_upgrade:
-            printf("package \"%s\" will NOT be upgraded because auto-upgrades are currently blocked\n", package_name);
+            printf("package \"%s\" will NOT be upgraded because auto-upgrades are currently blocked\n", package_name.c_str());
             break;
 
         case wpkgar::wpkgar_repository::package_item_t::installed:
             if(cl.verbose())
             {
-                printf("package \"%s\" is installed from the newest available version.\n", package_name);
+                printf("package \"%s\" is installed from the newest available version.\n", package_name.c_str());
             }
             break;
 
         case wpkgar::wpkgar_repository::package_item_t::invalid:
             if(cl.verbose())
             {
-                printf("package \"%s\" is considered invalid: %s\n", package_name, list[i].get_cause_for_rejection().c_str());
+                printf("package \"%s\" is considered invalid: %s\n", package_name.c_str(), pkg.get_cause_for_rejection().c_str());
             }
             break;
 
