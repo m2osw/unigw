@@ -1852,25 +1852,36 @@ void wpkgar_manager::add_repository(const wpkg_filename::uri_filename& repositor
     // Note: although we test now whether those repository directories
     //       exist, at the time we use them they could have been
     //       deleted or replaced with another type of file
-    if(!repository.exists())
+    if(repository.is_direct())
     {
-        wpkg_output::log("repository %1 does not exist or is not accessible.")
+        if(!repository.exists())
+        {
+            wpkg_output::log("repository %1 does not exist or is not accessible.")
+                    .quoted_arg(repository)
+                .level(wpkg_output::level_error)
+                .module(wpkg_output::module_validate_removal)
+                .action("validation");
+            return;
+        }
+        if(!repository.is_dir())
+        {
+            wpkg_output::log("repository %1 is not a directory as expected.")
+                    .quoted_arg(repository)
+                .level(wpkg_output::level_error)
+                .module(wpkg_output::module_validate_removal)
+                .action("validation");
+            return;
+        }
+    }
+    else
+    {
+        wpkg_output::log("repository %1 is not a local file and cannot be checked prior to actually attempting to use it.")
                 .quoted_arg(repository)
-            .level(wpkg_output::level_error)
+            .level(wpkg_output::level_warning)
             .module(wpkg_output::module_validate_removal)
             .action("validation");
-        return;
     }
-    if(!repository.is_dir())
-    {
-        wpkg_output::log("repository %1 is not a directory as expected.")
-                .quoted_arg(repository)
-            .level(wpkg_output::level_error)
-            .module(wpkg_output::module_validate_removal)
-            .action("validation");
-        return;
-    }
-
+    
     f_repository.push_back(repository);
 }
 
