@@ -1881,7 +1881,7 @@ void wpkgar_manager::add_repository(const wpkg_filename::uri_filename& repositor
             .module(wpkg_output::module_validate_removal)
             .action("validation");
     }
-    
+
     f_repository.push_back(repository);
 }
 
