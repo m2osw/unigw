@@ -34,17 +34,19 @@ command line:
   wpkg --root . --create-admindir sample.admindir
 
 You should edit the sample.admindir to your liking, especially you
-want to change the architecture to your system (win32-i386 is for
-Windows 32bit, use win64-amd64 for Windows 64bit.) The name and
+want to change the architecture to your system. The name and
 email address of the maintainer can be fake information as long as
 it can be considered a valid email address.
 
-Architectures: Windows 32 bit   win32-i386
-               Windows 64 bit   win64-amd64
+Architectures: Windows 32 bit   mswindows-i386
+               Windows 64 bit   mswindows-amd64
                Linux 32 bit     linux-i386
                Linux 64 bit     linux-amd64
                Darwin 32 bit    darwin-i386
                Darwin 64 bit    darwin-amd64
+
+Other architectures are supported. Search for tables in file
+libdebpackages/wpkg_architecture.cpp for a complete list.
 
 
 Installing the Binary
@@ -61,18 +63,29 @@ Download the latest version of wpkg.exe from SourceForget.net
 
  . 64 bit version
 
-   If you have a 64 bit platform, you may find a wpkg64.exe instead.
-   You may want to rename the wpkg64.exe file to wpkg.exe because it
-   will be named that way in the .deb packages.
+   If you have a 64 bit platform, you may use the wpkg64.exe instead.
+   You may want to rename the wpkg64.exe file as wpkg.exe because it
+   will be named that way in the 64 bit .deb package.
 
  . No executable
 
    If you do not see a wpkg.exe or they do not work with your version
    of MS-Windows, then you will have to look for the source code and
-   compile. Note that all dependencies are included in the project
+   compile that. Note that all dependencies are included in the project
    so the only thing you will need is a build environment (VC++ IDE,
-   nmake, etc.) We'll try to always offer a pre-compiled
+   nmake, etc.) We will try to always offer a pre-compiled
    version though.
+
+ . Latest Version Available
+
+   If you prefer to live on the edge, you may actually get the source
+   code directly from the git repository. That source code is likely
+   tested by all our tests (91 at time of writing) before getting pushed
+   to SourceForge.net, however, we do not guarantee that it was. To run
+   all the tests on your system, you may use the dev/coverage script.
+   You probably will need dependencies that the script does not test for,
+   and probably to change some directories and other matters. In other
+   words, check the script at least once before running it.
 
 If you are downloading wpkg to install many Unix like packages, then
 you want to create a target installation directory that looks like a
@@ -82,13 +95,13 @@ add that directory your %PATH% environment variable.
    C:\Program Files (x86)\mingw32\bin
 
 Know however that wpkg makes use of an installation directory placed
-under \var\lib\wpkg by default. You'll want to use the --root command
+under \var\lib\wpkg by default. You will want to use the --root command
 like option to specify your target directory:
 
    wpkg --root "C:/Program File (x86)/mingw32" ...
 
 The one advantage with this technique is that you can create as many
-environment as you need on a single computer.
+environments as you need on a single computer.
 
 
 Installing the Package
@@ -105,7 +118,7 @@ and running that copy to do the installation. The result is that the
 wpkg.exe file can be overwritten. This is completely transparent to
 you.
 
-However, if you installed an older version, this won't happen since
+However, if you installed an older version, this will not happen since
 older versions did not know how to do that. So with an older version
 you have to manually rename your existing wpkg.exe tool in something
 else (i.e. wpkg-old.exe) and run that renamed tool. This will install
@@ -126,7 +139,7 @@ Compiling wpkg
 
 Dependencies:
 
-All the include and source files used by wpkg are included in the package
+All the headers and source files used by wpkg are included in the package
 (i.e. 100% self-contained.) We only use the default system headers.
 
   Under a Unix system (Linux, mingw32/MSYS, cygwin, etc.)
@@ -136,12 +149,14 @@ All the include and source files used by wpkg are included in the package
   . g++ -- C++ compiler (should also work with other compilers like icc)
   . tar -- tool to manage tarballs (to extract the source)
   . gzip -- tool to handle compressed tarballs (to extract the source)
+  . git -- if you want to directly download the source from the repository
 
   Under MS-Windows (Visual Studio)
 
   . cmake -- tool used to generate the project and solution files
   . VC++ -- Visual Studio (tested with VC2010)
   . 7zip -- tool to manage compressed tarballs (to extract the source)
+  . git -- if you want to directly download the source from the repository
 
 The new version of wpkg makes use of cmake to build the necessary project
 files and solution (for MSVC IDE or NMake) or Makefiles (for mingw32 or
@@ -155,7 +170,11 @@ recompiled:
 
      http://sourceforge.net/projects/unigw/files/
 
-  2. Extract the source code
+     or the git repository:
+
+     https://sourceforge.net/p/unigw/master/ci/master/tree/
+
+  2. Extract the source code (skip if you used git)
 
      gunzip wpkg-0.7.0.tar.gz
      tar xf wpkg-0.7.0.tar
@@ -175,13 +194,15 @@ recompiled:
   4. Run cmake from inside the BUILD directory
 
      cd BUILD
-     cmake ../wpkg-0.8.0
+     cmake ../wpkg-0.9.4
+
+     The path to the wpkg source is just ../wpkg if you used git.
 
      Note:
        You may have to select what compiler suite you want cmake to
        use before cmake works properly. Under Linux, that's generally
        done automatically. Under MS-Windows, to use NMake you need to
-       start a console with the corresponding Visual Studio studio
+       start a console with the corresponding Visual Studio console
        (look in the Visual Studio folder, you'll find a console entry
        there) and you select the compiler with the -G command line
        option of cmake. To get a list of generators, run cmake --help,
