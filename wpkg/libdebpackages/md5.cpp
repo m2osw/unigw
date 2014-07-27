@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2013  Made to Order Software Corporation
+// Copyright (c) 2007-2014  Made to Order Software Corporation
 // This code is based on an MD5 library written by:
 // WIDE Project, Poul-Henning Kamp, University of California, Matthias Kramm
 

@@ -1,5 +1,5 @@
 /*    unittest_package.h
- *    Copyright (C) 2013  Made to Order Software Corporation
+ *    Copyright (C) 2013-2014  Made to Order Software Corporation
  *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -79,6 +79,8 @@ class PackageUnitTests : public CPPUNIT_NS::TestFixture
         CPPUNIT_TEST( install_hooks_with_spaces );
         CPPUNIT_TEST( auto_remove );
         CPPUNIT_TEST( auto_remove_with_spaces );
+        CPPUNIT_TEST( scripts_selection );
+        CPPUNIT_TEST( scripts_selection_with_spaces );
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -135,6 +137,8 @@ protected:
     void install_hooks_with_spaces();
     void auto_remove();
     void auto_remove_with_spaces();
+    void scripts_selection();
+    void scripts_selection_with_spaces();
 };
 
 #endif

@@ -1,5 +1,5 @@
 /*    wpkgar_build.cpp -- create debian packages
- *    Copyright (C) 2012-2013  Made to Order Software Corporation
+ *    Copyright (C) 2012-2014  Made to Order Software Corporation
  *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -45,9 +45,11 @@
 #include    "libdebpackages/wpkg_util.h"
 #include    "libdebpackages/wpkg_changelog.h"
 #include    "libdebpackages/wpkg_copyright.h"
+#include    "libdebpackages/wpkg_architecture.h"
 #include    "libdebpackages/debian_packages.h"
 #include    <stdlib.h>
 #include    <sstream>
+#include    <iostream>
 #include    <time.h>
 
 namespace wpkgar
@@ -928,15 +930,16 @@ void wpkgar_build::save_package(memfile::memory_file& debian_ar, const wpkg_cont
 {
     // now generate the output filename and save the result
     const std::string package(fields.get_field(wpkg_control::control_file::field_package_factory_t::canonicalized_name()));
-    const std::string architecture(fields.get_field(wpkg_control::control_file::field_architecture_factory_t::canonicalized_name()));
-    const bool is_source(architecture == "source" || architecture == "src");
+    const std::string arch_value(fields.get_field(wpkg_control::control_file::field_architecture_factory_t::canonicalized_name()));
+    const wpkg_architecture::architecture arch(arch_value);
+    const bool is_source(arch.is_source());
     if(f_filename.empty())
     {
         const std::string version(fields.get_field(wpkg_control::control_file::field_version_factory_t::canonicalized_name()));
         std::string package_name = package + "_" + wpkg_util::canonicalize_version_for_filename(version);
         if(!is_source)
         {
-            package_name += "_" + architecture;
+            package_name += "_" + arch_value;
         }
         package_name += ".deb";
         f_package_name = package_name;
@@ -3143,7 +3146,12 @@ void wpkgar_build::build_deb(const wpkg_filename::uri_filename& dir_name)
     {
         throw wpkgar_exception_compatibility("the Architecture field is mandatory in a control file");
     }
-    std::string architecture(fields.get_field(wpkg_control::control_file::field_architecture_factory_t::canonicalized_name()));
+
+    // canonicalize the architecture
+    const char *arch_field(wpkg_control::control_file::field_architecture_factory_t::canonicalized_name());
+    const std::string arch_value(fields.get_field(arch_field));
+    const wpkg_architecture::architecture arch(arch_value);
+    const bool is_source(arch.is_source());
 
     // check for conffiles in case it exists
     wpkg_filename::uri_filename conffiles_name(wpkg_dir.append_child("conffiles"));
@@ -3371,7 +3379,7 @@ void wpkgar_build::build_deb(const wpkg_filename::uri_filename& dir_name)
                 throw wpkgar_exception_defined_twice("same filename (" + filename.original_filename() + ") defined twice in data archive");
             }
             memfile::memory_file::file_info::file_type_t type(info.get_file_type());
-            if(architecture == "source" || architecture == "src")
+            if(is_source)
             {
                 // most file types are not allowed in source packages
                 switch(type)
@@ -3497,7 +3505,7 @@ void wpkgar_build::build_deb(const wpkg_filename::uri_filename& dir_name)
 
                             case memfile::memory_file::file_info::field_name_mode:
 #if !defined(MO_WINDOWS)
-                                if(architecture == "source" || architecture == "src")
+                                if(is_source)
                                 {
                                     // setuid and setgid are not allowed
                                     // (not available under MS-Windows)
@@ -3737,7 +3745,7 @@ void wpkgar_build::build_deb(const wpkg_filename::uri_filename& dir_name)
 
     // Build-Depends should not be defined in a "regular" package,
     // only source packages so delete if not source
-    const bool is_source(architecture == "source" || architecture == "src");
+
     // WARNING: the assignment with = is required with cl in the following!!!
     for(const char * const *non_necessary_fields = (is_source ? non_source_fields : non_binary_fields); *non_necessary_fields != NULL; ++non_necessary_fields)
     {
@@ -3790,7 +3798,7 @@ void wpkgar_build::build_deb(const wpkg_filename::uri_filename& dir_name)
     // if defined, add conffiles
     if(conffiles.get_format() == memfile::memory_file::file_format_other)
     {
-        if(architecture == "source" || architecture == "src")
+        if(is_source)
         {
             throw wpkgar_exception_compatibility("a conffiles cannot be included in a source package");
         }
@@ -3861,7 +3869,11 @@ void wpkgar_build::build_deb(const wpkg_filename::uri_filename& dir_name)
 
         // in general this will include scripts (pre/post install/remove)
         // TODO: verify each filename?
-        if(filename == "preinst.sh")
+        if(filename == "validate.sh")
+        {
+            filename = "validate";
+        }
+        else if(filename == "preinst.sh")
         {
             filename = "preinst";
         }
@@ -3886,7 +3898,13 @@ void wpkgar_build::build_deb(const wpkg_filename::uri_filename& dir_name)
         file_type_t file_type(FILE_TYPE_UNDEFINED);
         char buf[16];
         int size(input_data.read(buf, 0, sizeof(buf)));
-        if(size >= 9 && strncmp("#!/bin/sh", buf, 9) == 0)
+        // most used shells in Unix land (should we limit the test to "#!" ?)
+        if((size >= 9 && strncmp("#!/bin/sh", buf, 9) == 0)
+        || (size >= 10 && strncmp("#!/bin/csh", buf, 10) == 0)
+        || (size >= 11 && strncmp("#!/bin/tcsh", buf, 11) == 0)
+        || (size >= 11 && strncmp("#!/bin/dash", buf, 11) == 0)
+        || (size >= 11 && strncmp("#!/bin/bash", buf, 11) == 0)
+        || (size >= 12 && strncmp("#!/bin/rbash", buf, 12) == 0))
         {
             file_type = FILE_TYPE_SHELL_SCRIPT;
         }
@@ -3894,36 +3912,42 @@ void wpkgar_build::build_deb(const wpkg_filename::uri_filename& dir_name)
         {
             file_type = FILE_TYPE_BATCH_SCRIPT;
         }
-        if(file_type == FILE_TYPE_SHELL_SCRIPT
-        || filename == "preinst" || filename == "postinst"
-        || filename == "prerm" || filename == "postrm")
+        if(arch.get_os() != "all" || arch.is_source())
         {
-            if(architecture != "linux-amd64" && architecture != "amd64"
-            && architecture != "linux-i386" && architecture != "i386")
+            // Unix specific files
+            if(file_type == FILE_TYPE_SHELL_SCRIPT
+            || filename == "validate"
+            || filename == "preinst" || filename == "postinst"
+            || filename == "prerm" || filename == "postrm")
             {
-                // not the right architecture
-                wpkg_output::log("not adding file %1 which is not a valid script for the package architecture.")
-                        .quoted_arg(filename)
-                    .debug(wpkg_output::debug_flags::debug_detail_files)
-                    .module(wpkg_output::module_build_package)
-                    .action("build-package");
-                continue;
+                if(!arch.is_unix() || arch.is_source())
+                {
+                    // not the right architecture
+                    wpkg_output::log("not adding file %1 which is not a valid script for the package architecture.")
+                            .quoted_arg(filename)
+                        .debug(wpkg_output::debug_flags::debug_detail_files)
+                        .module(wpkg_output::module_build_package)
+                        .action("build-package");
+                    continue;
+                }
             }
-        }
-        if(file_type == FILE_TYPE_BATCH_SCRIPT
-        || filename == "preinst.bat" || filename == "postinst.bat"
-        || filename == "prerm.bat" || filename == "postrm.bat")
-        {
-            if(architecture != "win64-amd64" && architecture != "win64"
-            && architecture != "win32-i386" && architecture != "win32")
+
+            // MS-Windows specific files
+            if(file_type == FILE_TYPE_BATCH_SCRIPT
+            || filename == "validate.bat"
+            || filename == "preinst.bat" || filename == "postinst.bat"
+            || filename == "prerm.bat" || filename == "postrm.bat")
             {
-                // not the right architecture
-                wpkg_output::log("not adding file %1 which is not a valid script for the package architecture.")
-                        .quoted_arg(filename)
-                    .debug(wpkg_output::debug_flags::debug_detail_files)
-                    .module(wpkg_output::module_build_package)
-                    .action("build-package");
-                continue;
+                if(!arch.is_mswindows() || arch.is_source())
+                {
+                    // not the right architecture
+                    wpkg_output::log("not adding file %1 which is not a valid script for the package architecture.")
+                            .quoted_arg(filename)
+                        .debug(wpkg_output::debug_flags::debug_detail_files)
+                        .module(wpkg_output::module_build_package)
+                        .action("build-package");
+                    continue;
+                }
             }
         }
 

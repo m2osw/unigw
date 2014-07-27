@@ -1,5 +1,5 @@
 /*    unittest_package.cpp
- *    Copyright (C) 2013  Made to Order Software Corporation
+ *    Copyright (C) 2013-2014  Made to Order Software Corporation
  *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -73,7 +73,7 @@ void PackageUnitTests::setUp()
     wpkg_filename::uri_filename config1("/etc/wpkg/wpkg.conf");
     wpkg_filename::uri_filename config2("~/.config/wpkg/wpkg.conf");
     const char *env(getenv("WPKG_OPTIONS"));
-    if(config1.exists() || config2.exists() || (env != NULL && *env != '\0'))
+    if(config1.exists() || config2.exists() || (env != nullptr && *env != '\0'))
     {
         fprintf(stderr, "\nerror:unittest_package: at least one of the wpkg.conf files or the WPKG_OPTIONS variable exist and could undermine this test. Please delete or rename configuration files (/etc/wpkg/wpkg.conf or ~/.config/wpkg/wpkg.conf) and unset  the WPKG_OPTIONS environment variable.\n");
         throw std::runtime_error("/etc/wpkg/wpkg.conf, ~/.config/wpkg/wpkg.conf, and WPKG_OPTIONS exist");
@@ -428,7 +428,7 @@ void verify_installed_files(const std::string& name)
             break;
         }
         if(info.get_file_type() == memfile::memory_file::file_info::regular_file
-        && strstr(info.get_filename().c_str(), "/WPKG/") == NULL)
+        && strstr(info.get_filename().c_str(), "/WPKG/") == nullptr)
         {
             wpkg_filename::uri_filename installed_name(info.get_uri());
             installed_name = installed_name.remove_common_segments(build_path);
@@ -599,12 +599,12 @@ void verify_removed_files(const std::string& name, std::shared_ptr<wpkg_control:
     for(;;)
     {
         memfile::memory_file::file_info info;
-        if(!dir.dir_next(info, NULL))
+        if(!dir.dir_next(info, nullptr))
         {
             break;
         }
         if(info.get_file_type() == memfile::memory_file::file_info::regular_file
-        && strstr(info.get_filename().c_str(), "/WPKG/") == NULL)
+        && strstr(info.get_filename().c_str(), "/WPKG/") == nullptr)
         {
             wpkg_filename::uri_filename installed_name(info.get_uri());
             installed_name = installed_name.remove_common_segments(build_path);
@@ -669,12 +669,12 @@ void verify_purged_files(const std::string& name, std::shared_ptr<wpkg_control::
     for(;;)
     {
         memfile::memory_file::file_info info;
-        if(!dir.dir_next(info, NULL))
+        if(!dir.dir_next(info, nullptr))
         {
             break;
         }
         if(info.get_file_type() == memfile::memory_file::file_info::regular_file
-        && strstr(info.get_filename().c_str(), "/WPKG/") == NULL)
+        && strstr(info.get_filename().c_str(), "/WPKG/") == nullptr)
         {
             // in this case all files must be gone
             wpkg_filename::uri_filename installed_name(info.get_uri());
@@ -1713,7 +1713,7 @@ void PackageUnitTests::sorted_packages_run(int precreate_index)
     {
         // modify an md5 checksum
         FILE *f(fopen((root.full_path() + "/md5sums.txt").c_str(), "r+"));
-        CPPUNIT_ASSERT(f != NULL);
+        CPPUNIT_ASSERT(f != nullptr);
         char o;
 #ifdef __GNUC__
 #   pragma GCC diagnostic push
@@ -3890,5 +3890,279 @@ void PackageUnitTests::auto_remove_with_spaces()
     auto_remove();
 }
 
+
+void PackageUnitTests::scripts_selection()
+{
+    // IMPORTANT: remember that all files are deleted between tests
+
+    wpkg_filename::uri_filename root(unittest::tmp_dir);
+    wpkg_filename::uri_filename repository(root.append_child("repository"));
+
+////////////////////// t1 -- make sure only Unix or MS-Windows scripts get in the package
+    wpkg_filename::uri_filename build_path_t1(root.append_child("t1"));
+    wpkg_filename::uri_filename wpkg_path_t1(build_path_t1.append_child("WPKG"));
+
+    // create a first version of the package
+    struct test_archs
+    {
+        char const *    f_name;
+        int             f_flags;
+    };
+
+    test_archs archs_info[] =
+    {
+        {
+            /* f_name  */ "linux-m2osw-i386",
+            /* f_flags */ 0x001F
+        },
+        {
+            /* f_name  */ "linux-m2osw-amd64",
+            /* f_flags */ 0x001F
+        },
+        {
+            /* f_name  */ "linux-i386",
+            /* f_flags */ 0x001F
+        },
+        {
+            /* f_name  */ "linux-amd64",
+            /* f_flags */ 0x001F
+        },
+        {
+            /* f_name  */ "linux-powerpc",
+            /* f_flags */ 0x001F
+        },
+        {
+            /* f_name  */ "i386",
+            /* f_flags */ 0x001F
+        },
+        {
+            /* f_name  */ "amd64",
+            /* f_flags */ 0x001F
+        },
+        {
+            /* f_name  */ "mswindows-m2osw-i386",
+            /* f_flags */ 0x03E0
+        },
+        {
+            /* f_name  */ "mswindows-m2osw-amd64",
+            /* f_flags */ 0x03E0
+        },
+        {
+            /* f_name  */ "mswindows-i386",
+            /* f_flags */ 0x03E0
+        },
+        {
+            /* f_name  */ "mswindows-amd64",
+            /* f_flags */ 0x03E0
+        },
+        {
+            /* f_name  */ "win32",
+            /* f_flags */ 0x03E0
+        },
+        {
+            /* f_name  */ "win64",
+            /* f_flags */ 0x03E0
+        },
+        {
+            /* f_name  */ "win32-m2osw-i386",
+            /* f_flags */ 0x03E0
+        },
+        {
+            /* f_name  */ "win64-m2osw+11-amd64",
+            /* f_flags */ 0x03E0
+        },
+        {
+            /* f_name  */ "win64-m2osw.com-mips", // yes, there was a MIPS version!
+            /* f_flags */ 0x03E0
+        },
+        {
+            /* f_name  */ "all",
+            /* f_flags */ 0x03FF
+        },
+        {
+            /* f_name  */ "source",
+            /* f_flags */ 0x0000
+        }
+    };
+
+    size_t const max_archs(sizeof(archs_info) / sizeof(archs_info[0]));
+    for(size_t idx(0); idx < max_archs; ++idx)
+    {
+        std::shared_ptr<wpkg_control::control_file> ctrl_t1(get_new_control_file(__FUNCTION__));
+        ctrl_t1->set_field("Architecture", archs_info[idx].f_name);
+        ctrl_t1->set_field("Files", "conffiles\n"
+            "/usr/bin/t1 0123456789abcdef0123456789abcdef\n"
+            "/usr/share/doc/t1/copyright 0123456789abcdef0123456789abcdef\n"
+        );
+
+        // MS-Windows
+        {
+            memfile::memory_file validate;
+            validate.create(memfile::memory_file::file_format_other);
+            memfile::memory_file preinst;
+            preinst.create(memfile::memory_file::file_format_other);
+            memfile::memory_file postinst;
+            postinst.create(memfile::memory_file::file_format_other);
+            memfile::memory_file prerm;
+            prerm.create(memfile::memory_file::file_format_other);
+            memfile::memory_file postrm;
+            postrm.create(memfile::memory_file::file_format_other);
+
+            validate.printf(
+                "REM Script showing that MS-Windows scripts were selected (validate)\n"
+            );
+            validate.write_file(wpkg_path_t1.append_child("validate.bat"), true);
+            preinst.printf(
+                "REM Script showing that MS-Windows scripts were selected (preinst)\n"
+            );
+            preinst.write_file(wpkg_path_t1.append_child("preinst.bat"), true);
+            postinst.printf(
+                "REM Script showing that MS-Windows scripts were selected (postinst)\n"
+            );
+            postinst.write_file(wpkg_path_t1.append_child("postinst.bat"), true);
+            prerm.printf(
+                "REM Script showing that MS-Windows scripts were selected (prerm)\n"
+            );
+            prerm.write_file(wpkg_path_t1.append_child("prerm.bat"), true);
+            postrm.printf(
+                "REM Script showing that MS-Windows scripts were selected (postrm)\n"
+            );
+            postrm.write_file(wpkg_path_t1.append_child("postrm.bat"), true);
+        }
+
+        {
+            memfile::memory_file validate;
+            validate.create(memfile::memory_file::file_format_other);
+            memfile::memory_file preinst;
+            preinst.create(memfile::memory_file::file_format_other);
+            memfile::memory_file postinst;
+            postinst.create(memfile::memory_file::file_format_other);
+            memfile::memory_file prerm;
+            prerm.create(memfile::memory_file::file_format_other);
+            memfile::memory_file postrm;
+            postrm.create(memfile::memory_file::file_format_other);
+
+            validate.printf(
+                "#!/bin/sh\n"
+                "# Script showing that Unix scripts were selected (validate)\n"
+            );
+            validate.write_file(wpkg_path_t1.append_child("validate"), true);
+            preinst.printf(
+                "#!/bin/sh\n"
+                "# Script showing that Unix scripts were selected (preinst)\n"
+            );
+            preinst.write_file(wpkg_path_t1.append_child("preinst"), true);
+            postinst.printf(
+                "#!/bin/sh\n"
+                "# Script showing that Unix scripts were selected (postinst)\n"
+            );
+            postinst.write_file(wpkg_path_t1.append_child("postinst"), true);
+            prerm.printf(
+                "#!/bin/sh\n"
+                "# Script showing that Unix scripts were selected (prerm)\n"
+            );
+            prerm.write_file(wpkg_path_t1.append_child("prerm"), true);
+            postrm.printf(
+                "#!/bin/sh\n"
+                "# Script showing that Unix scripts were selected (postrm)\n"
+            );
+            postrm.write_file(wpkg_path_t1.append_child("postrm"), true);
+        }
+
+        create_package("t1", ctrl_t1, false);
+
+        // load the result and verify which files are present in the .deb
+        std::string architecture(ctrl_t1->get_field("Architecture"));
+        if(architecture == "source")
+        {
+            architecture = "";
+        }
+        else
+        {
+            architecture = "_" + architecture;
+        }
+        wpkg_filename::uri_filename package_filename(repository.append_child("/t1_1.0" + architecture + ".deb"));
+        memfile::memory_file package_file;
+        package_file.read_file(package_filename);
+        package_file.dir_rewind();
+        for(;;)
+        {
+            memfile::memory_file::file_info info;
+            memfile::memory_file data;
+            // assert here because the control.tar.gz MUST be present
+            CPPUNIT_ASSERT(package_file.dir_next(info, &data));
+
+            if(info.get_filename() == "control.tar.gz")
+            {
+                // we can reuse the info parameter since the previous level
+                // info does not interest us anymore
+                int flags(0);
+                memfile::memory_file control_file;
+                data.decompress(control_file);
+                control_file.dir_rewind();
+                for(;;)
+                {
+                    memfile::memory_file::file_info ctrl_info;
+                    if(!control_file.dir_next(ctrl_info, nullptr))
+                    {
+                        break;
+                    }
+                    if(ctrl_info.get_filename() == "validate")
+                    {
+                        flags |= 0x0001;
+                    }
+                    else if(ctrl_info.get_filename() == "preinst")
+                    {
+                        flags |= 0x0002;
+                    }
+                    else if(ctrl_info.get_filename() == "postinst")
+                    {
+                        flags |= 0x0004;
+                    }
+                    else if(ctrl_info.get_filename() == "prerm")
+                    {
+                        flags |= 0x0008;
+                    }
+                    else if(ctrl_info.get_filename() == "postrm")
+                    {
+                        flags |= 0x0010;
+                    }
+                    else if(ctrl_info.get_filename() == "validate.bat")
+                    {
+                        flags |= 0x0020;
+                    }
+                    else if(ctrl_info.get_filename() == "preinst.bat")
+                    {
+                        flags |= 0x0040;
+                    }
+                    else if(ctrl_info.get_filename() == "postinst.bat")
+                    {
+                        flags |= 0x0080;
+                    }
+                    else if(ctrl_info.get_filename() == "prerm.bat")
+                    {
+                        flags |= 0x0100;
+                    }
+                    else if(ctrl_info.get_filename() == "postrm.bat")
+                    {
+                        flags |= 0x0200;
+                    }
+                }
+                if(archs_info[idx].f_flags != flags)
+                {
+                    std::cerr << "error: found flags 0x" << std::hex << flags << ", expected flags 0x" << archs_info[idx].f_flags << "\n";
+                }
+                CPPUNIT_ASSERT(archs_info[idx].f_flags == flags);
+                break;
+            }
+        }
+    }
+}
+
+void PackageUnitTests::scripts_selection_with_spaces()
+{
+    raii_tmp_dir_with_space add_spaces;
+    scripts_selection();
+}
 
 // vim: ts=4 sw=4 et

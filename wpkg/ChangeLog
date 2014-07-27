@@ -1,3 +1,19 @@
+wpkg (0.9.4) stable unstable; urgency=medium
+
+  * Fixed the problems with architectures not being canonicalized when
+    determining whether a script should be added or not.
+  * Fixed architecture <= and >= operators.
+  * Fixed the output when vendor is defined, but all three parameters are
+    "any" (we expect "any" as a return value of to_string()).
+  * Properly detect "validate" scripts.
+  * Detect additional shell scripts to determine that a script is for Unix.
+  * Do not add any scripts to source packages (mistake?)
+  * Check whether a processor name include invalid characters in case a
+    pattern is used to match the name.
+  * Updated the copyright date of all files to 2014.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Sun, 27 Jul 2014 02:39:17 -0800
+
 wpkg (0.9.3) stable unstable; urgency=medium
 
   * Found out why the UTF-8 library documentation was not making it in.

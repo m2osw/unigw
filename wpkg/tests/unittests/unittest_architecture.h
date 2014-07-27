@@ -1,5 +1,5 @@
-/*    unittest_control.h
- *    Copyright (C) 2013-2014  Made to Order Software Corporation
+/*    unittest_architecture.h
+ *    Copyright (C) 2014  Made to Order Software Corporation
  *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -18,34 +18,34 @@
  *    Authors
  *    Alexis Wilke   alexis@m2osw.com
  */
-#ifndef UNIT_TEST_CONTROL_H
-#define UNIT_TEST_CONTROL_H
+#ifndef UNIT_TEST_ARCHITECTURE_H
+#define UNIT_TEST_ARCHITECTURE_H
 
 #include <cppunit/extensions/HelperMacros.h>
-#include "libdebpackages/wpkg_control.h"
+#include "libdebpackages/wpkg_architecture.h"
 
-namespace wpkg_filename
-{
-class uri_filename;
-}
 
-class ControlUnitTests : public CPPUNIT_NS::TestFixture
+class ArchitectureUnitTests : public CPPUNIT_NS::TestFixture
 {
-    CPPUNIT_TEST_SUITE( ControlUnitTests );
-        CPPUNIT_TEST( files_field_to_list );
-        CPPUNIT_TEST( all_files_field );
+    CPPUNIT_TEST_SUITE( ArchitectureUnitTests );
+        CPPUNIT_TEST( valid_vendors );
+        CPPUNIT_TEST( verify_abbreviations );
+        CPPUNIT_TEST( verify_os );
+        CPPUNIT_TEST( verify_processors );
+        CPPUNIT_TEST( verify_architecture );
     CPPUNIT_TEST_SUITE_END();
 
 public:
     void setUp();
 
 protected:
-    void files_field_to_list();
-    void all_files_field();
+    void valid_vendors();
+    void verify_abbreviations();
+    void verify_os();
+    void verify_processors();
+    void verify_architecture();
 
 private:
-    // helper functions
-    void check_field(const std::string& field_name, const std::string& default_format, wpkg_control::file_item::format_t format);
 };
 
 #endif

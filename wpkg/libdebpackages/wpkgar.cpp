@@ -1,5 +1,5 @@
 /*    wpkgar.cpp -- implementation of the wpkg archive
- *    Copyright (C) 2012-2013  Made to Order Software Corporation
+ *    Copyright (C) 2012-2014  Made to Order Software Corporation
  *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -2434,7 +2434,7 @@ bool wpkgar_manager::run_script(const wpkg_filename::uri_filename& package_name,
     // the MS-Windows batch cmd:
     const std::string interpreter("%COMSPEC% /q /c");
 #else
-    // default interpreter is for Unix systems
+    // default interpreter for Unix systems
     const std::string interpreter("sh -e");
 #endif
     std::string parameters;

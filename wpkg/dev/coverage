@@ -69,6 +69,7 @@ test_date=`date`
 echo "***"
 echo "*** run $test_date"
 echo "***"
+#BUILD/tests/unittests/unittest $seed --tmp sb --wpkg BUILD/tools/wpkg ArchitectureUnitTests 2>&1 | tee - tests.log
 BUILD/tests/unittests/unittest $seed --tmp sb --wpkg BUILD/tools/wpkg 2>&1 | tee - tests.log
 test_end_date=`date`
 echo

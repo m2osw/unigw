@@ -1,5 +1,5 @@
 /*    wpkg_architecture.cpp -- verify and compare architectures
- *    Copyright (C) 2012-2013  Made to Order Software Corporation
+ *    Copyright (C) 2012-2014  Made to Order Software Corporation
  *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@
  */
 #include    "libdebpackages/wpkg_architecture.h"
 
+#include    <iostream>
 
 
 /** \brief The architecture namespace.
@@ -149,8 +150,8 @@ const architecture::abbreviation_t arch_abbreviation[] =
         "freebsd", "amd64"
     },
     {
-        NULL,
-        NULL, NULL
+        nullptr,
+        nullptr, nullptr
     }
 };
 
@@ -232,7 +233,7 @@ const architecture::processor_t arch_processor[] =
     //          (note that it is an "enhanced" glob since we support the | operator)
     { "any",     NULL,                          0, architecture::PROCESSOR_ENDIAN_UNKNOWN },
     { "alpha",   "alpha*",                     64, architecture::PROCESSOR_ENDIAN_LITTLE  },
-    { "amd64",   "x86_64",                     64, architecture::PROCESSOR_ENDIAN_LITTLE  },
+    { "amd64",   NULL,                         64, architecture::PROCESSOR_ENDIAN_LITTLE  }, // note that "x86_64" is not valid ('_' is forbidden in an architecture name)
     { "arm64",   "aarch64",                    64, architecture::PROCESSOR_ENDIAN_LITTLE  },
     { "armeb",   "arm*b",                      32, architecture::PROCESSOR_ENDIAN_BIG     },
     { "arm",     "arm*",                       32, architecture::PROCESSOR_ENDIAN_LITTLE  },
@@ -245,7 +246,7 @@ const architecture::processor_t arch_processor[] =
     { "mips",    "mipseb",                     32, architecture::PROCESSOR_ENDIAN_BIG     },
     { "mipsel",  NULL,                         32, architecture::PROCESSOR_ENDIAN_LITTLE  },
     { "powerpc", "ppc",                        32, architecture::PROCESSOR_ENDIAN_BIG     },
-    { "ppc64",   "ppc64",                      64, architecture::PROCESSOR_ENDIAN_BIG     },
+    { "ppc64",   NULL,                         64, architecture::PROCESSOR_ENDIAN_BIG     },
     { "s390",    NULL,                         32, architecture::PROCESSOR_ENDIAN_BIG     },
     { "s390x",   NULL,                         64, architecture::PROCESSOR_ENDIAN_BIG     },
     { "sh3",     NULL,                         32, architecture::PROCESSOR_ENDIAN_LITTLE  },
@@ -352,6 +353,17 @@ const architecture::processor_t arch_processor[] =
  */
 
 
+/** \brief The name of the unknown vendor.
+ *
+ * When setting up an architecture, the vendor segment is set to this
+ * UNKNOWN_VENDOR value by default. In other words, an undefined
+ * vendor entry is viewed as "unknown" and not "".
+ *
+ * An empty architecture, however, has "" as its vendor string.
+ */
+const std::string architecture::UNKNOWN_VENDOR = "unknown";
+
+
 /** \brief Check whether a vendor string is valid.
  *
  * This function verifies the characters of a vendor string for validity.
@@ -400,19 +412,16 @@ bool architecture::valid_vendor(const std::string& vendor)
  */
 const architecture::abbreviation_t *architecture::find_abbreviation(const std::string& abbreviation)
 {
-    for(const abbreviation_t *a(arch_abbreviation);; ++a)
+    for(const abbreviation_t *a(arch_abbreviation); a->f_abbreviation != NULL; ++a)
     {
-        if(a->f_abbreviation == NULL)
-        {
-            // unknown abbreviation
-            return NULL;
-        }
         if(abbreviation == a->f_abbreviation)
         {
             return a;
         }
     }
-    /*NOTREACHED*/
+
+    // unknown abbreviation
+    return NULL;
 }
 
 
@@ -439,19 +448,16 @@ const architecture::os_t *architecture::find_os(const std::string& os)
         // backward compatibility
         operating_system = "mswindows";
     }
-    for(const os_t *o(arch_os);; ++o)
+    for(const os_t *o(arch_os); o->f_name != NULL; ++o)
     {
-        if(o->f_name == NULL)
-        {
-            // unknown operating system
-            return NULL;
-        }
         if(operating_system == o->f_name)
         {
             return o;
         }
     }
-    /*NOTREACHED*/
+
+    // unknown operating system
+    return NULL;
 }
 
 
@@ -471,16 +477,21 @@ const architecture::os_t *architecture::find_os(const std::string& os)
  */
 const architecture::processor_t *architecture::find_processor(const std::string& processor, bool extended)
 {
+    if(extended)
+    {
+        // in this case the processor name may include invalid characters
+        // that would not be caught by the '*' in a pattern
+        if(!valid_vendor(processor))
+        {
+            return NULL;
+        }
+    }
+
     // we use a "filename" so that way we can test with glob() patterns
     // (or should we move the pattern check to wpkg_util?)
     wpkg_filename::uri_filename processor_filename(processor);
-    for(const processor_t *p(arch_processor);; ++p)
+    for(const processor_t *p(arch_processor); p->f_name != NULL; ++p)
     {
-        if(p->f_name == NULL)
-        {
-            // unknown processor
-            return NULL;
-        }
         if(processor == p->f_name)
         {
             return p;
@@ -506,7 +517,9 @@ const architecture::processor_t *architecture::find_processor(const std::string&
             }
         }
     }
-    /*NOTREACHED*/
+
+    // unknown processor
+    return NULL;
 }
 
 
@@ -526,7 +539,7 @@ const architecture::processor_t *architecture::find_processor(const std::string&
  * To find an abbreviation from a string, use the find_abbreviation()
  * function instead.
  *
- * \return A constant pointer to a list of abbreviations.
+ * \return A constant pointer to a null terminated list of abbreviations.
  */
 const architecture::abbreviation_t *architecture::abbreviation_list()
 {
@@ -663,6 +676,107 @@ bool architecture::is_pattern() const
 }
 
 
+/** \brief Check whether the architecture represents source files.
+ *
+ * When the processor name is set to "src" or "source" then the files
+ * in that package are assumed to be source files. In that case this
+ * function returns true.
+ *
+ * \return true if the processor is "source".
+ */
+bool architecture::is_source() const
+{
+    return f_processor == "source";
+}
+
+
+/** \brief Detect whether the operating system is a Unix compatible system.
+ *
+ * This function checks whether the operating system of this architecture
+ * object represents a Unix compatible system. This includes all forms
+ * of operating systems such as Linux, Darwin, FreeBSD, Solaris, etc.
+ *
+ * Note that if the operating system is set to "all" then this function
+ * returns false because "all" could represent a non-Unix system.
+ *
+ * Note that "any" also returns false, although that represents a pattern
+ * and not what I would call a valid architecture name.
+ *
+ * \note
+ * At this point we only support MS-Windows which is not a Unix compatible
+ * operating system.
+ *
+ * \return True if the operating system is a Unix compatible system.
+ */
+bool architecture::is_unix() const
+{
+    return f_os != "mswindows" && f_os != "any" && f_os != "all" && !f_os.empty();
+}
+
+
+/** \brief Detect whether the operating system is a MS-Windows compatible system.
+ *
+ * This function checks whether the operating system of this architecture
+ * object represents a MS-Windows compatible system. This includes all forms
+ * of operating systems such as MS-Windows, Wine (although we do not support
+ * that one), etc.
+ *
+ * Note that if the operating system is set to "any" then this function
+ * returns false because "any" could represent a non-MS-Windows system.
+ *
+ * \return True if the operating system is "mswindows".
+ */
+bool architecture::is_mswindows() const
+{
+    return f_os == "mswindows";
+}
+
+
+/** \brief Retrieve the operating system part of this architecture object.
+ *
+ * This function returns the operating system part of this architecture
+ * object.
+ *
+ * Example of operating systems: linux, mswindows, darwin.
+ *
+ * \return A string representing the operating system of this architecture.
+ */
+const std::string& architecture::get_os() const
+{
+    return f_os;
+}
+
+
+/** \brief Retrieve the vendor name of this architecture object.
+ *
+ * This function returns the vendor name of this architecture
+ * object.
+ *
+ * Example of vendor: m2osw.
+ *
+ * \return A string representing the vendor name in this architecture.
+ */
+const std::string& architecture::get_vendor() const
+{
+    return f_vendor;
+}
+
+
+/** \brief Retrieve the processor (CPU) of this architecture object.
+ *
+ * This function returns the processor name (also often called the CPU)
+ * of this architecture object.
+ *
+ * Processors examples: i386, amd64, powerpc.
+ *
+ * \return A string representing the processor of this architecture.
+ */
+const std::string& architecture::get_processor() const
+{
+    return f_processor;
+}
+
+
 /** \brief Parse an architecture string and defines the triplet accordingly.
  *
  * This function parses the \p arch parameter in an architecture triplet.
@@ -726,30 +840,31 @@ bool architecture::set(const std::string& arch)
     }
 
     std::string os;
-    std::string vendor("unknown");
+    std::string vendor(UNKNOWN_VENDOR);
     std::string processor;
 
     const std::string::size_type p(arch.find_first_of('-'));
     if(p == std::string::npos)
     {
         // <abbreviation>
-        for(const abbreviation_t *a(arch_abbreviation);; ++a)
+        const abbreviation_t *abbr(find_abbreviation(arch));
+        if(abbr == NULL)
         {
-            if(a->f_abbreviation == NULL)
-            {
-                // unknown abbreviation
-                return false;
-            }
-            if(arch == a->f_abbreviation)
-            {
-                os = a->f_os;
-                processor = a->f_processor;
-                break;
-            }
+            // unknown abbreviation
+            return false;
         }
+        os = abbr->f_os;
+        processor = abbr->f_processor;
     }
     else
     {
+        // an architecture name cannot start with a '-'
+        if(p == 0)
+        {
+            // same as testing 'os.empty()'
+            return false;
+        }
+
         os = arch.substr(0, p);
         const std::string::size_type q(arch.find_first_of('-', p + 1));
         if(q == std::string::npos)
@@ -781,9 +896,10 @@ bool architecture::set(const std::string& arch)
         }
     }
 
-    // here we have a semi-valid triplet in os, vendor, and processor variables
-    // now we want to verify that these are valid (supported) architecture
-    // parameters as found in our lists and as we're at it we canonicalize
+    // here we have a semi-valid triplet in os, vendor, and processor
+    // variables now we want to verify that these are valid (supported)
+    // architecture parameters as found in our lists and as we are at
+    // it we canonicalize
     const os_t *co(find_os(os));
     const processor_t *cp(find_processor(processor, true));
     if(co == NULL || cp == NULL)
@@ -819,7 +935,7 @@ bool architecture::set(const std::string& arch)
 std::string architecture::to_string() const
 {
     // the unknown vendor is nearly the same as "any" in our case
-    if(f_vendor == "unknown" || f_vendor == "")
+    if(f_vendor == UNKNOWN_VENDOR || f_vendor == "")
     {
         if(f_os == "" && f_processor == "")
         {
@@ -833,6 +949,11 @@ std::string architecture::to_string() const
         }
         // standard <os>-<processor>
         return f_os + "-" + f_processor;
+    }
+
+    if(f_os == "any" && f_vendor == "any" && f_processor == "any")
+    {
+        return "any";
     }
 
     // full <os>-<vendor>-<processor>
@@ -993,7 +1114,7 @@ bool architecture::operator != (const architecture& rhs) const
         {
             return true;
         }
-        if(!iv && p->f_vendor != "any" && p->f_vendor != "unknown" && p->f_vendor != a->f_vendor)
+        if(!iv && p->f_vendor != "any" && p->f_vendor != UNKNOWN_VENDOR && p->f_vendor != a->f_vendor)
         {
             return true;
         }
@@ -1007,7 +1128,7 @@ bool architecture::operator != (const architecture& rhs) const
         // compare architecture against architecture
         //      or pattern against pattern
         if(f_os != rhs.f_os
-        || (!iv && f_vendor != rhs.f_vendor && f_vendor != "unknown" && rhs.f_vendor != "unknown")
+        || (!iv && f_vendor != rhs.f_vendor && f_vendor != UNKNOWN_VENDOR && rhs.f_vendor != UNKNOWN_VENDOR)
         || f_processor != rhs.f_processor)
         {
             return true;
@@ -1059,11 +1180,11 @@ bool architecture::operator <= (const architecture& rhs) const
 {
     if(f_ignore_vendor || rhs.f_ignore_vendor)
     {
-        return f_os <= rhs.f_os
+        return f_os < rhs.f_os
             || (f_os == rhs.f_os && f_processor <= rhs.f_processor);
     }
-    return f_os <= rhs.f_os
-        || (f_os == rhs.f_os && f_vendor <= rhs.f_vendor)
+    return f_os < rhs.f_os
+        || (f_os == rhs.f_os && f_vendor < rhs.f_vendor)
         || (f_os == rhs.f_os && f_vendor == rhs.f_vendor && f_processor <= rhs.f_processor);
 }
 
@@ -1109,15 +1230,13 @@ bool architecture::operator >= (const architecture& rhs) const
 {
     if(f_ignore_vendor || rhs.f_ignore_vendor)
     {
-        return f_os >= rhs.f_os
+        return f_os > rhs.f_os
             || (f_os == rhs.f_os && f_processor >= rhs.f_processor);
     }
-    return f_os >= rhs.f_os
-        || (f_os == rhs.f_os && f_vendor >= rhs.f_vendor)
+    return f_os > rhs.f_os
+        || (f_os == rhs.f_os && f_vendor > rhs.f_vendor)
         || (f_os == rhs.f_os && f_vendor == rhs.f_vendor && f_processor >= rhs.f_processor);
 }
-
-
 
 
 

@@ -1,5 +1,5 @@
 /*    unittest_system.cpp
- *    Copyright (C) 2013  Made to Order Software Corporation
+ *    Copyright (C) 2013-2014  Made to Order Software Corporation
  *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -177,7 +177,7 @@ const char * const g_projects[] =
         "License: GPL2",
         "Disclaimer: This package is part of the wpkg unit test environment.",
         "Copyright:",
-        " Copyright (c) 2013 Made to Order Software Corporation",
+        " Copyright (c) 2013-2014 Made to Order Software Corporation",
     ">file wpkg/changelog",
         "one (1.5.2) unstable; urgency=low",
         "",
@@ -262,7 +262,7 @@ const char * const g_projects[] =
         "License: GPL2",
         "Disclaimer: This package is part of the wpkg unit test environment.",
         "Copyright:",
-        " Copyright (c) 2013 Made to Order Software Corporation",
+        " Copyright (c) 2013-2014 Made to Order Software Corporation",
     ">file wpkg/changelog",
         "two (0.5.9) unstable; urgency=low",
         "",
@@ -330,7 +330,7 @@ const char * const g_projects[] =
         "License: GPL2",
         "Disclaimer: This package is part of the wpkg unit test environment.",
         "Copyright:",
-        " Copyright (c) 2013 Made to Order Software Corporation",
+        " Copyright (c) 2013-2014 Made to Order Software Corporation",
     ">file wpkg/changelog",
         "three (2.1.7) unstable; urgency=low",
         "",

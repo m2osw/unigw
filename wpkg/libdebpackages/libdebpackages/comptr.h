@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2013  Made to Order Software Corporation
+// Copyright (c) 2012-2014  Made to Order Software Corporation
 // This code is heavily based on code by Si Brown found here:
 // http://www.flipcode.com/archives/COM_Smart_Pointer.shtml
 #ifndef COMPTR_H

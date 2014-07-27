@@ -1,5 +1,5 @@
 /*    memfile.cpp -- handle files in memory
- *    Copyright (C) 2012-2013  Made to Order Software Corporation
+ *    Copyright (C) 2012-2014  Made to Order Software Corporation
  *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -61,6 +61,7 @@
 #include    <stdarg.h>
 #include    <ctime>
 #include    <algorithm>
+#include    <iostream>
 #if defined(MO_WINDOWS)
 #include    "libdebpackages/comptr.h"
 #include    <objidl.h>

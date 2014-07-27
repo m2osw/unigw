@@ -1,5 +1,5 @@
 /*    wpkg_architecture.h -- declaration of the architecture file format
- *    Copyright (C) 2012-2013  Made to Order Software Corporation
+ *    Copyright (C) 2012-2014  Made to Order Software Corporation
  *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -81,13 +81,18 @@ public:
         const endian_t      f_endian;
     };
 
+    static const std::string    UNKNOWN_VENDOR;
+
     static bool valid_vendor(const std::string& vendor);
-    static const abbreviation_t *find_abbreviation(const std::string& abbreviation);
-    static const os_t *find_os(const std::string& os);
-    static const processor_t *find_processor(const std::string& processor, bool extended);
+
     static const abbreviation_t *abbreviation_list();
+    static const abbreviation_t *find_abbreviation(const std::string& abbreviation);
+
     static const os_t *os_list();
+    static const os_t *find_os(const std::string& os);
+
     static const processor_t *processor_list();
+    static const processor_t *find_processor(const std::string& processor, bool extended);
 
     architecture();
     architecture(const std::string& arch, bool ignore_vendor_field = false);
@@ -95,6 +100,13 @@ public:
 
     bool empty() const;
     bool is_pattern() const;
+    bool is_source() const;
+    bool is_unix() const;
+    bool is_mswindows() const;
+
+    const std::string& get_os() const;
+    const std::string& get_vendor() const;
+    const std::string& get_processor() const;
 
     bool set(const std::string& arch);
     std::string to_string() const;

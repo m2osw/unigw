@@ -9,7 +9,7 @@
 #      See the CMake documentation.
 #
 # License:
-#      Copyright (c) 2006-2013 Made to Order Software Corp.
+#      Copyright (c) 2006-2014 Made to Order Software Corp.
 #
 #      https://sourceforge.net/projects/unigw/
 #      contact@m2osw.com
@@ -39,7 +39,7 @@
 ##
 set(WPKG_VERSION_MAJOR 0)
 set(WPKG_VERSION_MINOR 9)
-set(WPKG_VERSION_PATCH 3)
+set(WPKG_VERSION_PATCH 4)
 
 cmake_minimum_required(VERSION 2.8.4)
 

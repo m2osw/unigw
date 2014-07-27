@@ -11,7 +11,7 @@ Source: http://windowspackager.org/
 License: GPL2
 Disclaimer: This package is part of the usys system. It is not a native Debian package.
 Copyright:
- Copyright (c) 2006-2013 Made to Order Software Corporation
+ Copyright (c) 2006-2014 Made to Order Software Corporation
 
 Files: bzip2/*
 Copyright: Copyright (C) 1996-2010 Julian Seward <jseward@bzip.org>
@@ -79,7 +79,7 @@ License:
  THE SOFTWARE.
 
 Files: libtld/*
-Copyright: Copyright (c) 2011-2013 Made to Order Software Corp., All Rights Reserved.
+Copyright: Copyright (c) 2011-2014 Made to Order Software Corp., All Rights Reserved.
 License:
  http://snapwebsites.org/
  contact@m2osw.com
@@ -127,5 +127,5 @@ License:
  jloup@gzip.org          madler@alumni.caltech.edu
 
 Files: dev/* documentation/* libdebpackages/* libexpr/* libutf8/* tests/* tools/* wpkg/* www/*
-Copyright: Copyright (c) 2006-2013 Made to Order Software Corporation
+Copyright: Copyright (c) 2006-2014 Made to Order Software Corporation
 License: GPL2

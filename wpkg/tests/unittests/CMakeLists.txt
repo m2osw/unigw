@@ -10,7 +10,7 @@
 #      See the CMake documentation.
 #
 # License:
-#      Copyright (c) 2013 Made to Order Software Corp.
+#      Copyright (c) 2013-2014 Made to Order Software Corp.
 #
 #      https://sourceforge.net/projects/unigw/
 #      contact@m2osw.com
@@ -73,6 +73,7 @@ if( CPPUNIT_FOUND )
     add_executable( ${PROJECT_NAME}
         unittest_main.cpp
         unittest_advgetopt.cpp
+        unittest_architecture.cpp
         unittest_control.cpp
         unittest_expr.cpp
         unittest_libutf8.cpp
