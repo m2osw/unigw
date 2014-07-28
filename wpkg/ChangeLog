@@ -1,5 +1,7 @@
 wpkg (0.9.4) stable unstable; urgency=medium
 
+  * Applied a patch by Trent Clarke to fix big problems with large trees
+    of dependencies so all possibilities do get tested as expected.
   * Fixed the problems with architectures not being canonicalized when
     determining whether a script should be added or not.
   * Fixed architecture <= and >= operators.
