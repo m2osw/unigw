@@ -37,6 +37,7 @@
 #include    <sstream>
 #include    <fstream>
 #include    <algorithm>
+#include    <set>
 #include    <stdarg.h>
 #include    <errno.h>
 #include    <time.h>
@@ -107,6 +108,25 @@ namespace wpkgar
  * the user wants to install (and thus these may not even exist,)
  * the packages found in the target, the packages found in repositories.
  */
+
+
+/** \class wpkgar_install::tree_generator
+ * \brief Generate all possible permutations of the package tree.
+ *
+ * Lazily generates all possible permutations of the package tree, such
+ * that only one version of any named package is installable. The resulting
+ * permutations are not guaranteed to be valid, checking the validity is
+ * done afterward.
+ *
+ * Uses the cartesian product algorithm described here:
+ *   http://phrogz.net/lazy-cartesian-product
+ *
+ * \todo
+ * Hack out the wpkgar_package_list_t-specific lazy cartesian product
+ * generator and turn it into a generic one.
+ */
+
+
 
 
 
@@ -299,6 +319,32 @@ bool wpkgar_install::package_item_t::is_unpacked() const
     return f_unpacked;
 }
 
+/** \brief Check whether a package is marked for installation.
+ *
+ * This function returns true if the current package type is set to
+ * a value that represents a package that is to be installed.
+ *
+ * \return true if this package it to be installed.
+ */
+bool wpkgar_install::package_item_t::is_marked_for_install() const
+{
+    switch(f_type)
+    {
+    case package_item_t::package_type_explicit:
+    case package_item_t::package_type_implicit:
+    case package_item_t::package_type_configure:
+    case package_item_t::package_type_upgrade:
+    case package_item_t::package_type_upgrade_implicit:
+    case package_item_t::package_type_downgrade:
+        return true;
+
+    default:
+        return false;
+
+    }
+}
+
+
 
 /** \brief Copy the package from the temporary directory to the database.
  *
@@ -443,6 +489,157 @@ void wpkgar_install::package_item_t::copy_package_in_database()
 
 
 
+// ----------------------------------------------------------------------------
+// tree_generator implementation
+// ----------------------------------------------------------------------------
+
+
+/** \brief Initialize a tree generator object.
+ *
+ * This function pre-computes indices to make generating the
+ * cartesian product of the package options a bit easier
+ * later on.
+ *
+ * \attention
+ * The behaviour is undefined if the order of the packages in the
+ * master tree is changed while the tree_generator exists.
+ *
+ * \param[in] root_tree An immutable reference to the master package tree that
+ *                      will serve as the source of the tree permutations.
+ */
+wpkgar_install::tree_generator::tree_generator(const wpkgar_package_list_t& root_tree)
+    : f_master_tree(root_tree)
+    //, f_pkg_alternatives() -- auto-init
+    //, f_divisor() -- auto-init
+    //, f_n(0) -- auto-init
+    //, f_end(0) -- auto-init
+{
+    std::set<std::string> visited_packages;
+
+    // Pre-compute the alternatives lists that we can then simply walk over
+    // to generate the various permutations of the tree later on.
+    for(wpkgar_package_index_t item_idx(0); item_idx < f_master_tree.size(); ++item_idx)
+    {
+        const package_item_t& pkg(f_master_tree[item_idx]);
+        const std::string pkg_name(pkg.get_name());
+
+        // have we already dealt with all the packages by this name?
+        if(!visited_packages.insert(pkg_name).second)
+        {
+            continue;
+        }
+
+        pkg_alternatives_t alternatives;
+        if(pkg.get_type() == package_item_t::package_type_available)
+        {
+            alternatives.push_back(item_idx);
+        }
+
+        for(wpkgar_package_index_t candidate_idx(0); candidate_idx < f_master_tree.size(); ++candidate_idx)
+        {
+            if(item_idx == candidate_idx)
+            {
+                // ignore self
+                continue;
+            }
+
+            const package_item_t& candidate(f_master_tree[candidate_idx]);
+            if(candidate.get_type() != package_item_t::package_type_available)
+            {
+                continue;
+            }
+
+            const std::string candidate_name(candidate.get_name());
+            if(pkg_name == candidate_name)
+            {
+                alternatives.push_back(candidate_idx);
+            }
+        }
+
+        if(!alternatives.empty())
+        {
+            f_pkg_alternatives.push_back(alternatives);
+        }
+    }
+
+    // Pre-compute the divisors that we need to walk the list-of-alternatives-
+    // lists such that we end up with the cartesian product of all the
+    // alternatives.
+    wpkgar_package_index_t factor(1);
+    f_divisor.resize(f_pkg_alternatives.size());
+    pkg_alternatives_list_t::size_type i(f_pkg_alternatives.size());
+    while(i > 0)
+    {
+        --i;
+        f_divisor[static_cast<wpkgar_package_index_t>(i)] = factor;
+        factor = f_pkg_alternatives[static_cast<wpkgar_package_index_t>(i)].size() * factor;
+    }
+    f_end = factor;
+}
+
+
+/** \brief Computer the next permutation.
+ *
+ * This function computes and returns the next permutation of the master
+ * package tree using the data generated in the constructor.
+ *
+ * \returns Returns a wpkgar_package_list_t where exactly one version of any
+ *          given package is enabled. Returns an empty wpkgar_package_list_t
+ *          when all possibilities have been exhausted.
+ */
+wpkgar_install::wpkgar_package_list_t wpkgar_install::tree_generator::next()
+{
+    wpkgar_package_list_t result;
+
+    if(f_n < f_end)
+    {
+        result = f_master_tree;
+
+        // for each group of version-specific alternatives ...
+        for(wpkgar_package_index_t pkg_set(0); pkg_set < f_pkg_alternatives.size(); ++pkg_set)
+        {
+            // select one alternative from the list ...
+            const pkg_alternatives_t& options(f_pkg_alternatives[pkg_set]);
+            const wpkgar_package_index_t target_idx((f_n / f_divisor[pkg_set]) % options.size());
+
+            // ... and mark the rest as invalid.
+            for(wpkgar_package_index_t option_idx(0); option_idx < options.size(); ++option_idx)
+            {
+                if(option_idx != target_idx)
+                {
+                    // all except self
+                   result[options[option_idx]].set_type(package_item_t::package_type_invalid);
+                }
+            }
+        }
+
+        f_n = f_n + 1;
+    }
+
+    return result;
+}
+
+
+/** \brief Return the current tree number.
+ *
+ * This function returns the number of the last tree returned by the
+ * next() function. If the next() function was never called, then
+ * the function returns zero. It can also return zero if no tree can
+ * be generated.
+ *
+ * \warning
+ * This means the tree number is 1 based which in C++ is uncommon!
+ *
+ * \return The current tree.
+ */
+uint64_t wpkgar_install::tree_generator::tree_number() const
+{
+    return f_n;
+}
+
+
+
+
 
 
 wpkgar_install::wpkgar_install(wpkgar_manager *manager)
@@ -459,7 +656,6 @@ wpkgar_install::wpkgar_install(wpkgar_manager *manager)
     //, f_reconfiguring_packages(false) -- auto-init
     //, f_repository_packages_loaded(false) -- auto-init
     //, f_install_includes_choices(false) -- auto-init
-    //, f_install_choices(0) -- auto-init
     //, f_tree_max_depth(0) -- auto-init
     //, f_essential_files() -- auto-init
     //, f_field_validations() -- auto-init
@@ -2914,67 +3110,6 @@ wpkgar_install::validation_return_t wpkgar_install::validate_installed_dependenc
 }
 
 
-bool wpkgar_install::prepare_tree(wpkgar_package_list_t& tree, int count_pos)
-{
-    for(wpkgar_package_list_t::size_type idx(0);
-                                         idx < tree.size();
-                                         ++idx)
-    {
-        f_manager->check_interrupt();
-
-        if(tree[idx].get_type() == package_item_t::package_type_available)
-        {
-            // found a possible implicit package, check for duplicates and if
-            // we find any, then use them
-            std::string name(tree[idx].get_name());
-            std::vector<wpkgar_package_list_t::size_type> indexes;
-            for(wpkgar_package_list_t::size_type j(0);
-                                                 j < tree.size();
-                                                 ++j)
-            {
-                if(j != idx
-                && tree[j].get_type() == package_item_t::package_type_available
-                && name == tree[j].get_name())
-                {
-                    // already handled that package?
-                    if(j < idx)
-                    {
-                        break;
-                    }
-                    indexes.push_back(j);
-                }
-            }
-            if(indexes.size() != 0)
-            {
-                // do an insert of 'idx' so it remains in order which is
-                // important for the 'j < idx' test in the previous loop
-                indexes.insert(indexes.begin(), idx);
-
-                // we have at least 2 packages with the same name, invalidate
-                // all those that the current 'count_pos' tells us to invalidate
-                int max(static_cast<int>(indexes.size()));
-                int pos(count_pos % max);
-                for(int k(0); k < max; ++k)
-                {
-                    if(k != pos)
-                    {
-                        tree[indexes[k]].set_type(package_item_t::package_type_invalid);
-                    }
-                }
-                count_pos -= pos;
-                if(count_pos < 0)
-                {
-                    count_pos = 0;
-                }
-            }
-        }
-    }
-
-    // if count_pos is not zero then we got all the possibilities taken care of
-    return count_pos == 0;
-}
-
-
 bool wpkgar_install::check_implicit_for_upgrade(wpkgar_package_list_t& tree, const wpkgar_package_list_t::size_type idx)
 {
     // check whether this implicit package is upgrading an existing package
@@ -3085,6 +3220,20 @@ bool wpkgar_install::check_implicit_for_upgrade(wpkgar_package_list_t& tree, con
 }
 
 
+/** \brief Find all dependencies of all the packages in the tree.
+ *
+ * This function recursively finds the dependencies for a given package.
+ * If necessary and the user specified a repository, it promotes packages
+ * that are available to implicit status when found.
+ *
+ * \bug
+ * The dependency values pointed-to by the missing list are invalid,
+ * because they reference an internal variable that will be
+ * destroyed when this function returns. The most you can get
+ * out of the \c missing list right now is how many dependencies
+ * you are missing, as their details have been freed and the list
+ * now points to garbage (if you're lucky...)
+ */
 void wpkgar_install::find_dependencies(wpkgar_package_list_t& tree, const wpkgar_package_list_t::size_type idx, wkgar_dependency_list_t& missing)
 {
     const wpkg_filename::uri_filename filename(tree[idx].get_filename());
@@ -3248,7 +3397,103 @@ bool wpkgar_install::verify_tree(wpkgar_package_list_t& tree, wkgar_dependency_l
 }
 
 
-int wpkgar_install::compare_trees(const wpkgar_package_list_t& left, const wpkgar_package_list_t& right)
+/** \brief Compare two trees to see whether they are practically identical.
+ *
+ * Tests whether two installation trees are "practically identical".
+ * For our purposes, "practically identical" means that the two trees
+ * will install the same versions of the same packages.
+ *
+ * \todo
+ * This function is not exactly logical. We may want to look into the
+ * exact reason why we need to do this test. Could it be that the
+ * compare_trees() should return that trees are equal and not generate
+ * an error in that case?
+ *
+ * \param[in] left  The first tree to compare
+ * \param[in] right  The second tree to compare
+ *
+ * \returns Returns \c true if both trees will install the same versions
+ *          of the same packages, \c false if not.
+ */
+bool wpkgar_install::trees_are_practically_identical(
+    const wpkgar_package_list_t& left,
+    const wpkgar_package_list_t& right) const
+{
+    // A functor for testing the equivalence of package versions. This is
+    // hoisted out here to make the comparison loop below easier to read.
+    // Ideally this would be floating outside the function altogether,
+    // but there's not much point while the types it references are only
+    // defined inside wpkgar_install.
+    struct is_equivalent : std::unary_function<const package_item_t&, bool>
+    {
+        is_equivalent(const package_item_t& pkg)
+            : f_lhs(pkg)
+        {
+        }
+
+        // equality means:
+        //   both are marked for installation
+        //   exact same name
+        //   exact same version
+        bool operator () (const package_item_t& rhs) const
+        {
+            if(rhs.is_marked_for_install())
+            {
+                if(f_lhs.get_name() == rhs.get_name())
+                {
+                    int cmp(wpkg_util::versioncmp(f_lhs.get_version(),
+                                                    rhs.get_version()));
+                    return cmp == 0;
+                }
+            }
+            return false;
+        }
+
+        // this is ugly, we use this function to count the number of
+        // packages to be installed...
+        static bool is_marked_for_install(const package_item_t& p)
+        {
+            return p.is_marked_for_install();
+        }
+
+    private:
+        const package_item_t& f_lhs;
+    };
+
+    // The function proper actually begins here.
+
+    // Check the number of installable packages on either side; if they do not
+    // match then they *cannot possibly* be considered identical.
+    const size_t left_count(std::count_if(left.begin(), left.end(), is_equivalent::is_marked_for_install));
+    const size_t right_count(std::count_if(right.begin(), right.end(), is_equivalent::is_marked_for_install));
+    if(left_count != right_count)
+    {
+        return false;
+    }
+
+    // If we get to here, then we have the same number of packages to install
+    // on either side. Let's run through the LHS and check whether each installable
+    // pkg has an equivalent on the RHS.
+    for(wpkgar_package_index_t i(0); i < left.size(); ++i)
+    {
+        const package_item_t& left_pkg(left[i]);
+        if(left_pkg.is_marked_for_install())
+        {
+            wpkgar_package_list_t::const_iterator rhs = find_if(right.begin(),
+                                                                right.end(),
+                                                                is_equivalent(left_pkg));
+            if(rhs == right.end())
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+
+int wpkgar_install::compare_trees(const wpkgar_package_list_t& left, const wpkgar_package_list_t& right) const
 {
     // comparing both trees we keep the one that has packages
     // with larger versions; if left has the largest then the
@@ -3549,13 +3794,14 @@ void wpkgar_install::validate_dependencies()
     // implicit list of packages and from now on we have to check both
     // lists to be complete... (explicit + implicit); other lists are
     // ignored except the available while we search for dependencies
+
     wpkgar_package_list_t best;
-    for(f_install_choices = 0;; ++f_install_choices)
+    for(tree_generator tree_gen(f_packages);;)
     {
-        wpkgar_package_list_t tree(f_packages);
-        if(!prepare_tree(tree, f_install_choices))
+        wpkgar_package_list_t tree(tree_gen.next());
+        if(tree.empty())
         {
-            if(0 == f_install_choices)
+            if(0 == tree_gen.tree_number())
             {
                 // the very first tree cannot fail because count is set to 0
                 throw std::logic_error("somehow the very first tree cannot be built properly!?");
@@ -3570,7 +3816,7 @@ void wpkgar_install::validate_dependencies()
         if((wpkg_output::get_output_debug_flags() & wpkg_output::debug_flags::debug_depends_graph) != 0)
         {
             // output the verified tree
-            output_tree(f_install_choices + 1, tree, verified ? "verified tree" : "failed tree");
+            output_tree(tree_gen.tree_number(), tree, verified ? "verified tree" : "failed tree");
         }
 
         if(verified)
@@ -3580,8 +3826,12 @@ void wpkgar_install::validate_dependencies()
             {
                 best = tree;
             }
-            else
+            else if(!trees_are_practically_identical(tree, best))
             {
+                // if both trees are to install the same versions of the
+                // same packages, then they are identical for our purposes;
+                // so in that case we do not need to compare anything
+
                 int r(compare_trees(tree, best));
                 if(r == 0)
                 {

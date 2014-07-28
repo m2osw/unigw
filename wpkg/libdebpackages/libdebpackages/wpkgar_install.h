@@ -176,6 +176,7 @@ private:
         int32_t get_upgrade() const;
         void mark_unpacked();
         bool is_unpacked() const;
+        bool is_marked_for_install() const;
         void copy_package_in_database();
 
         void load(bool ctrl);
@@ -207,7 +208,8 @@ private:
     typedef std::map<parameter_t, int>                      wpkgar_flags_t;
     typedef std::vector<package_item_t>                     wpkgar_package_list_t;
     typedef std::vector<package_item_t *>                   wpkgar_package_ptrs_t;
-    typedef std::vector<wpkgar_package_list_t::size_type>   wpkgar_package_idxs_t;
+    typedef wpkgar_package_list_t::size_type                wpkgar_package_index_t;
+    typedef std::vector<wpkgar_package_index_t>             wpkgar_package_idxs_t;
     typedef std::vector<const wpkg_dependencies::dependencies::dependency_t *>   wkgar_dependency_list_t;
     typedef std::map<std::string, bool>                     wpkgar_package_listed_t;
     typedef std::vector<std::string>                        wpkgar_list_of_strings_t;
@@ -218,6 +220,25 @@ private:
         validation_return_error,
         validation_return_missing,
         validation_return_unpacked
+    };
+
+    class tree_generator
+    {
+    public:
+        tree_generator(const wpkgar_package_list_t& root_tree);
+
+        wpkgar_package_list_t       next();
+        uint64_t                    tree_number() const;
+
+    private:
+        typedef wpkgar_package_idxs_t           pkg_alternatives_t;
+        typedef std::vector<pkg_alternatives_t> pkg_alternatives_list_t;
+
+        const wpkgar_package_list_t             f_master_tree;
+        pkg_alternatives_list_t                 f_pkg_alternatives;
+        std::vector<controlled_vars::zuint64_t> f_divisor;
+        controlled_vars::zuint64_t              f_n; // the n'th permution
+        controlled_vars::zuint64_t              f_end;
     };
 
     // disallow copying
@@ -245,12 +266,12 @@ private:
     void trim_available_packages();
     validation_return_t validate_installed_depends_field(const wpkgar_package_list_t::size_type idx, const std::string& field_name);
     validation_return_t validate_installed_dependencies();
-    bool prepare_tree(wpkgar_package_list_t& tree, int count);
     void find_best_dependency(const std::string& package_name, const wpkg_dependencies::dependencies::dependency_t& d);
     bool check_implicit_for_upgrade(wpkgar_package_list_t& tree, const wpkgar_package_list_t::size_type idx);
     void find_dependencies(wpkgar_package_list_t& tree, const wpkgar_package_list_t::size_type idx, wkgar_dependency_list_t& missing);
     bool verify_tree(wpkgar_package_list_t& tree, wkgar_dependency_list_t& missing);
-    int compare_trees(const wpkgar_package_list_t& left, const wpkgar_package_list_t& right);
+    bool trees_are_practically_identical(const wpkgar_package_list_t& left, const wpkgar_package_list_t& right) const;
+    int compare_trees(const wpkgar_package_list_t& left, const wpkgar_package_list_t& right) const;
     void output_tree(int count, const wpkgar_package_list_t& tree, const std::string& sub_title);
     void validate_dependencies();
     void validate_packager_version();
@@ -285,7 +306,6 @@ private:
     controlled_vars::fbool_t            f_reconfiguring_packages;
     controlled_vars::fbool_t            f_repository_packages_loaded;
     controlled_vars::fbool_t            f_install_includes_choices;
-    controlled_vars::zuint32_t          f_install_choices;
     controlled_vars::zuint32_t          f_tree_max_depth;
     wpkgar_list_of_strings_t            f_essential_files;
     wpkgar_list_of_strings_t            f_field_validations;
