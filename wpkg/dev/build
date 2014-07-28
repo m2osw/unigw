@@ -21,6 +21,15 @@
 #    Alexis Wilke   alexis@m2osw.com
 #
 
+#
+# This is the official script I use to generate all the files generated
+# under Linux and uploaded on SourceForge.net
+#
+# The final output (packages, README, ...) is saved under:
+#
+#    ../packages/wpkg_<version>/...
+#
+
 set -e
 
 SRC=`pwd`

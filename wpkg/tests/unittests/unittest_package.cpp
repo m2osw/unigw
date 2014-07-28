@@ -4165,4 +4165,287 @@ void PackageUnitTests::scripts_selection_with_spaces()
     scripts_selection();
 }
 
+
+void PackageUnitTests::complex_tree_in_repository()
+{
+    // IMPORTANT: remember that all files are deleted between tests
+
+    ////////////////////////// cpp-utils
+    // t1       version 1.0 //
+    //////////////////////////
+    std::shared_ptr<wpkg_control::control_file> ctrl_t1_0(get_new_control_file(__FUNCTION__));
+    ctrl_t1_0->set_field("Files", "conffiles\n"
+        "/etc/t1.conf 0123456789abcdef0123456789abcdef\n"
+        "/usr/bin/t1 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t1/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t1/info 0123456789abcdef0123456789abcdef\n"
+    );
+    ctrl_t1_0->set_field("Version", "1.0");
+    ctrl_t1_0->set_field("Depends", "t5 (= 1.3), t3 (= 1.2), t4 (= 1.1), t7 (= 1.1)");
+    create_package("t1", ctrl_t1_0);
+
+
+    ////////////////////////// lp-utils-workspace
+    // t2       version 1.0 //
+    //////////////////////////
+    std::shared_ptr<wpkg_control::control_file> ctrl_t2(get_new_control_file(__FUNCTION__));
+    ctrl_t2->set_field("Files", "conffiles\n"
+        "/etc/t2.conf 0123456789abcdef0123456789abcdef\n"
+        "/usr/bin/t2 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t2/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t2/info 0123456789abcdef0123456789abcdef\n"
+    );
+    ctrl_t2->set_field("Version", "1.0");
+    ctrl_t2->set_field("Depends", "t1 (= 1.0), t5 (= 1.3), t10 (= 1.1), t4 (= 1.1), t11 (= 1.0)");
+    create_package("t2", ctrl_t2);
+
+
+    ////////////////////////////////////
+    // t3       version 1.0, 1.1, 1.2 //
+    ////////////////////////////////////
+    std::shared_ptr<wpkg_control::control_file> ctrl_t3_0(get_new_control_file(__FUNCTION__));
+    ctrl_t3_0->set_field("Files", "conffiles\n"
+        "/etc/t3.conf 0123456789abcdef0123456789abcdef\n"
+        "/usr/bin/t3 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t3/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t3/info 0123456789abcdef0123456789abcdef\n"
+    );
+    ctrl_t3_0->set_field("Version", "1.0");
+    create_package("t3", ctrl_t3_0);
+
+    std::shared_ptr<wpkg_control::control_file> ctrl_t3_1(get_new_control_file(__FUNCTION__));
+    ctrl_t3_1->set_field("Files", "conffiles\n"
+        "/etc/t3.conf 0123456789abcdef0123456789abcdef\n"
+        "/usr/bin/t3 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t3/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t3/info 0123456789abcdef0123456789abcdef\n"
+    );
+    ctrl_t3_1->set_field("Version", "1.1");
+    create_package("t3", ctrl_t3_1);
+
+    std::shared_ptr<wpkg_control::control_file> ctrl_t3_2(get_new_control_file(__FUNCTION__));
+    ctrl_t3_2->set_field("Files", "conffiles\n"
+        "/etc/t3.conf 0123456789abcdef0123456789abcdef\n"
+        "/usr/bin/t3 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t3/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t3/info 0123456789abcdef0123456789abcdef\n"
+    );
+    ctrl_t3_2->set_field("Version", "1.2");
+    create_package("t3", ctrl_t3_2);
+
+    /////////////////////////////// liblog4cplus
+    // t4       version 1.0, 1.1 //
+    ///////////////////////////////
+    std::shared_ptr<wpkg_control::control_file> ctrl_t4_0(get_new_control_file(__FUNCTION__));
+    ctrl_t4_0->set_field("Files", "conffiles\n"
+        "/etc/t4.conf 0123456789abcdef0123456789abcdef\n"
+        "/usr/bin/t4 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t4/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t4/info 0123456789abcdef0123456789abcdef\n"
+    );
+    ctrl_t4_0->set_field("Version", "1.0");
+    create_package("t4", ctrl_t4_0);
+
+    std::shared_ptr<wpkg_control::control_file> ctrl_t4_1(get_new_control_file(__FUNCTION__));
+    ctrl_t4_1->set_field("Files", "conffiles\n"
+        "/etc/t4.conf 0123456789abcdef0123456789abcdef\n"
+        "/usr/bin/t4 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t4/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t4/info 0123456789abcdef0123456789abcdef\n"
+    );
+    ctrl_t4_1->set_field("Version", "1.1");
+    create_package("t4", ctrl_t4_1);
+
+
+    /////////////////////////////// libboost
+    // t5       version 1.2, 1.3 //
+    ///////////////////////////////
+    std::shared_ptr<wpkg_control::control_file> ctrl_t5_2(get_new_control_file(__FUNCTION__));
+    ctrl_t5_2->set_field("Files", "conffiles\n"
+        "/etc/t5.conf 0123456789abcdef0123456789abcdef\n"
+        "/usr/bin/t5 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t5/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t5/info 0123456789abcdef0123456789abcdef\n"
+    );
+    ctrl_t5_2->set_field("Version", "1.2");
+    ctrl_t5_2->set_field("Depends", "t8 (= 1.2)");
+    create_package("t5", ctrl_t5_2);
+
+    std::shared_ptr<wpkg_control::control_file> ctrl_t5_3(get_new_control_file(__FUNCTION__));
+    ctrl_t5_3->set_field("Files", "conffiles\n"
+        "/etc/t5.conf 0123456789abcdef0123456789abcdef\n"
+        "/usr/bin/t5 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t5/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t5/info 0123456789abcdef0123456789abcdef\n"
+    );
+    ctrl_t5_3->set_field("Version", "1.3");
+    ctrl_t5_3->set_field("Depends", "t8 (= 1.3)");
+    create_package("t5", ctrl_t5_3);
+
+
+    /////////////////////////////// libboost-log
+    // t6       version 1.2, 1.3 //
+    ///////////////////////////////
+    std::shared_ptr<wpkg_control::control_file> ctrl_t6_2(get_new_control_file(__FUNCTION__));
+    ctrl_t6_2->set_field("Files", "conffiles\n"
+        "/etc/t6.conf 0123456789abcdef0123456789abcdef\n"
+        "/usr/bin/t6 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t6/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t6/info 0123456789abcdef0123456789abcdef\n"
+    );
+    ctrl_t6_2->set_field("Version", "1.2");
+    ctrl_t6_2->set_field("Depends", "t8 (= 1.2), t5 (= 1.2)");
+    create_package("t6", ctrl_t6_2);
+
+    std::shared_ptr<wpkg_control::control_file> ctrl_t6_3(get_new_control_file(__FUNCTION__));
+    ctrl_t6_3->set_field("Files", "conffiles\n"
+        "/etc/t6.conf 0123456789abcdef0123456789abcdef\n"
+        "/usr/bin/t6 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t6/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t6/info 0123456789abcdef0123456789abcdef\n"
+    );
+    ctrl_t6_3->set_field("Version", "1.3");
+    ctrl_t6_3->set_field("Depends", "t8 (= 1.3), t5 (= 1.3)");
+    create_package("t6", ctrl_t6_3);
+
+
+    /////////////////////////////// libgdal
+    // t7       version 1.0, 1.1 //
+    ///////////////////////////////
+    std::shared_ptr<wpkg_control::control_file> ctrl_t7_0(get_new_control_file(__FUNCTION__));
+    ctrl_t7_0->set_field("Files", "conffiles\n"
+        "/etc/t7.conf 0123456789abcdef0123456789abcdef\n"
+        "/usr/bin/t7 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t7/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t7/info 0123456789abcdef0123456789abcdef\n"
+    );
+    ctrl_t7_0->set_field("Version", "1.0");
+    ctrl_t7_0->set_field("Depends", "t9 (= 1.1)");
+    create_package("t7", ctrl_t7_0);
+
+    std::shared_ptr<wpkg_control::control_file> ctrl_t7_1(get_new_control_file(__FUNCTION__));
+    ctrl_t7_1->set_field("Files", "conffiles\n"
+        "/etc/t7.conf 0123456789abcdef0123456789abcdef\n"
+        "/usr/bin/t7 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t7/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t7/info 0123456789abcdef0123456789abcdef\n"
+    );
+    ctrl_t7_1->set_field("Version", "1.1");
+    ctrl_t7_1->set_field("Depends", "t9 (= 1.2)");
+    create_package("t7", ctrl_t7_1);
+
+
+    /////////////////////////////// libboost-headers
+    // t8       version 1.2, 1.3 //
+    ///////////////////////////////
+    std::shared_ptr<wpkg_control::control_file> ctrl_t8_2(get_new_control_file(__FUNCTION__));
+    ctrl_t8_2->set_field("Files", "conffiles\n"
+        "/etc/t8.conf 0123456789abcdef0123456789abcdef\n"
+        "/usr/bin/t8 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t8/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t8/info 0123456789abcdef0123456789abcdef\n"
+    );
+    ctrl_t8_2->set_field("Version", "1.2");
+    create_package("t8", ctrl_t8_2);
+
+    std::shared_ptr<wpkg_control::control_file> ctrl_t8_3(get_new_control_file(__FUNCTION__));
+    ctrl_t8_3->set_field("Files", "conffiles\n"
+        "/etc/t8.conf 0123456789abcdef0123456789abcdef\n"
+        "/usr/bin/t8 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t8/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t8/info 0123456789abcdef0123456789abcdef\n"
+    );
+    ctrl_t8_3->set_field("Version", "1.3");
+    create_package("t8", ctrl_t8_3);
+
+
+    //////////////////////////////////// libgeos
+    // t9       version 1.0, 1.1, 1.2 //
+    ////////////////////////////////////
+    std::shared_ptr<wpkg_control::control_file> ctrl_t9_0(get_new_control_file(__FUNCTION__));
+    ctrl_t9_0->set_field("Files", "conffiles\n"
+        "/etc/t9.conf 0123456789abcdef0123456789abcdef\n"
+        "/usr/bin/t9 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t9/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t9/info 0123456789abcdef0123456789abcdef\n"
+    );
+    ctrl_t9_0->set_field("Version", "1.0");
+    create_package("t9", ctrl_t9_0);
+
+    std::shared_ptr<wpkg_control::control_file> ctrl_t9_1(get_new_control_file(__FUNCTION__));
+    ctrl_t9_1->set_field("Files", "conffiles\n"
+        "/etc/t9.conf 0123456789abcdef0123456789abcdef\n"
+        "/usr/bin/t9 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t9/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t9/info 0123456789abcdef0123456789abcdef\n"
+    );
+    ctrl_t9_1->set_field("Version", "1.1");
+    create_package("t9", ctrl_t9_1);
+
+    std::shared_ptr<wpkg_control::control_file> ctrl_t9_2(get_new_control_file(__FUNCTION__));
+    ctrl_t9_2->set_field("Files", "conffiles\n"
+        "/etc/t9.conf 0123456789abcdef0123456789abcdef\n"
+        "/usr/bin/t9 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t9/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t9/info 0123456789abcdef0123456789abcdef\n"
+    );
+    ctrl_t9_2->set_field("Version", "1.2");
+    create_package("t9", ctrl_t9_2);
+
+
+    /////////////////////////////// mongoose-2001
+    // t10      version 1.0, 1.1 //
+    ///////////////////////////////
+    std::shared_ptr<wpkg_control::control_file> ctrl_t10_0(get_new_control_file(__FUNCTION__));
+    ctrl_t10_0->set_field("Files", "conffiles\n"
+        "/etc/t10.conf 0123456789abcdef0123456789abcdef\n"
+        "/usr/bin/t10 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t10/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t10/info 0123456789abcdef0123456789abcdef\n"
+    );
+    ctrl_t10_0->set_field("Version", "1.0");
+    create_package("t10", ctrl_t10_0);
+
+    std::shared_ptr<wpkg_control::control_file> ctrl_t10_1(get_new_control_file(__FUNCTION__));
+    ctrl_t10_1->set_field("Files", "conffiles\n"
+        "/etc/t10.conf 0123456789abcdef0123456789abcdef\n"
+        "/usr/bin/t10 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t10/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t10/info 0123456789abcdef0123456789abcdef\n"
+    );
+    ctrl_t10_1->set_field("Version", "1.1");
+    create_package("t10", ctrl_t10_1);
+
+
+    /////////////////////////////// wpkg-venv
+    // t11           version 1.0 //
+    ///////////////////////////////
+    std::shared_ptr<wpkg_control::control_file> ctrl_t11_0(get_new_control_file(__FUNCTION__));
+    ctrl_t11_0->set_field("Files", "conffiles\n"
+        "/etc/t11.conf 0123456789abcdef0123456789abcdef\n"
+        "/usr/bin/t11 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t11/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t11/info 0123456789abcdef0123456789abcdef\n"
+    );
+    ctrl_t11_0->set_field("Version", "1.0");
+    create_package("t11", ctrl_t11_0);
+
+
+    // Installing t2 without --repository fails
+    install_package("t2", ctrl_t2, 1);
+
+    // Installing t2 with --repository works
+    wpkg_filename::uri_filename root(unittest::tmp_dir);
+    wpkg_filename::uri_filename repository(root.append_child("repository"));
+    ctrl_t2->set_variable("INSTALL_PREOPTIONS", "--repository " + wpkg_util::make_safe_console_string(repository.path_only()) + " -D 07777");
+    install_package("t2", ctrl_t2, 0);
+}
+
+void PackageUnitTests::complex_tree_in_repository_with_spaces()
+{
+    raii_tmp_dir_with_space add_spaces;
+    complex_tree_in_repository();
+}
+
+
 // vim: ts=4 sw=4 et

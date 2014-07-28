@@ -2055,6 +2055,30 @@ const help_t advanced_help[] =
         "Note that copyright field names are case insensitive."
     },
     {
+        "debug",
+        help_help,
+        "The --debug option can be used to turn on various debug built in "
+        "wpkg. These are defined as flags at this point and they need to "
+        "be specified as such. A later version will support using names and"
+        "automatically convert the names to flags.\n"
+        "   000001    Progress information.\n"
+        "   000002    Invocation and status of maintainer scripts.\n"
+        "   000004    Create graph files (.dot files) that can later be converted to images.\n"
+        "   000010    Output for each file processed.\n"
+        "   000020    Output for each configuration file.\n"
+        "   000040    Details about dependencies and conflicts.\n"
+        "   000100    Detailed output for each file being processed.\n"
+        "   000200    Detailed output for each configuration file being processed.\n"
+        "   000400    Detailed output about dependencies and conflicts.\n"
+        "   001000    Database details.\n"
+        "   002000    Full details of everything.\n"
+        "   004000    Progress information, especially for installations and removals.\n"
+        "   010000    Trigger activation and processing (not implemented in wpkg).\n"
+        "   020000    Detailed output for each trigger (not implemented in wpkg).\n"
+        "   040000    All output about each trigger (not implemented in wpkg).\n"
+        "All those flags can be merged (added together)."
+    },
+    {
         "field",
         help_control_field,
         "Print help about a control file field. To have detailed help about "

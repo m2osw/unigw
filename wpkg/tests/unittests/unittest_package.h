@@ -81,6 +81,8 @@ class PackageUnitTests : public CPPUNIT_NS::TestFixture
         CPPUNIT_TEST( auto_remove_with_spaces );
         CPPUNIT_TEST( scripts_selection );
         CPPUNIT_TEST( scripts_selection_with_spaces );
+        CPPUNIT_TEST( complex_tree_in_repository );
+        CPPUNIT_TEST( complex_tree_in_repository_with_spaces );
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -139,6 +141,8 @@ protected:
     void auto_remove_with_spaces();
     void scripts_selection();
     void scripts_selection_with_spaces();
+    void complex_tree_in_repository();
+    void complex_tree_in_repository_with_spaces();
 };
 
 #endif

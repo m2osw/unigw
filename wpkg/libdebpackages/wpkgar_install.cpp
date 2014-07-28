@@ -3339,7 +3339,13 @@ void wpkgar_install::output_tree(int file_count, const wpkgar_package_list_t& tr
 {
     memfile::memory_file dot;
     dot.create(memfile::memory_file::file_format_other);
-    dot.printf("digraph {\nrankdir=BT;\nlabel=\"Packager Dependency Graph (%s)\";\n", sub_title.c_str());
+    time_t now(time(NULL));
+    dot.printf("// created by wpkg on %s\n"
+               "digraph {\n"
+               "rankdir=BT;\n"
+               "label=\"Packager Dependency Graph (%s)\";\n",
+                    ctime(&now),
+                    sub_title.c_str());
 
     for(wpkgar_package_list_t::size_type idx(0);
                                          idx < tree.size();
@@ -3352,59 +3358,59 @@ void wpkgar_install::output_tree(int file_count, const wpkgar_package_list_t& tr
         switch(tree[idx].get_type())
         {
         case package_item_t::package_type_explicit:
-            dot.printf("n%d [label=\"%s (exp)\\n%s\",shape=box,color=black];\n", idx, name, version);
+            dot.printf("n%d [label=\"%s (exp)\\n%s\",shape=box,color=black]; // EXPLICIT\n", idx, name, version);
             break;
 
         case package_item_t::package_type_implicit:
-            dot.printf("n%d [label=\"%s (imp)\\n%s\",shape=box,color=\"#aa5500\"];\n", idx, name, version);
+            dot.printf("n%d [label=\"%s (imp)\\n%s\",shape=box,color=\"#aa5500\"]; // IMPLICIT\n", idx, name, version);
             break;
 
         case package_item_t::package_type_available:
-            dot.printf("n%d [label=\"%s (avl)\\n%s\",shape=ellipse,color=\"#cccccc\"];\n", idx, name, version);
+            dot.printf("n%d [label=\"%s (avl)\\n%s\",shape=ellipse,color=\"#cccccc\"]; // AVAILABLE\n", idx, name, version);
             break;
 
         case package_item_t::package_type_not_installed:
-            dot.printf("n%d [label=\"%s (not)\\n%s\",shape=box,color=\"#cccccc\"];\n", idx, name, version);
+            dot.printf("n%d [label=\"%s (not)\\n%s\",shape=box,color=\"#cccccc\"]; // NOT INSTALLED\n", idx, name, version);
             break;
 
         case package_item_t::package_type_installed:
-            dot.printf("n%d [label=\"%s (ins)\\n%s\",shape=box,color=black];\n", idx, name, version);
+            dot.printf("n%d [label=\"%s (ins)\\n%s\",shape=box,color=black]; // INSTALLED\n", idx, name, version);
             break;
 
         case package_item_t::package_type_unpacked:
-            dot.printf("n%d [label=\"%s (upk)\\n%s\",shape=ellipse,color=red];\n", idx, name, version);
+            dot.printf("n%d [label=\"%s (upk)\\n%s\",shape=ellipse,color=red]; // UNPACKED\n", idx, name, version);
             break;
 
         case package_item_t::package_type_configure:
-            dot.printf("n%d [label=\"%s (cfg)\\n%s\",shape=box,color=purple];\n", idx, name, version);
+            dot.printf("n%d [label=\"%s (cfg)\\n%s\",shape=box,color=purple]; // CONFIGURE\n", idx, name, version);
             break;
 
         case package_item_t::package_type_upgrade:
-            dot.printf("n%d [label=\"%s (upg)\\n%s\",shape=box,color=blue];\n", idx, name, version);
+            dot.printf("n%d [label=\"%s (upg)\\n%s\",shape=box,color=blue]; // UPGRADE\n", idx, name, version);
             break;
 
         case package_item_t::package_type_upgrade_implicit:
-            dot.printf("n%d [label=\"%s (iup)\\n%s\",shape=box,color=blue];\n", idx, name, version);
+            dot.printf("n%d [label=\"%s (iup)\\n%s\",shape=box,color=blue]; // UPGRADE IMPLICIT\n", idx, name, version);
             break;
 
         case package_item_t::package_type_downgrade:
-            dot.printf("n%d [label=\"%s (dwn)\\n%s\",shape=box,color=orange];\n", idx, name, version);
+            dot.printf("n%d [label=\"%s (dwn)\\n%s\",shape=box,color=orange]; // DOWNGRADE\n", idx, name, version);
             break;
 
         case package_item_t::package_type_invalid:
-            dot.printf("n%d [label=\"%s (inv)\\n%s\",shape=ellipse,color=red];\n", idx, name, version);
+            dot.printf("n%d [label=\"%s (inv)\\n%s\",shape=ellipse,color=red]; // INVALID\n", idx, name, version);
             break;
 
         case package_item_t::package_type_same:
-            dot.printf("n%d [label=\"%s (same)\\n%s\",shape=ellipse,color=black];\n", idx, name, version);
+            dot.printf("n%d [label=\"%s (same)\\n%s\",shape=ellipse,color=black]; // SAME\n", idx, name, version);
             break;
 
         case package_item_t::package_type_older:
-            dot.printf("n%d [label=\"%s (old)\\n%s\",shape=ellipse,color=black];\n", idx, name, version);
+            dot.printf("n%d [label=\"%s (old)\\n%s\",shape=ellipse,color=black]; // OLDER\n", idx, name, version);
             break;
 
         case package_item_t::package_type_directory:
-            dot.printf("n%d [label=\"%s (dir)\\n%s\",shape=ellipse,color=\"#aa5500\"];\n", idx, name, version);
+            dot.printf("n%d [label=\"%s (dir)\\n%s\",shape=ellipse,color=\"#aa5500\"]; // DIRECTORY\n", idx, name, version);
             break;
 
         }
