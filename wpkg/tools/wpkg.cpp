@@ -7228,6 +7228,44 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
     argv.push_back(NULL);
     return utf8_main(argc, &argv[0]);
 }
+
+// This implementation comes from: https://github.com/coderforlife/mingw-unicode-main
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR _lpCmdLine, int nCmdShow)
+{
+    WCHAR *lpCmdLine = GetCommandLineW();
+    if(__argc == 1)
+    { // avoids GetCommandLineW bug that does not always quote the program name if no arguments
+      do
+      {
+          ++lpCmdLine;
+      }
+      while(*lpCmdLine);
+    }
+    else
+    {
+        BOOL quoted = lpCmdLine[0] == L'"';
+        ++lpCmdLine; // skips the " or the first letter (all paths are at least 1 letter)
+        while(*lpCmdLine)
+        {
+            if(quoted && lpCmdLine[0] == L'"')
+            {
+                quoted = FALSE;
+            } // found end quote
+            else if(!quoted && lpCmdLine[0] == L' ')
+            {
+                // found an unquoted space, now skip all spaces
+                do
+                {
+                    ++lpCmdLine;
+                }
+                while(lpCmdLine[0] == L' ');
+                break;
+            }
+            ++lpCmdLine;
+        }
+    }
+    return wWinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+}
 #endif
 
 

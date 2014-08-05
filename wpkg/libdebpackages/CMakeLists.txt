@@ -45,9 +45,9 @@ if( MSVC )
     # disable warnings about dll linkage concerns but we do not have any inlines (warning 4251)
     set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251" )
 endif( MSVC )
-if( MSVC OR MINGW32 )
+if( MSVC OR MINGW32 OR MSYS )
     set ( EXTRA_LIBRARIES wsock32 ws2_32 mpr ole32 uuid )
-endif( MSVC OR MINGW32 )
+endif( MSVC OR MINGW32 OR MSYS )
 
 file( GLOB LIBDEBPACKAGES_INCLUDE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/libdebpackages/*.h" )
 
@@ -169,7 +169,7 @@ add_library( ${PROJECT_NAME} SHARED
     ${LIBDEBPACKAGES_SOURCE_FILES}
 )
 
-if( MSVC OR MINGW32 )
+if( MSVC OR MINGW32 OR MSYS )
     set_target_properties( ${PROJECT_NAME} PROPERTIES
         COMPILE_FLAGS -DDEBIAN_PACKAGE_DLL
         LINK_FLAGS ${WIN_MACHINE_FLAGS}

@@ -264,11 +264,11 @@ target_link_libraries( ${PROJECT_NAME}
     wpkg_tld_static
 )
 
-if( MINGW32 )
+if( MINGW32 OR MSYS )
     # The -static-... flags do not seem to have an effect at this point
     # (I also tried with just -static and the C & C++ libraries are still added!)
-    set_target_properties(wpkg PROPERTIES LINK_FLAGS "-municode -static-libgcc -static-libstdc++" )
-endif( MINGW32 )
+    set_target_properties(wpkg PROPERTIES LINK_FLAGS "-static-libgcc -static-libstdc++" )
+endif( MINGW32 OR MSYS )
 
 install(
     TARGETS ${PROJECT_NAME}
