@@ -3816,7 +3816,7 @@ void wpkgar_install::validate_dependencies()
         if((wpkg_output::get_output_debug_flags() & wpkg_output::debug_flags::debug_depends_graph) != 0)
         {
             // output the verified tree
-            output_tree(tree_gen.tree_number(), tree, verified ? "verified tree" : "failed tree");
+            output_tree(static_cast<int>(tree_gen.tree_number()), tree, verified ? "verified tree" : "failed tree");
         }
 
         if(verified)
