@@ -124,7 +124,7 @@ elseif( MSVC )
     set( MO_WINDOWS TRUE )
     set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS" )
     set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS" )
-elseif( MINGW32 )
+elseif( MINGW32 OR MSYS )
     set( WPKG_PROCESSOR i386 )
     set( WPKG_OS mingw32 )
     # WIN_MACHINE_FLAGS cannot be empty and since cmake adds -fPIC under
