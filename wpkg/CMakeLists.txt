@@ -52,7 +52,7 @@ set( WPKG_VENDOR m2osw )
 #===============================================================================
 # Detect system particulars
 #
-add_definitions( -DCMAKE_SYSTEM_NAME=\"${CMAKE_SYSTEM_NAME}\" -D_WIN32_WINNT=0x0600 -DWINVER=0x0600 -DNTDDI_VERSION=0x06000000 -D_WIN32_IE=0x0800 )
+add_definitions( -DCMAKE_SYSTEM_NAME=\"${CMAKE_SYSTEM_NAME}\" -D_WIN32_WINNT=0x0600 -DWINVER=0x0600 -D_WIN32_IE=0x0800 )
 if( UNIX )
     if( CMAKE_SYSTEM_NAME MATCHES Linux )
         set( WPKG_OS linux )
@@ -131,7 +131,7 @@ elseif( MINGW32 )
     # our feet, that makes no difference at this point...
     set( WIN_MACHINE_FLAGS "-fPIC" )
     set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x" )
-    add_definitions( -DMO_WINDOWS -DMO_MINGW32 )
+    add_definitions( -DMO_WINDOWS -DMO_MINGW32 -DCONNECT_COMMANDLINE=2048 )
     set( MO_WINDOWS TRUE )
     set( MO_MINGW32 TRUE )
 else()
