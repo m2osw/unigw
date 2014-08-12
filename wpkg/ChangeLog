@@ -1,3 +1,13 @@
+wpkg (0.9.5) stable unstable; urgency=medium
+
+  * Applied a couple of patches by Mathieu SCHROETER to fix the compilation
+    under MinGW.
+  * Mathieu also found a fix to main() so Unicode if fully supported.
+  * Applied a patch by Trent Clarke to fix the basic authentication when
+    using HTTP to retrieve packages. A \r\n was missing.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Tue, 12 Aug 2014 00:09:10 -0800
+
 wpkg (0.9.4) stable unstable; urgency=medium
 
   * Applied a patch by Trent Clarke to fix big problems with large trees
