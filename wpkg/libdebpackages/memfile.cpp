@@ -1491,7 +1491,7 @@ void memory_file::read_file(const wpkg_filename::uri_filename& filename, file_in
             if(!filename.get_username().empty() && !filename.get_password().empty())
             {
                 std::string credentials(filename.get_username() + ":" + filename.get_password());
-                request += "Authorization: Basic " + to_base64(credentials.c_str(), credentials.length());
+                request += ("Authorization: Basic " + to_base64(credentials.c_str(), credentials.length()) + "\r\n");
             }
             request += "\r\n"; // add an empty line
             http_client.reset(new tcp_client_server::tcp_client(uri.get_domain(), port_number));
