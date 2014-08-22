@@ -83,6 +83,7 @@ class PackageUnitTests : public CPPUNIT_NS::TestFixture
         CPPUNIT_TEST( scripts_selection_with_spaces );
         CPPUNIT_TEST( complex_tree_in_repository );
         CPPUNIT_TEST( complex_tree_in_repository_with_spaces );
+        CPPUNIT_TEST( unacceptable_filename );
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -143,6 +144,7 @@ protected:
     void scripts_selection_with_spaces();
     void complex_tree_in_repository();
     void complex_tree_in_repository_with_spaces();
+    void unacceptable_filename();
 };
 
 #endif

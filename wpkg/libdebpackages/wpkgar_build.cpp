@@ -3354,7 +3354,7 @@ void wpkgar_build::build_deb(const wpkg_filename::uri_filename& dir_name)
                 // this is a logic error as it should not happen
                 throw std::logic_error("filename does not include at least one \"/\", it cannot be valid in wpkgar_build::build_deb().");
             }
-            const std::string file_basename(filename.basename());
+            const std::string file_basename(filename.segment(filename.segment_size() - 1));
             if(file_basename == ".." || file_basename == ".")
             {
                 // ignore this or parent directories

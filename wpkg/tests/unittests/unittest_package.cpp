@@ -192,6 +192,7 @@ void create_file(wpkg_control::file_list_t& files, wpkg_control::file_list_t::si
  *
  * \param[in] name  The name of the of the package.
  * \param[in] ctrl  The control file for that package.
+ * \param[in] reset_wpkg_dir  Whether the directory should be reset first.
  */
 void create_package(const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl, bool reset_wpkg_dir = true)
 {
@@ -247,7 +248,19 @@ void create_package(const std::string& name, std::shared_ptr<wpkg_control::contr
     }
     printf("Build Command: \"%s\"\n", cmd.c_str());
     fflush(stdout);
-    CPPUNIT_ASSERT(system(cmd.c_str()) == 0);
+
+    if(ctrl->variable_is_defined("BUILD_RESULT"))
+    {
+        const int r(system(cmd.c_str()));
+        const std::string expected_result(ctrl->get_variable("BUILD_RESULT"));
+        const int expected_return_value(strtol(expected_result.c_str(), 0, 0));
+        printf("  Build result = %d (expected %d)\n", WEXITSTATUS(r), expected_return_value);
+        CPPUNIT_ASSERT(WEXITSTATUS(r) == expected_return_value);
+    }
+    else
+    {
+        CPPUNIT_ASSERT(system(cmd.c_str()) == 0);
+    }
 }
 
 /** \brief Install a package that you previously created.
@@ -914,6 +927,7 @@ void PackageUnitTests::upgrade_package()
         "/etc/t1.conf 0123456789abcdef0123456789abcdef\n"
         "/usr/bin/t1 0123456789abcdef0123456789abcdef\n"
         "/usr/share/doc/t1/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t1/index..html 0123456789abcdef0123456789abcdef\n"
     );
     create_package("t1", ctrl);
 
@@ -944,6 +958,7 @@ void PackageUnitTests::upgrade_package()
     ctrl->set_field("Files", "conffiles\n"
         "/usr/bin/t1 0123456789abcdef0123456789abcdef\n"
         "/usr/share/doc/t1/copyright 0123456789abcdef0123456789abcdef\n"
+        "/usr/share/doc/t1/info..save 0123456789abcdef0123456789abcdef\n"
     );
     create_package("t1", ctrl);
 
@@ -4445,6 +4460,24 @@ void PackageUnitTests::complex_tree_in_repository_with_spaces()
 {
     raii_tmp_dir_with_space add_spaces;
     complex_tree_in_repository();
+}
+
+
+void PackageUnitTests::unacceptable_filename()
+{
+    {
+        // filename ending with a period
+        std::shared_ptr<wpkg_control::control_file> ctrl_t1_0(get_new_control_file(__FUNCTION__));
+        ctrl_t1_0->set_field("Files", "conffiles\n"
+            "/usr/bin/t1 0123456789abcdef0123456789abcdef\n"
+            "/usr/bin/bad. 0123456789abcdef0123456789abcdef\n"
+            "/usr/share/doc/t1/copyright 0123456789abcdef0123456789abcdef\n"
+            "/usr/share/doc/t1/info 0123456789abcdef0123456789abcdef\n"
+        );
+        ctrl_t1_0->set_field("Version", "1.0");
+        ctrl_t1_0->set_variable("BUILD_RESULT", "1");
+        create_package("t1", ctrl_t1_0);
+    }
 }
 
 
