@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SourcesDialog</class>
+ <widget class="QDialog" name="SourcesDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>550</width>
+    <height>390</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Package Sources Maintanence</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout_3">
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout_3">
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Add, edit or remove package sources:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <widget class="QListView" name="f_listView">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Each source is listed here, one per line. The format is as follows:&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;&amp;lt;type&amp;gt; &amp;lt;URI&amp;gt; &amp;lt;distribution&amp;gt; &amp;lt;component1&amp;gt; &amp;lt;component2&amp;gt; ... &amp;lt;componentN&amp;gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;where &lt;span style=&quot; font-weight:600;&quot;&gt;type&lt;/span&gt; is either &amp;quot;&lt;span style=&quot; font-style:italic;&quot;&gt;wpkg&lt;/span&gt;&amp;quot; or &amp;quot;&lt;span style=&quot; font-style:italic;&quot;&gt;wpkg-src&lt;/span&gt;&amp;quot;,&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;URI&lt;/span&gt; is either a &lt;span style=&quot; font-style:italic;&quot;&gt;file:&lt;/span&gt; scheme or &lt;span style=&quot; font-style:italic;&quot;&gt;http:&lt;/span&gt; resource,&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;distribution&lt;/span&gt; is the name pointing to the components you desire&lt;br/&gt;and &lt;span style=&quot; font-weight:600;&quot;&gt;component&amp;lt;1-N&amp;gt;&lt;/span&gt; is a list of components containing packages&lt;/p&gt;&lt;p&gt;Double click to edit existing entries, click &lt;span style=&quot; font-style:italic;&quot;&gt;Add&lt;/span&gt; to add a new entry, and &lt;span style=&quot; font-style:italic;&quot;&gt;Remove&lt;/span&gt; to delete highlighed entries.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="editTriggers">
+            <set>QAbstractItemView::DoubleClicked</set>
+           </property>
+           <property name="tabKeyNavigation">
+            <bool>true</bool>
+           </property>
+           <property name="alternatingRowColors">
+            <bool>true</bool>
+           </property>
+           <property name="selectionMode">
+            <enum>QAbstractItemView::ExtendedSelection</enum>
+           </property>
+           <property name="selectionBehavior">
+            <enum>QAbstractItemView::SelectRows</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <item>
+            <widget class="QPushButton" name="f_addButton">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click to add a new source.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>&amp;Add</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="f_removeButton">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click to remove highlighted (one or more) sources.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>&amp;Remove</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QDialogButtonBox" name="f_buttonBox">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click to apply to commit the changes to the database, otherwise they will be abandoned.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="standardButtons">
+          <set>QDialogButtonBox::Apply|QDialogButtonBox::Discard</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

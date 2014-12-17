@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>RemoveDialog</class>
+ <widget class="QDialog" name="RemoveDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>586</width>
+    <height>294</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Remove Packages</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_4">
+   <item>
+    <layout class="QGridLayout" name="gridLayout">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetMinimumSize</enum>
+     </property>
+     <item row="0" column="0">
+      <widget class="QWidget" name="f_optionsFrame" native="true">
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <layout class="QFormLayout" name="formLayout">
+          <property name="fieldGrowthPolicy">
+           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="forceAllLabel">
+            <property name="mouseTracking">
+             <bool>true</bool>
+            </property>
+            <property name="text">
+             <string>&amp;Force all</string>
+            </property>
+            <property name="textInteractionFlags">
+             <set>Qt::LinksAccessibleByMouse</set>
+            </property>
+            <property name="buddy">
+             <cstring>f_forceAllCB</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QCheckBox" name="f_forceAllCB"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="forceDependenciesLabel">
+            <property name="text">
+             <string>Force &amp;dependencies</string>
+            </property>
+            <property name="buddy">
+             <cstring>f_forceDepsCB</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QCheckBox" name="f_forceDepsCB"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="forceHoldLabel">
+            <property name="text">
+             <string>Force &amp;hold</string>
+            </property>
+            <property name="buddy">
+             <cstring>f_forceHoldCB</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QCheckBox" name="f_forceHoldCB">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="forceRemoveEssentialLabel">
+            <property name="text">
+             <string>Force remove &amp;essential</string>
+            </property>
+            <property name="buddy">
+             <cstring>f_forceRemoveEssentialCB</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QCheckBox" name="f_forceRemoveEssentialCB"/>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="purgeLabel">
+            <property name="text">
+             <string>Pur&amp;ge</string>
+            </property>
+            <property name="buddy">
+             <cstring>f_purgeCB</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QCheckBox" name="f_purgeCB"/>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="recursiveLabel">
+            <property name="text">
+             <string>&amp;Recursive</string>
+            </property>
+            <property name="buddy">
+             <cstring>f_recursiveCB</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QCheckBox" name="f_recursiveCB"/>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>About to remove the following packages:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <widget class="QListView" name="f_listView">
+           <property name="editTriggers">
+            <set>QAbstractItemView::NoEditTriggers</set>
+           </property>
+           <property name="selectionMode">
+            <enum>QAbstractItemView::ExtendedSelection</enum>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QPushButton" name="f_optionsButton">
+           <property name="text">
+            <string>&lt;&lt; &amp;Options</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_2"/>
+         </item>
+         <item>
+          <widget class="QDialogButtonBox" name="f_buttonBox">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="standardButtons">
+            <set>QDialogButtonBox::Apply|QDialogButtonBox::Discard</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>f_forceAllCB</tabstop>
+  <tabstop>f_forceDepsCB</tabstop>
+  <tabstop>f_forceHoldCB</tabstop>
+  <tabstop>f_forceRemoveEssentialCB</tabstop>
+  <tabstop>f_purgeCB</tabstop>
+  <tabstop>f_recursiveCB</tabstop>
+  <tabstop>f_listView</tabstop>
+  <tabstop>f_optionsButton</tabstop>
+  <tabstop>f_buttonBox</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

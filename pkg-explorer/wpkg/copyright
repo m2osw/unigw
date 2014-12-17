@@ -1,0 +1,9 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: pkg-explorer
+Upstream-Contact: Doug Barbieri <doug@m2osw.com>
+ http://windowspackager.org/contact
+Source: http://windowspackager.org/
+License: GPL2
+Disclaimer: This package is part of the usys system. It is not a native Debian package.
+Copyright:
+ Copyright (c) 2006-2013 Made to Order Software Corporation

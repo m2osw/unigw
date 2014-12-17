@@ -1,0 +1,22 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file alias="add">icons/48px-Crystal_Clear_action_edit_add.png</file>
+        <file alias="remove">icons/48px-Crystal_Clear_action_edit_remove.png</file>
+        <file alias="reload">icons/48px-Crystal_Clear_action_reload.png</file>
+        <file alias="run">icons/48px-Crystal_Clear_action_run.png</file>
+        <file alias="exit">icons/48px-Crystal_Clear_action_exit.png</file>
+        <file alias="demo">icons/48px-Crystal_Clear_app_demo.png</file>
+        <file alias="logo">icons/logo.png</file>
+		<file alias="systray_icon">icons/logo_systray.png</file>
+        <file alias="back_button">icons/Crystal_Clear_action_1leftarrow.png</file>
+        <file alias="fwd_button">icons/Crystal_Clear_action_player_play.png</file>
+        <file alias="folder">icons/Crystal_Clear_filesystem_folder_grey_open.png</file>
+        <file alias="file">icons/Crystal_Clear_mimetype_binary.png</file>
+        <file alias="upgrade">icons/Quick_restart.png</file>
+        <file alias="configure">icons/Crystal_Clear_action_configure.png</file>
+        <file alias="import">icons/Crystal_Clear_action_window_new.png</file>
+        <file alias="settings">icons/Crystal_Clear_action_share.png</file>
+        <file alias="help_about">icons/Crystal_Clear_action_info.png</file>
+        <file alias="update">icons/Crystal_Clear_action_db_update.png</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file alias="m2osw_logo">icons/m2osw_logo.png</file>
+    </qresource>
+</RCC>

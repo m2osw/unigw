@@ -1,0 +1,16 @@
+WARNING:
+
+  This version is compatible with the wpkg 0.8.x branch only (it was
+  compiled against 0.8.0 and 0.8.4 succesfully.) The wpkg_output overhaul
+  in 0.9.0 prevents the compilation of this current version of pkg_explorer.
+
+pkg-explorer is a Qt4-based GUI utility which front-ends libdebpackages,
+a source and binary package management library that allows you to
+maintenance a software installation of binary packages, download updates,
+install, and remove packages.
+
+A graphical front-end really helps the user visualize the state of her package
+database, plus makes it easy to maintain a list of software package sources.
+This tool is a critical component to managing distributed binary software
+packages, and runs on different platforms. The three supported presently are
+Ubuntu Linux, Microsoft Windows XP and over, and Mac OS/X (Darwin) 10.6+.

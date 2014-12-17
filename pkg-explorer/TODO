@@ -1,0 +1,5 @@
+
+  1. Add first-time wizard for specifying db root folder and software sources.
+  2. Include support for custom sections, and add multiple tiers.
+  3. Compile against 0.9.x
+

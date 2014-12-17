@@ -1,0 +1,55 @@
+pkg-explorer (0.2.4) unstable; urgency=medium
+
+  * Started adding documentation.
+  * Enhanced the packaging of pkg-explorer.
+  * Ensured that the name is "pkg-explorer" everywhere.
+  * Updated different dialogs with the new/removed features.
+  * Always turn on the --force-file-info on installation.
+  * Updated progress dialogs with the new wpkg_output.
+  * Allows a Cancel button in progress dialogs.
+  * Added a License dialog.
+  * Fixes to the remove/purge functionality.
+  * Added command line --help and --version options.
+
+ -- Doug Barbieri <doug@m2osw.com>  Mon, 02 Sep 2013 13:53:51 -0800
+
+pkg-explorer (0.2.3) unstable; urgency=medium
+
+  * When adding a software package source from the filesystem, "file:", the
+    two path suffixes are converted into dist and component, respectively.
+  * Took out build menu/toolbar entry since this is not supported (yet).
+  * Fixed Import feature; validation was "missing".
+  * Fixed the Purge; deconfigure() must be called explicitly.
+  * Fixed package and environment in general.
+  * Renamed the project with the "r" (exploreR).
+
+ -- Doug Barbieri <doug@m2osw.com>  Thu, 18 Apr 1013 13:53:51 -0800
+
+pkg-explorer (0.2.2) unstable; urgency=medium
+
+  * Can now upgrade from the package repository via the InstallDialog class.
+  * Got rid of Qt4 warnings via pragmas for GCC. Now builds with -WError under linux.
+  * Fixed backwards log problem in the LogView. Now uses a fifo instead of a stack.
+  * Added display of X-PrimarySection and X-SecondarySection in the WebView.
+  * Debian package now has the correct icon and .desktop file so it will appear in the menu.
+  * Install now only installs those checked packages instead of them all.
+  * Uses new functionality available in libdebpackages where dependencies come from the index. Must faster now.
+  * Added messagebox to show what will be installed and updated, including new packages.
+
+ -- Doug Barbieri <doug@m2osw.com>  Thu, 08 Apr 2013 13:53:51 -0800
+
+pkg-explorer (0.2.1) unstable; urgency=medium
+
+  * Added support for package source management (Debian-standard software source urls)
+  * Now installs, imports and removes packages, plus updates sources.
+  * Improved ProcessDialog so you can cancel the operation, and added a progress bar.
+  * Now works with 0.8.0 of libdebpackages.
+
+ -- Doug Barbieri <doug@m2osw.com>  Fri, 05 Apr 2013 11:38:44 -0800
+
+pkg-explorer (0.1.0) unstable; urgency=medium
+
+  * Initial version
+  * Support for importing packages (install from file system), removing, and initialzing root db folder.
+
+ -- Doug Barbieri <doug@m2osw.com>  Fri, 15 Mar 2013 11:38:44 -0800

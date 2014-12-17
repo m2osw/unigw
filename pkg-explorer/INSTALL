@@ -1,0 +1,84 @@
+Installation Instructions
+*************************
+
+Copyright (c) 2006-2013 by Made to Order Software Corporation
+
+This file is part of the pkg_explorer project.
+
+WARNING:
+
+  This version is compatible with the wpkg 0.8.x branch only (it was
+  compiled against 0.8.0 and 0.8.4 succesfully.) The wpkg_output overhaul
+  in 0.9.0 prevents the compilation of this current version of pkg_explorer.
+
+Compiling wpkg for wpkg-explorer
+================================
+
+In order to compile pkg-explorer from source, you need to first install
+wpkg, either from source, or from the wpkg and wpkg-dev binary packages.
+(wpkg-doc is not required for compiling.)
+
+Please refer to wpkg in order to do that.
+
+Note that from source, I created a script named dev/build-dist in wpkg that
+may be helpful to create a distribution of wpkg. More or less, you want to
+follow those instructions (update versions as required):
+
+  tar xf wpkg_0.8.4.tar.gz
+  mkdir build
+  mkdir dist
+  cd build
+  cmake -DCMAKE_INSTALL_PREFIX=../dist ../wpkg_0.8.4
+  make
+  make install
+  cd ..
+
+Now you have a dist directory with wpkg 0.8.4 which is exactly what you
+need to compile pkg-explorer.
+
+
+Compiling wpkg-explorer
+=======================
+
+Compiling wpkg-explorer is pretty much as easy as wpkg since it makes use
+of cmake. The one thing you need to define before you run cmake is the
+DIST_PATH variable.
+
+Assuming you want to work on pkg-explorer in the same directory as wpkg,
+you could do this:
+
+  tar xf pkg-explorer_0.2.4.tar.gz
+  mkdir build-pe
+  cd build-pe
+  export DIST_PATH=dist
+  cmake ../pkg-explorer_0.2.4
+  make
+
+Now you have pkg-explorer inside the bin directory, try:
+
+  bin/pkg-explorer
+
+Note that pkg-explorer also needs Qt4 (4.7.x or 4.8.x). The cmake script is
+expected to detect Qt4 to compile and link against it. Under MS-Windows, a
+pre-compiled stock version from Nokia will work as expected.
+
+
+Installing the Package
+======================
+
+Feel free to run:
+
+  make install
+
+in order to install the pkg-explorer tool.
+
+Note that you may want to install it in the same directory as wpkg. In that
+case, make sure to define the installation directory by changing the cmake
+command presented earlier with:
+
+  cmake -DCMAKE_INSTALL_PREFIX=../dist ../pkg-explorer_0.2.4
+
+Note that it is possible to change the prefix an any time. Just do it
+before running make + make install. (You want to rerun make to make sure
+that the change takes full effect before running make install.)
+

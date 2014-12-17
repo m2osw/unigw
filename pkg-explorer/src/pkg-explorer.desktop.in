@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Version=@VERSION_MAJOR@.@VERSION_MINOR@
+Name=Package Explorer
+Comment=GUI Package Explorer for WPKG package maintenance.
+Icon=pkg-explorer
+Exec=pkg-explorer
+Path=/usr/bin
+Categories=System;

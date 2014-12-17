@@ -1,0 +1,686 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>744</width>
+    <height>584</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Package Explorer</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="resources.qrc">
+    <normaloff>:/icons/logo</normaloff>:/icons/logo</iconset>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QSplitter" name="f_treeSplitter">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QTreeView" name="f_treeView">
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+       <property name="alternatingRowColors">
+        <bool>true</bool>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::ExtendedSelection</enum>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+       <property name="sortingEnabled">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="WebForm" name="f_webForm" native="true"/>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="f_menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>744</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>&amp;File</string>
+    </property>
+    <addaction name="separator"/>
+    <addaction name="separator"/>
+    <addaction name="actionDatabaseRoot"/>
+    <addaction name="actionManageRepositories"/>
+    <addaction name="separator"/>
+    <addaction name="actionQuit"/>
+   </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>&amp;Package</string>
+    </property>
+    <addaction name="actionFileImport"/>
+    <addaction name="separator"/>
+    <addaction name="actionUpdate"/>
+    <addaction name="actionInstall"/>
+    <addaction name="actionRemove"/>
+    <addaction name="actionUpgrade"/>
+   </widget>
+   <widget class="QMenu" name="menu_History">
+    <property name="title">
+     <string>Histor&amp;y</string>
+    </property>
+    <addaction name="actionHistoryBack"/>
+    <addaction name="actionHistoryForward"/>
+   </widget>
+   <widget class="QMenu" name="menu_View">
+    <property name="title">
+     <string>&amp;View</string>
+    </property>
+    <widget class="QMenu" name="menu_Log_Level">
+     <property name="title">
+      <string>&amp;Log Level</string>
+     </property>
+     <addaction name="actionViewLogError"/>
+     <addaction name="actionViewLogWarning"/>
+     <addaction name="actionViewLogInfo"/>
+     <addaction name="actionViewLogDebug"/>
+    </widget>
+    <addaction name="actionReload"/>
+    <addaction name="actionShowInstalled"/>
+    <addaction name="separator"/>
+    <addaction name="actionShowLog"/>
+    <addaction name="menu_Log_Level"/>
+    <addaction name="actionClearLog"/>
+   </widget>
+   <widget class="QMenu" name="menu_Help">
+    <property name="title">
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="actionHelp"/>
+    <addaction name="separator"/>
+    <addaction name="actionPackageExplorerLicense"/>
+    <addaction name="separator"/>
+    <addaction name="actionAbout"/>
+    <addaction name="actionAboutWindowsPackager"/>
+   </widget>
+   <widget class="QMenu" name="menu_Options">
+    <property name="title">
+     <string>&amp;Options</string>
+    </property>
+    <addaction name="actionMinimizeToSystray"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuEdit"/>
+   <addaction name="menu_History"/>
+   <addaction name="menu_View"/>
+   <addaction name="menu_Options"/>
+   <addaction name="menu_Help"/>
+  </widget>
+  <widget class="QStatusBar" name="f_statusbar"/>
+  <widget class="QToolBar" name="f_toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonTextUnderIcon</enum>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionReload"/>
+   <addaction name="separator"/>
+   <addaction name="actionFileImport"/>
+   <addaction name="separator"/>
+   <addaction name="actionUpdate"/>
+   <addaction name="actionInstall"/>
+   <addaction name="actionRemove"/>
+   <addaction name="actionUpgrade"/>
+   <addaction name="separator"/>
+   <addaction name="actionHistoryBack"/>
+   <addaction name="actionHistoryForward"/>
+   <addaction name="separator"/>
+   <addaction name="actionHelp"/>
+   <addaction name="separator"/>
+   <addaction name="actionQuit"/>
+  </widget>
+  <widget class="QDockWidget" name="f_dockWidget">
+   <attribute name="dockWidgetArea">
+    <number>8</number>
+   </attribute>
+   <widget class="LogForm" name="f_logForm"/>
+  </widget>
+  <action name="actionQuit">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/exit</normaloff>:/icons/exit</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Quit</string>
+   </property>
+   <property name="toolTip">
+    <string>Quit Package Explorer</string>
+   </property>
+   <property name="statusTip">
+    <string>Quit application.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionDatabaseRoot">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/configure</normaloff>:/icons/configure</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Set Database Root</string>
+   </property>
+   <property name="toolTip">
+    <string>Set the root of the WPKG database.</string>
+   </property>
+   <property name="statusTip">
+    <string>Set WPKG db root.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionInstall">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/add</normaloff>:/icons/add</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Install</string>
+   </property>
+   <property name="toolTip">
+    <string>Install Package(s) From Repository</string>
+   </property>
+   <property name="statusTip">
+    <string>Install repository packages.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionRemove">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/remove</normaloff>:/icons/remove</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Remove</string>
+   </property>
+   <property name="toolTip">
+    <string>Remove packages from local database.</string>
+   </property>
+   <property name="statusTip">
+    <string>Remove packages.</string>
+   </property>
+   <property name="shortcut">
+    <string>Del</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionReload">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/reload</normaloff>:/icons/reload</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Reload</string>
+   </property>
+   <property name="toolTip">
+    <string>Refresh the display.</string>
+   </property>
+   <property name="statusTip">
+    <string>Refresh display.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionHistoryBack">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/back_button</normaloff>:/icons/back_button</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Back</string>
+   </property>
+   <property name="toolTip">
+    <string>Go back in browser history.</string>
+   </property>
+   <property name="statusTip">
+    <string>Back in history.</string>
+   </property>
+   <property name="shortcut">
+    <string>Back</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionHistoryForward">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/fwd_button</normaloff>:/icons/fwd_button</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Forward</string>
+   </property>
+   <property name="toolTip">
+    <string>Go forward in history.</string>
+   </property>
+   <property name="statusTip">
+    <string>Forward in history.</string>
+   </property>
+   <property name="shortcut">
+    <string>Forward</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionShowLog">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Show Log Output</string>
+   </property>
+   <property name="toolTip">
+    <string>Show log output pane.</string>
+   </property>
+   <property name="statusTip">
+    <string>Show log output.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
+   </property>
+  </action>
+  <action name="actionFileImport">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/import</normaloff>:/icons/import</iconset>
+   </property>
+   <property name="text">
+    <string>I&amp;mport</string>
+   </property>
+   <property name="toolTip">
+    <string>Import packages from hard disk.</string>
+   </property>
+   <property name="statusTip">
+    <string>Import packages.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+T</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionUpgrade">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/upgrade</normaloff>:/icons/upgrade</iconset>
+   </property>
+   <property name="text">
+    <string>Up&amp;grade</string>
+   </property>
+   <property name="toolTip">
+    <string>Upgrade pending files from repository.</string>
+   </property>
+   <property name="statusTip">
+    <string>Upgrade packages.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+U</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionManageRepositories">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/settings</normaloff>:/icons/settings</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Manage Package Sources</string>
+   </property>
+   <property name="toolTip">
+    <string>Add / edit / delete Wpkg repositories.</string>
+   </property>
+   <property name="statusTip">
+    <string>Manage repository list.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/help_about</normaloff>:/icons/help_about</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;About Package Explorer</string>
+   </property>
+   <property name="statusTip">
+    <string>About</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionHelp">
+   <property name="icon">
+    <iconset theme="help">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Help</string>
+   </property>
+   <property name="iconText">
+    <string>Help</string>
+   </property>
+   <property name="toolTip">
+    <string>Package Explorer Help</string>
+   </property>
+   <property name="statusTip">
+    <string>Help</string>
+   </property>
+   <property name="shortcut">
+    <string>F1</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionUpdate">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/update</normaloff>:/icons/update</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Update</string>
+   </property>
+   <property name="toolTip">
+    <string>Update the local database from the server to see what we have to upgrade/install.</string>
+   </property>
+   <property name="statusTip">
+    <string>Update package list.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionShowInstalled">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/reload</normaloff>:/icons/reload</iconset>
+   </property>
+   <property name="text">
+    <string>Show &amp;Installed Packages Only</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Only show those packages which are fully installed. Unchecking this will show any packages in other states (like &lt;span style=&quot; font-style:italic;&quot;&gt;config_files&lt;/span&gt; or &lt;span style=&quot; font-style:italic;&quot;&gt;uninstalled&lt;/span&gt;).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="statusTip">
+    <string>Show installed packages only.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+I</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionViewLogDebug">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Debug</string>
+   </property>
+   <property name="toolTip">
+    <string>Debug output only.</string>
+   </property>
+   <property name="statusTip">
+    <string>Debug</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+4</string>
+   </property>
+  </action>
+  <action name="actionViewLogInfo">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Info</string>
+   </property>
+   <property name="toolTip">
+    <string>Informational output only.</string>
+   </property>
+   <property name="statusTip">
+    <string>Info</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+3</string>
+   </property>
+  </action>
+  <action name="actionViewLogWarning">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Warning</string>
+   </property>
+   <property name="toolTip">
+    <string>Warning output only.</string>
+   </property>
+   <property name="statusTip">
+    <string>Warning</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+2</string>
+   </property>
+  </action>
+  <action name="actionViewLogError">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Error</string>
+   </property>
+   <property name="toolTip">
+    <string>Error output only.</string>
+   </property>
+   <property name="statusTip">
+    <string>Error</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+1</string>
+   </property>
+  </action>
+  <action name="actionClearLog">
+   <property name="text">
+    <string>&amp;Clear Log</string>
+   </property>
+   <property name="toolTip">
+    <string>Clear log output pane.</string>
+   </property>
+   <property name="statusTip">
+    <string>Clear log.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Del</string>
+   </property>
+  </action>
+  <action name="actionAboutWindowsPackager">
+   <property name="text">
+    <string>About &amp;Windows Packager</string>
+   </property>
+   <property name="statusTip">
+    <string>About</string>
+   </property>
+  </action>
+  <action name="actionPackageExplorerLicense">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/logo</normaloff>:/icons/logo</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Package Explorer License</string>
+   </property>
+   <property name="statusTip">
+    <string>Show license.</string>
+   </property>
+  </action>
+  <action name="actionMinimizeToSystray">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Minimize to system tray on close</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When closing the application using the [X] at the top, minimize the application to the system tray instead of quitting.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="statusTip">
+    <string>Close to systray.</string>
+   </property>
+  </action>
+  <action name="actionShowApplication">
+   <property name="text">
+    <string>&amp;Show Application</string>
+   </property>
+   <property name="toolTip">
+    <string>Show application after it's been hidden.</string>
+   </property>
+   <property name="statusTip">
+    <string>Show/hide application.</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>WebForm</class>
+   <extends>QWidget</extends>
+   <header>WebForm.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>LogForm</class>
+   <extends>QWidget</extends>
+   <header>LogForm.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>actionShowLog</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>f_dockWidget</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>293</x>
+     <y>485</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>f_dockWidget</sender>
+   <signal>visibilityChanged(bool)</signal>
+   <receiver>actionShowLog</receiver>
+   <slot>setChecked(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>293</x>
+     <y>485</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionShowApplication</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>371</x>
+     <y>291</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

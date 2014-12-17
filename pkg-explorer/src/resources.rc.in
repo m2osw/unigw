@@ -1,0 +1,35 @@
+// $Id: //cmake/rel/1.0.0/src/components/resources.rc#1 $
+// $Author: dbarbieri $
+
+IDI_ICON1   ICON    DISCARDABLE "@ICON_PATH@"
+
+#include <windows.h>
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     @VERSION_FULL@
+PRODUCTVERSION  @VERSION_FULL@
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4"
+        BEGIN
+            VALUE "CompanyName",        "Made to Order Software"
+            VALUE "FileDescription",    "Package Explorer"
+			VALUE "FileVersion",        "@VERSION@\0"
+            VALUE "InternalName",       "pkg_explorer"
+            VALUE "LegalCopyright",     "Copyright © 2013 Made to Order Software, All Rights Reserved"
+            VALUE "LegalTrademarks1",   ""
+            VALUE "LegalTrademarks2",   ""
+			VALUE "OriginalFilename",   "pkg_explorer.exe"
+			VALUE "ProductName",        "Package Explorer"
+			VALUE "ProductVersion",     "@VERSION@\0"
+        END
+    END
+
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END
+
+// vim: ts=4 sw=4 noet

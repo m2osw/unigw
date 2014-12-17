@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ImportDialog</class>
+ <widget class="QDialog" name="ImportDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>601</width>
+    <height>435</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Import Packages</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_5">
+   <item>
+    <layout class="QGridLayout" name="gridLayout">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetMinimumSize</enum>
+     </property>
+     <item row="0" column="0">
+      <widget class="QWidget" name="f_optionsFrame" native="true">
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
+         <layout class="QFormLayout" name="formLayout">
+          <property name="fieldGrowthPolicy">
+           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="forceAnyDistributionLabel">
+            <property name="mouseTracking">
+             <bool>true</bool>
+            </property>
+            <property name="text">
+             <string>&amp;Force all</string>
+            </property>
+            <property name="textInteractionFlags">
+             <set>Qt::LinksAccessibleByMouse</set>
+            </property>
+            <property name="buddy">
+             <cstring>f_forceAllCB</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QCheckBox" name="f_forceAllCB"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="forceArchitectureLabel">
+            <property name="text">
+             <string>Force &amp;architecture</string>
+            </property>
+            <property name="buddy">
+             <cstring>f_forceArchCB</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QCheckBox" name="f_forceArchCB"/>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="forceBreaksLabel">
+            <property name="text">
+             <string>Force &amp;breaks</string>
+            </property>
+            <property name="buddy">
+             <cstring>f_forceBreaksCB</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QCheckBox" name="f_forceBreaksCB"/>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="forceConfigureAnyLabel">
+            <property name="text">
+             <string>Force &amp;configure any</string>
+            </property>
+            <property name="buddy">
+             <cstring>f_forceConfCB</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QCheckBox" name="f_forceConfCB"/>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="forceConflictsLabel">
+            <property name="text">
+             <string>Force co&amp;nflicts</string>
+            </property>
+            <property name="buddy">
+             <cstring>f_forceConflictsCB</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QCheckBox" name="f_forceConflictsCB"/>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="forceDependsLabel">
+            <property name="text">
+             <string>Force de&amp;pends</string>
+            </property>
+            <property name="buddy">
+             <cstring>f_forceDependsCB</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QCheckBox" name="f_forceDependsCB"/>
+          </item>
+          <item row="7" column="0">
+           <widget class="QLabel" name="forceDependsVersionLabel">
+            <property name="text">
+             <string>Force depends-&amp;version</string>
+            </property>
+            <property name="buddy">
+             <cstring>f_forceDepVerCB</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
+           <widget class="QCheckBox" name="f_forceDepVerCB"/>
+          </item>
+          <item row="8" column="0">
+           <widget class="QLabel" name="forceDowngradeLabel">
+            <property name="text">
+             <string>Force down&amp;grade</string>
+            </property>
+            <property name="buddy">
+             <cstring>f_forceDowngradeCB</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="1">
+           <widget class="QCheckBox" name="f_forceDowngradeCB"/>
+          </item>
+          <item row="9" column="0">
+           <widget class="QLabel" name="forceFileInfoLabel">
+            <property name="text">
+             <string>Force file &amp;info</string>
+            </property>
+            <property name="buddy">
+             <cstring>f_forceFileInfoCB</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="1">
+           <widget class="QCheckBox" name="f_forceFileInfoCB"/>
+          </item>
+          <item row="10" column="0">
+           <widget class="QLabel" name="forceOverwriteLabel">
+            <property name="text">
+             <string>Force over&amp;write</string>
+            </property>
+            <property name="buddy">
+             <cstring>f_forceOverwriteCB</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="10" column="1">
+           <widget class="QCheckBox" name="f_forceOverwriteCB"/>
+          </item>
+          <item row="11" column="0">
+           <widget class="QLabel" name="forceOverwriteDirectoryLabel">
+            <property name="text">
+             <string>Force overwrite director&amp;y</string>
+            </property>
+            <property name="buddy">
+             <cstring>f_forceOverwriteDirCB</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="11" column="1">
+           <widget class="QCheckBox" name="f_forceOverwriteDirCB"/>
+          </item>
+          <item row="12" column="0">
+           <widget class="QLabel" name="skipSameVersionLabel">
+            <property name="text">
+             <string>&amp;Skip same version</string>
+            </property>
+            <property name="buddy">
+             <cstring>f_skipSameVersCB</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="12" column="1">
+           <widget class="QCheckBox" name="f_skipSameVersCB"/>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>About to install the following packages:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <item>
+            <widget class="QListView" name="f_listView">
+             <property name="editTriggers">
+              <set>QAbstractItemView::NoEditTriggers</set>
+             </property>
+             <property name="selectionMode">
+              <enum>QAbstractItemView::ExtendedSelection</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout">
+             <item>
+              <widget class="QPushButton" name="f_addButton">
+               <property name="text">
+                <string>A&amp;dd</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="f_removeButton">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="text">
+                <string>&amp;Remove</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QPushButton" name="f_optionsButton">
+           <property name="text">
+            <string>&lt;&lt; &amp;Options</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QDialogButtonBox" name="f_buttonBox">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="standardButtons">
+            <set>QDialogButtonBox::Apply|QDialogButtonBox::Discard</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>f_forceAllCB</tabstop>
+  <tabstop>f_forceArchCB</tabstop>
+  <tabstop>f_forceBreaksCB</tabstop>
+  <tabstop>f_forceConfCB</tabstop>
+  <tabstop>f_forceConflictsCB</tabstop>
+  <tabstop>f_forceDependsCB</tabstop>
+  <tabstop>f_forceDepVerCB</tabstop>
+  <tabstop>f_forceDowngradeCB</tabstop>
+  <tabstop>f_forceFileInfoCB</tabstop>
+  <tabstop>f_forceOverwriteCB</tabstop>
+  <tabstop>f_forceOverwriteDirCB</tabstop>
+  <tabstop>f_skipSameVersCB</tabstop>
+  <tabstop>f_listView</tabstop>
+  <tabstop>f_addButton</tabstop>
+  <tabstop>f_removeButton</tabstop>
+  <tabstop>f_optionsButton</tabstop>
+  <tabstop>f_buttonBox</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

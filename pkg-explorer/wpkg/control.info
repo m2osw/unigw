@@ -1,0 +1,9 @@
+Sub-Packages: runtime*
+Package/runtime: pkg-explorer
+Priority: optional
+Architecture: $(architecture())
+Homepage: http://windowspackager.org/
+Description: Multi-platform packager.
+ Package Explorer allows you to manage installation targets via an advanced
+ Graphic User Interface. Most of the features found in wpkg are available in
+ pkg-explorer.
