@@ -288,14 +288,14 @@ void MainWindow::closeEvent( QCloseEvent* evt )
 }
 
 
-void MainWindow::hideEvent( QHideEvent * evt )
+void MainWindow::hideEvent( QHideEvent * /*evt*/ )
 {
     actionShowApplication->setText( tr("&Show Application") );
     connect( actionShowApplication, SIGNAL(triggered()), this, SLOT(show()) );
 }
 
 
-void MainWindow::showEvent( QShowEvent * evt )
+void MainWindow::showEvent( QShowEvent * /*evt*/ )
 {
     actionShowApplication->setText( tr("&Hide Application") );
     connect( actionShowApplication, SIGNAL(triggered()), this, SLOT(hide()) );
@@ -668,7 +668,7 @@ void MainWindow::OnWebPageClicked( const QString& webpage_url )
 }
 
 
-void MainWindow::OnSelectionChanged( const QItemSelection &selected, const QItemSelection& deselected )
+void MainWindow::OnSelectionChanged( const QItemSelection &/*selected*/, const QItemSelection& /*deselected*/ )
 {
 	UpdateActions();
 

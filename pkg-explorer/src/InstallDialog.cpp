@@ -149,7 +149,7 @@ void InstallDialog::OnItemChanged( QStandardItem* _item )
 }
 
 
-void InstallDialog::on_f_treeView_pressed(const QModelIndex &index)
+void InstallDialog::on_f_treeView_pressed(const QModelIndex &/*index*/)
 {
 	f_selectModel.clearSelection();
 }

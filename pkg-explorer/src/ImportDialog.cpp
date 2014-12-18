@@ -102,7 +102,7 @@ void ImportDialog::on_f_removeButton_clicked()
 }
 
 
-void ImportDialog::OnSelectionChanged( const QItemSelection &selected, const QItemSelection& deselected )
+void ImportDialog::OnSelectionChanged( const QItemSelection &/*selected*/, const QItemSelection& /*deselected*/ )
 {
 	QModelIndexList selrows = f_selectModel.selectedRows();
     f_removeButton->setEnabled( selrows.size() > 0 );

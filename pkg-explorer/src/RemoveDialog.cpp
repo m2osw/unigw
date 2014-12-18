@@ -56,7 +56,7 @@ void RemoveDialog::SetPackagesToRemove( const QStringList& list )
 }
 
 
-void RemoveDialog::OnSelectionChanged( const QItemSelection &selected, const QItemSelection& deselected )
+void RemoveDialog::OnSelectionChanged( const QItemSelection &/*selected*/, const QItemSelection& /*deselected*/ )
 {
     QModelIndexList selrows = f_selectModel.selectedRows();
     //

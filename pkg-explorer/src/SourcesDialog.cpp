@@ -134,7 +134,7 @@ void SourcesDialog::on_f_buttonBox_clicked(QAbstractButton *button)
     }
 }
 
-void SourcesDialog::on_f_listView_doubleClicked(const QModelIndex &index)
+void SourcesDialog::on_f_listView_doubleClicked(const QModelIndex &/*index*/)
 {
     QPushButton* applyBtn = f_buttonBox->button( QDialogButtonBox::Apply );
 	Q_ASSERT( applyBtn );

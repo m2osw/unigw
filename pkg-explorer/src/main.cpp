@@ -51,7 +51,7 @@ int main( int argc, char *argv[] )
 		exit(0);
 	}
 
-    // Set-up core application info
+	// Set-up core application info
 	//
 	QApplication::setOrganizationName   ( "M2OSW"        );
 	QApplication::setOrganizationDomain ( "m2osw.com"    );
@@ -61,58 +61,17 @@ int main( int argc, char *argv[] )
 	//
 	PrefsDialog::InitDatabase();
 
-	// Attempt to create shared memory segment--if created, then there is another instance running...
-	//
-	QSharedMemory sm("pkg_explorer");
-	std::cout << sm.nativeKey().toStdString() << std::endl;
-	bool have_db = false;
-	if( sm.create( 1, QSharedMemory::ReadOnly ) )
-	{
-		have_db = true;
-	}
-	else
-	{
-		if( sm.error() == QSharedMemory::AlreadyExists )
-		{
-			std::cerr << "pkg_explorer is already running!" << std::endl;
-			QMessageBox::critical( 0, QObject::tr("Error"), QObject::tr("Package Explorer is already running!") );
-		}
-		else
-		{
-			std::cerr << "Cannot create shared memory!" << std::endl;
-			QMessageBox::critical( 0, QObject::tr("Error"), QObject::tr("Cannot create shared memory!") );
-		}
-		if( sm.isAttached() )
-		{
-			sm.detach();
-		}
-		//
-		return 1;
-	}
-
 	// Create and show main window
 	//
-	int retval = 0;
-#if 0
-	if( argc == 2 )
-	{
-		MainWindow mainWnd( false /*showSysTray*/ );
-		mainWnd.RunCommand( argv[1] );
-    }
-	else
-	{
-#endif
-		MainWindow mainWnd;
-		mainWnd.show();
-		//
-        app.setQuitOnLastWindowClosed( false ); // We need this to keep the app from qutting when
-                                                // we are minimized to systray and a dialog closes
-		retval = app.exec();
-    //}
-
-	sm.detach();
-
-	return retval;
+	MainWindow mainWnd;
+	mainWnd.show();
+	//
+	app.setQuitOnLastWindowClosed( false );
+	//
+	// We need the above to keep the app from qutting when
+	// we are minimized to systray and a dialog closes
+	//
+	return app.exec();
 }
 
 

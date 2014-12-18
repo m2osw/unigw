@@ -44,7 +44,7 @@ ProcessDialog::~ProcessDialog()
 }
 
 
-void ProcessDialog::hideEvent( QHideEvent* evt )
+void ProcessDialog::hideEvent( QHideEvent* /*evt*/ )
 {
     QMutexLocker locker( &f_mutex );
 	f_cancelClicked = false;
