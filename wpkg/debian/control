@@ -1,0 +1,69 @@
+Source: wpkg
+Priority: extra
+Maintainer: R. Douglas Barbieri <doug@dooglio.net>
+Build-Depends: debhelper, cmake, doxygen, graphviz, 
+Standards-Version: 3.9.4
+Section: libs
+Homepage: http://www.windowspackager.org/
+Vcs-Git: git://git.code.sf.net/p/unigw/master
+Vcs-Browser: http://sourceforge.net/p/unigw/code/ci/master/tree/wpkg
+
+Package: libdebpackages-dev
+Section: libdevel
+Architecture: any
+Depends: libdebpackages (= ${binary:Version}), ${misc:Depends}
+Recommends: libdebpackages-doc (= ${binary:Version})
+Description: This project is a replica of dpkg and apt-get that works under
+ Microsoft Windows and Unices. Since version 0.7.0 it works very nicely as it
+ includes most of the important functionality of dpkg (i.e. most everything
+ except dselect functions.) Otherwise, the Unix GNU Windows is expected to be a
+ large set of packages that wpkg can handle.  Packages of all the software
+ available under MinGW and GnuWin32 so you can painlessly build a complete Unix
+ like environment under Microsoft Windows.
+ .
+ This is the development package complete with C++ headers.
+
+Package: libdebpackages-doc
+Section: doc
+Architecture: any
+Depends: ${misc:Depends}
+Recommends: libdebpackages (= ${binary:Version})
+Description: This project is a replica of dpkg and apt-get that works under
+ Microsoft Windows and Unices. Since version 0.7.0 it works very nicely as it
+ includes most of the important functionality of dpkg (i.e. most everything
+ except dselect functions.) Otherwise, the Unix GNU Windows is expected to be a
+ large set of packages that wpkg can handle.  Packages of all the software
+ available under MinGW and GnuWin32 so you can painlessly build a complete Unix
+ like environment under Microsoft Windows.
+ .
+ This is the documenation package, complete developer reference.
+
+Package: libdebpackages
+Section: libdevel
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: This project is a replica of dpkg and apt-get that works under
+ Microsoft Windows and Unices. Since version 0.7.0 it works very nicely as it
+ includes most of the important functionality of dpkg (i.e. most everything
+ except dselect functions.) Otherwise, the Unix GNU Windows is expected to be a
+ large set of packages that wpkg can handle.  Packages of all the software
+ available under MinGW and GnuWin32 so you can painlessly build a complete Unix
+ like environment under Microsoft Windows.
+ .
+ This is the runtime package for the C++ library.
+
+Package: wpkg
+Section: web
+Architecture: any
+Depends: libdebpackages (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
+Description: This project is a replica of dpkg and apt-get that works under
+ Microsoft Windows and Unices. Since version 0.7.0 it works very nicely as it
+ includes most of the important functionality of dpkg (i.e. most everything
+ except dselect functions.) Otherwise, the Unix GNU Windows is expected to be a
+ large set of packages that wpkg can handle.  Packages of all the software
+ available under MinGW and GnuWin32 so you can painlessly build a complete Unix
+ like environment under Microsoft Windows.
+ .
+ This package installs the command line packager tool.
+
+# vim: ts=4 sw=4 et
