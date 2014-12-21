@@ -1,4 +1,4 @@
-wpkg (0.1.0) trusty; urgency=high
+wpkg (0.9.4) trusty; urgency=high
 
   * Initial release of packaging.
 
