@@ -1,6 +1,6 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: snapwebsites
-Source: http://snapwebsites.org/
+Upstream-Name: wpkg
+Source: http://windowspackager.org/
 
 Files: *
 Copyright: 2011-2014 Alexis Wilke <alexis@m2osw.com>
