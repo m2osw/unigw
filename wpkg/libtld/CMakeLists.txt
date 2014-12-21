@@ -57,6 +57,11 @@ if( MSVC )
             COMPILE_FLAGS "-DLIBTLD_DLL -Dwpkg_tld_EXPORTS"
             LINK_FLAGS ${WIN_MACHINE_FLAGS}
         )
+else()
+    set_target_properties( ${PROJECT_NAME} PROPERTIES
+        VERSION ${WPKG_VERSION_MAJOR}.${WPKG_VERSION_MINOR}
+        SOVERSION ${WPKG_VERSION_MAJOR}
+    )
 endif()
 install(
     TARGETS ${PROJECT_NAME}
@@ -88,6 +93,10 @@ elseif( NOT MO_CYGWIN AND NOT MO_MINGW32 )
     set_target_properties(${PROJECT_NAME} PROPERTIES
             COMPILE_FLAGS -fPIC
         )
+    set_target_properties( ${PROJECT_NAME} PROPERTIES
+        VERSION ${WPKG_VERSION_MAJOR}.${WPKG_VERSION_MINOR}
+        SOVERSION ${WPKG_VERSION_MAJOR}
+    )
 endif()
 
 

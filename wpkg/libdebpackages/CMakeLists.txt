@@ -133,6 +133,11 @@ target_link_libraries( ${PROJECT_NAME}
     ${EXTRA_LIBRARIES}
 )
 
+set_target_properties( ${PROJECT_NAME} PROPERTIES
+    VERSION ${WPKG_VERSION_MAJOR}.${WPKG_VERSION_MINOR}
+    SOVERSION ${WPKG_VERSION_MAJOR}
+)
+
 install(
     TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION bin COMPONENT runtime
@@ -182,6 +187,11 @@ target_link_libraries( ${PROJECT_NAME}
     wpkg_bz2
     wpkg_tld
     ${EXTRA_LIBRARIES}
+)
+
+set_target_properties( ${PROJECT_NAME} PROPERTIES
+    VERSION ${WPKG_VERSION_MAJOR}.${WPKG_VERSION_MINOR}
+    SOVERSION ${WPKG_VERSION_MAJOR}
 )
 
 install(

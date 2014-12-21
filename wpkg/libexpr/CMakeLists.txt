@@ -73,6 +73,11 @@ if( MSVC )
     set_target_properties( ${PROJECT_NAME} PROPERTIES
         LINK_FLAGS ${WIN_MACHINE_FLAGS}
     )
+else()
+    set_target_properties( ${PROJECT_NAME} PROPERTIES
+        VERSION ${WPKG_VERSION_MAJOR}.${WPKG_VERSION_MINOR}
+        SOVERSION ${WPKG_VERSION_MAJOR}
+    )
 endif()
 
 target_link_libraries( ${PROJECT_NAME}
@@ -109,6 +114,11 @@ if( MSVC )
             COMPILE_FLAGS "-DEXPR_DLL -Dexpr_EXPORTS"
             LINK_FLAGS ${WIN_MACHINE_FLAGS}
         )
+else()
+    set_target_properties( ${PROJECT_NAME} PROPERTIES
+        VERSION ${WPKG_VERSION_MAJOR}.${WPKG_VERSION_MINOR}
+        SOVERSION ${WPKG_VERSION_MAJOR}
+    )
 endif()
 
 target_link_libraries( ${PROJECT_NAME}
@@ -144,6 +154,11 @@ add_executable( ${PROJECT_NAME}
 if( MSVC )
     set_target_properties( ${PROJECT_NAME} PROPERTIES
         LINK_FLAGS ${WIN_MACHINE_FLAGS}
+    )
+else()
+    set_target_properties( ${PROJECT_NAME} PROPERTIES
+        VERSION ${WPKG_VERSION_MAJOR}.${WPKG_VERSION_MINOR}
+        SOVERSION ${WPKG_VERSION_MAJOR}
     )
 endif()
 

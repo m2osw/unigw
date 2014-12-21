@@ -31,6 +31,11 @@ if( MSVC )
     set_target_properties( ${PROJECT_NAME} PROPERTIES
             LINK_FLAGS ${WIN_MACHINE_FLAGS}
         )
+else()
+    set_target_properties( ${PROJECT_NAME} PROPERTIES
+        VERSION ${WPKG_VERSION_MAJOR}.${WPKG_VERSION_MINOR}
+        SOVERSION ${WPKG_VERSION_MAJOR}
+    )
 endif()
 
 install(
@@ -56,6 +61,11 @@ if( MSVC )
     set_target_properties( ${PROJECT_NAME} PROPERTIES
         COMPILE_FLAGS -D_WINDLL
         LINK_FLAGS ${WIN_MACHINE_FLAGS}
+    )
+else()
+    set_target_properties( ${PROJECT_NAME} PROPERTIES
+        VERSION ${WPKG_VERSION_MAJOR}.${WPKG_VERSION_MINOR}
+        SOVERSION ${WPKG_VERSION_MAJOR}
     )
 endif()
 
