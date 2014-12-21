@@ -3,7 +3,7 @@ Priority: extra
 Maintainer: R. Douglas Barbieri <doug@dooglio.net>
 Build-Depends: debhelper, cmake, doxygen, graphviz, 
 Standards-Version: 3.9.4
-Section: libs
+Section: admin
 Homepage: http://www.windowspackager.org/
 Vcs-Git: git://git.code.sf.net/p/unigw/master
 Vcs-Browser: http://sourceforge.net/p/unigw/code/ci/master/tree/wpkg
@@ -53,7 +53,7 @@ Description: This project is a replica of dpkg and apt-get that works under
  This is the runtime package for the C++ library.
 
 Package: wpkg
-Section: web
+Section: admin
 Architecture: any
 Depends: libdebpackages (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
 Description: This project is a replica of dpkg and apt-get that works under
