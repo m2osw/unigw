@@ -1,0 +1,3 @@
+Run "cmake", (see http://cmake.org) then build the application suite.
+For MS Windows, use Visual Studio >= 2010 or MinGW with g++ >= 4.5.
+Under Linux, use GNU make and g++ >= 4.5.
