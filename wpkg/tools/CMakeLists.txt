@@ -46,13 +46,13 @@ include_directories(
     "${PROJECT_BINARY_DIR}"
     "${PROJECT_SOURCE_DIR}"
     "${PROJECT_SOURCE_DIR}/.."
-    "${debpackages_static_BINARY_DIR}"
-    "${debpackages_static_SOURCE_DIR}"
-    "${wpkg_bz2_static_SOURCE_DIR}"
-    "${wpkg_z_static_SOURCE_DIR}"
-    "${expr_static_SOURCE_DIR}"
-    "${utf8_static_SOURCE_DIR}"
-    "${wpkg_tld_static_BINARY_DIR}"
+    "${debpackages_BINARY_DIR}"
+    "${debpackages_SOURCE_DIR}"
+    "${wpkg_bz2_SOURCE_DIR}"
+    "${wpkg_z_SOURCE_DIR}"
+    "${expr_SOURCE_DIR}"
+    "${utf8_SOURCE_DIR}"
+    "${wpkg_tld_BINARY_DIR}"
 )
 
 add_executable( ${PROJECT_NAME}
@@ -60,13 +60,13 @@ add_executable( ${PROJECT_NAME}
     license.cpp
 )
 
-StaticCompile()
+#StaticCompile()
 
 target_link_libraries( ${PROJECT_NAME}
-    debpackages_static
-    expr_static
-    wpkg_z_static
-    wpkg_bz2_static
+    debpackages
+    expr
+    wpkg_z
+    wpkg_bz2
 )
 
 install(
@@ -92,10 +92,10 @@ add_executable( ${PROJECT_NAME}
     license.cpp
 )
 
-StaticCompile()
+#StaticCompile()
 
 target_link_libraries( ${PROJECT_NAME}
-    debpackages_static
+    debpackages
 )
 
 install(
@@ -122,10 +122,10 @@ add_executable( ${PROJECT_NAME}
     license.cpp
 )
 
-StaticCompile()
+#StaticCompile()
 
 target_link_libraries( ${PROJECT_NAME}
-    debpackages_static
+    debpackages
 )
 
 install(
@@ -152,14 +152,14 @@ add_executable( ${PROJECT_NAME}
     license.cpp
 )
 
-StaticCompile()
+#StaticCompile()
 
 target_link_libraries( ${PROJECT_NAME}
-    debpackages_static
-    expr_static
-    wpkg_z_static
-    wpkg_bz2_static
-    wpkg_tld_static
+    debpackages
+    expr
+    wpkg_z
+    wpkg_bz2
+    wpkg_tld
 )
 
 install(
@@ -186,14 +186,14 @@ add_executable( ${PROJECT_NAME}
     license.cpp
 )
 
-StaticCompile()
+#StaticCompile()
 
 target_link_libraries( ${PROJECT_NAME}
-    debpackages_static
-    expr_static
-    wpkg_z_static
-    wpkg_bz2_static
-    wpkg_tld_static
+    debpackages
+    expr
+    wpkg_z
+    wpkg_bz2
+    wpkg_tld
 )
 
 install(
@@ -220,14 +220,14 @@ add_executable( ${PROJECT_NAME}
     license.cpp
 )
 
-StaticCompile()
+#StaticCompile()
 
 target_link_libraries( ${PROJECT_NAME}
-    debpackages_static
-    expr_static
-    wpkg_z_static
-    wpkg_bz2_static
-    wpkg_tld_static
+    debpackages
+    expr
+    wpkg_z
+    wpkg_bz2
+    wpkg_tld
 )
 
 install(
@@ -254,21 +254,21 @@ add_executable( ${PROJECT_NAME}
     license.cpp
 )
 
-StaticCompile()
+#StaticCompile()
 
 target_link_libraries( ${PROJECT_NAME}
-    debpackages_static
-    expr_static
-    wpkg_z_static
-    wpkg_bz2_static
-    wpkg_tld_static
+    debpackages
+    expr
+    wpkg_z
+    wpkg_bz2
+    wpkg_tld
 )
 
-if( MINGW32 OR MSYS )
-    # The -static-... flags do not seem to have an effect at this point
-    # (I also tried with just -static and the C & C++ libraries are still added!)
-    set_target_properties(wpkg PROPERTIES LINK_FLAGS "-static-libgcc -static-libstdc++" )
-endif( MINGW32 OR MSYS )
+#if( MINGW32 OR MSYS )
+#    # The -static-... flags do not seem to have an effect at this point
+#    # (I also tried with just -static and the C & C++ libraries are still added!)
+#    set_target_properties(wpkg PROPERTIES LINK_FLAGS "-static-libgcc -static-libstdc++" )
+#endif( MINGW32 OR MSYS )
 
 install(
     TARGETS ${PROJECT_NAME}
