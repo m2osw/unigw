@@ -1,0 +1,25 @@
+Source: pkgexplorer
+Priority: extra
+Maintainer: R. Douglas Barbieri <doug@dooglio.net>
+Build-Depends: debhelper, cmake
+Standards-Version: 3.9.4
+Section: admin
+Homepage: http://www.windowspackager.org/
+Vcs-Git: git://git.code.sf.net/p/unigw/master
+Vcs-Browser: http://sourceforge.net/p/unigw/code/ci/master/tree/pkg-explorer
+
+Package: pkgexplorer
+Section: admin
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: This project is a replica of dpkg and apt-get that works under
+ Microsoft Windows and Unices. Since version 0.7.0 it works very nicely as it
+ includes most of the important functionality of dpkg (i.e. most everything
+ except dselect functions.) Otherwise, the Unix GNU Windows is expected to be a
+ large set of packages that wpkg can handle.  Packages of all the software
+ available under MinGW and GnuWin32 so you can painlessly build a complete Unix
+ like environment under Microsoft Windows.
+ .
+ This package installs the gui wrapper for wpkg functionality.
+
+# vim: ts=4 sw=4 et
