@@ -1,7 +1,8 @@
 Source: pkgexplorer
 Priority: extra
 Maintainer: R. Douglas Barbieri <doug@dooglio.net>
-Build-Depends: debhelper, cmake, libqt4-dev (>= 4.8.3), libdebpackages-dev (>= 0.9.4)
+Build-Depends: debhelper, cmake, libqt4-dev (>= 4.8.4), libqtwebkit-dev (>= 2.3.2-0ubuntu7),
+               libdebpackages-dev (>= 0.9.4)
 Standards-Version: 3.9.4
 Section: admin
 Homepage: http://www.windowspackager.org/
