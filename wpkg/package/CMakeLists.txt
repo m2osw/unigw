@@ -52,6 +52,7 @@ foreach( _comp ${COMPONENT_LIST} )
                         -DCMAKE_INSTALL_DO_STRIP=1
                         -P ${CMAKE_BINARY_DIR}/cmake_install.cmake
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            DEPENDS package_prereqs
         )
     add_custom_target( ${_comp}
             COMMAND wpkg
@@ -60,8 +61,15 @@ foreach( _comp ${COMPONENT_LIST} )
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
             DEPENDS ${_comp}_install
         )
+    if( MSVC )
+        set_property( TARGET ${_comp}_install PROPERTY FOLDER ${PACKAGE_FOLDER} )
+        set_property( TARGET ${_comp} PROPERTY FOLDER ${PACKAGE_FOLDER} )
+    endif()
 endforeach()
 
 add_custom_target( wpkg_package DEPENDS ${COMPONENT_LIST} )
+if( MSVC )
+    set_property( TARGET wpkg_package PROPERTY FOLDER ${PACKAGE_FOLDER} )
+endif()
 
 # vim: ts=4 sw=4 et

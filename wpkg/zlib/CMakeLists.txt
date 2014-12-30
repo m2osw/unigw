@@ -4,8 +4,9 @@
 
 # WARNING: C/CXX flags are defined once for all the CMakeLists.txt projects
 if ( MSVC )
+    set( ZLIB_FOLDER libs/zlib )
     set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE" )
-endif ( MSVC )
+endif()
 
 # TODO: make zconf.h from zconf.h.cmakein
 set(ZLIB_PUBLIC_HDRS
@@ -32,6 +33,12 @@ add_library( ${PROJECT_NAME} STATIC
     uncompr.c
     zutil.c
 )
+
+if( MSVC )
+    set_target_properties( ${PROJECT_NAME} PROPERTIES
+        FOLDER ${ZLIB_FOLDER}
+        )
+endif()
 
 StaticCompile()
 
@@ -65,7 +72,10 @@ add_library( ${PROJECT_NAME} SHARED
 )
 
 if( MSVC )
-    set_target_properties( ${PROJECT_NAME} PROPERTIES COMPILE_FLAGS -DZLIB_DLL )
+    set_target_properties( ${PROJECT_NAME} PROPERTIES
+        COMPILE_FLAGS -DZLIB_DLL
+        FOLDER ${ZLIB_FOLDER}
+        )
 else()
     set_target_properties( ${PROJECT_NAME} PROPERTIES
         VERSION ${WPKG_VERSION_MAJOR}.${WPKG_VERSION_MINOR}
@@ -84,5 +94,11 @@ install(
     DESTINATION include/wpkg
     COMPONENT development
 )
+
+add_custom_target( zlib_target DEPENDS wpkg_z_static wpkg_z )
+
+if( MSVC )
+    set_property( TARGET zlib_target PROPERTY FOLDER ${ZLIB_FOLDER} )
+endif()
 
 # vim: ts=4 sw=4 et

@@ -41,6 +41,7 @@
 
 # WARNING: C/CXX flags are defined once for all the CMakeLists.txt projects
 if( MSVC )
+    set( EXPR_FOLDER libs/expr )
     # disable warnings about dll linkage concerns but we do not have any inlines (warning 4251)
     set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251" )
 endif ( MSVC )
@@ -72,6 +73,7 @@ StaticCompile()
 if( MSVC )
     set_target_properties( ${PROJECT_NAME} PROPERTIES
         LINK_FLAGS ${WIN_MACHINE_FLAGS}
+        FOLDER ${EXPR_FOLDER}
     )
 else()
     set_target_properties( ${PROJECT_NAME} PROPERTIES
@@ -113,6 +115,7 @@ if( MSVC )
     set_target_properties( ${PROJECT_NAME} PROPERTIES
             COMPILE_FLAGS "-DEXPR_DLL -Dexpr_EXPORTS"
             LINK_FLAGS ${WIN_MACHINE_FLAGS}
+            FOLDER ${EXPR_FOLDER}
         )
 else()
     set_target_properties( ${PROJECT_NAME} PROPERTIES
@@ -154,6 +157,7 @@ add_executable( ${PROJECT_NAME}
 if( MSVC )
     set_target_properties( ${PROJECT_NAME} PROPERTIES
         LINK_FLAGS ${WIN_MACHINE_FLAGS}
+        FOLDER ${EXPR_FOLDER}
     )
 else()
     set_target_properties( ${PROJECT_NAME} PROPERTIES
@@ -178,6 +182,11 @@ install(
     COMPONENT documentation
 )
 
+add_custom_target( expr_target DEPENDS expr_static expr c_expr )
+
+if( MSVC )
+    set_property( TARGET expr_target PROPERTY FOLDER ${EXPR_FOLDER} )
+endif()
 
 
 # vim: ts=4 sw=4 et
