@@ -43,6 +43,7 @@
 
 # WARNING: C/CXX flags are defined once for all the CMakeLists.txt projects
 if( MSVC )
+    set( UTF8_FOLDER libs/utf8 )
     # disable warnings about dll linkage concerns but we do not have any inlines (warning 4251)
     set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251" )
 endif ( MSVC )
@@ -67,6 +68,7 @@ StaticCompile()
 if( MSVC )
     set_target_properties( ${PROJECT_NAME} PROPERTIES
         LINK_FLAGS ${WIN_MACHINE_FLAGS}
+        FOLDER ${UTF8_FOLDER}
     )
 else()
     set_target_properties( ${PROJECT_NAME} PROPERTIES
@@ -103,6 +105,7 @@ if( MSVC )
     set_target_properties( ${PROJECT_NAME} PROPERTIES
 		COMPILE_FLAGS "-DLIBUTF8_DLL -Dlibutf8_EXPORTS"
         LINK_FLAGS ${WIN_MACHINE_FLAGS}
+        FOLDER ${UTF8_FOLDER}
     )
 else()
     set_target_properties( ${PROJECT_NAME} PROPERTIES
@@ -124,6 +127,12 @@ install(
     FILES_MATCHING PATTERN *.h
     PATTERN .svn EXCLUDE
 )
+
+add_custom_target( utf8_target DEPENDS utf8_static utf8 )
+
+if( MSVC )
+    set_property( TARGET utf8_target PROPERTY FOLDER ${UTF8_FOLDER} )
+endif()
 
 
 # vim: ts=4 sw=4 et

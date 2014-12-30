@@ -42,12 +42,13 @@
 
 # WARNING: C/CXX flags are defined once for all the CMakeLists.txt projects
 if( MSVC )
+    set( DEBPACKAGES_FOLDER libs/debpackages )
     # disable warnings about dll linkage concerns but we do not have any inlines (warning 4251)
     set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251" )
-endif( MSVC )
+endif()
 if( MSVC OR MINGW32 OR MSYS )
     set ( EXTRA_LIBRARIES wsock32 ws2_32 mpr ole32 uuid )
-endif( MSVC OR MINGW32 OR MSYS )
+endif()
 
 file( GLOB LIBDEBPACKAGES_INCLUDE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/libdebpackages/*.h" )
 
@@ -114,6 +115,7 @@ StaticCompile()
 if( MSVC )
     set_target_properties( ${PROJECT_NAME} PROPERTIES
         LINK_FLAGS ${WIN_MACHINE_FLAGS}
+        FOLDER ${DEBPACKAGES_FOLDER}
     )
 endif()
 
@@ -178,6 +180,7 @@ if( MSVC OR MINGW32 OR MSYS )
     set_target_properties( ${PROJECT_NAME} PROPERTIES
         COMPILE_FLAGS -DDEBIAN_PACKAGE_DLL
         LINK_FLAGS ${WIN_MACHINE_FLAGS}
+        FOLDER ${DEBPACKAGES_FOLDER}
     )
 endif()
 
@@ -213,6 +216,11 @@ install(
     COMPONENT development
 )
 
+add_custom_target( debpackages_target DEPENDS debpackages_static debpackages )
+
+if( MSVC )
+    set_property( TARGET debpackages_target PROPERTY FOLDER ${DEBPACKAGES_FOLDER} )
+endif()
 
 
 # vim: ts=4 sw=4 et

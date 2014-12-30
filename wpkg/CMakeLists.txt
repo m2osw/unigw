@@ -49,6 +49,10 @@ project( wpkg_project )
 # incompatible with ours, change this name!
 set( WPKG_VENDOR m2osw )
 
+# For DEVENV, organize projects into folders
+#
+set_property( GLOBAL PROPERTY USE_FOLDERS ON )
+
 #===============================================================================
 # Detect system particulars
 #
@@ -219,8 +223,17 @@ install(
 #    COMPONENT runtime
 #)
 
-add_subdirectory( package )
+if( MSVC )
+    set( PACKAGE_FOLDER package )
+endif()
 
+add_custom_target( package_prereqs DEPENDS bz2_target zlib_target tld_target utf8_target expr_target debpackages_target tools_target )
+
+if( MSVC )
+    set_property( TARGET package_prereqs PROPERTY FOLDER ${PACKAGE_FOLDER} )
+endif()
+
+add_subdirectory( package )
 
 
 ##

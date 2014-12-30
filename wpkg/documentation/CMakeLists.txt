@@ -36,6 +36,10 @@
 
 project(wpkg_documentation)
 
+if( MSVC )
+    set( DOC_FOLDER documentation )
+endif()
+
 ################################################################################
 # Function AddDoxygenTarget taken from the Snap! environment
 # See http://snapwebsites.org/
@@ -98,6 +102,10 @@ function( AddDoxygenTarget TARGET_NAME VERSION_MAJOR VERSION_MINOR VERSION_PATCH
             COMMENT "Generating API documentation with Doxygen" VERBATIM
         )
 
+        if( MSVC )
+            set_property( TARGET ${TARGET_NAME}_Documentation PROPERTY FOLDER ${DOC_FOLDER} )
+        endif()
+
         # That makes the wpkg-doc package a good 10Mb... I do not think that
         # adds value at this time so I don't do it (although it works.)
         #install(
@@ -116,5 +124,9 @@ AddDoxygenTarget( wpkg
     ${WPKG_VERSION_MINOR}
     ${WPKG_VERSION_PATCH}
 )
+
+#if( MSVC )
+#    set_property( TARGET wpkg_Documentation PROPERTY FOLDER ${DOCUMENTATION_OUTPUT} )
+#endif()
 
 # vim: ts=4 sw=4 et

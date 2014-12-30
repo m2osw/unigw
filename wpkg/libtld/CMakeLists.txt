@@ -36,6 +36,7 @@ project(wpkg_tld)
 
 # WARNING: C/CXX flags are defined once for all the CMakeLists.txt projects
 if ( MSVC )
+    set( TLD_FOLDER libs/tld )
     # disable warnings about dll linkage concerns but we do not have any inlines (warning 4251)
     set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4251" )
     # disable warnings about dll linkage concerns but we do not have any inlines (warning 4251)
@@ -56,6 +57,7 @@ if( MSVC )
     set_target_properties( ${PROJECT_NAME} PROPERTIES
             COMPILE_FLAGS "-DLIBTLD_DLL -Dwpkg_tld_EXPORTS"
             LINK_FLAGS ${WIN_MACHINE_FLAGS}
+            FOLDER ${TLD_FOLDER}
         )
 else()
     set_target_properties( ${PROJECT_NAME} PROPERTIES
@@ -87,6 +89,7 @@ StaticCompile()
 if( MSVC )
     set_target_properties( ${PROJECT_NAME} PROPERTIES
         LINK_FLAGS ${WIN_MACHINE_FLAGS}
+        FOLDER ${TLD_FOLDER}
     )
 elseif( NOT MO_CYGWIN AND NOT MO_MINGW32 )
     # We need the -fPIC to use this library as extension of PHP, etc.
@@ -118,6 +121,12 @@ install(
     DESTINATION include/wpkg/libtld
     COMPONENT development
 )
+
+add_custom_target( tld_target DEPENDS wpkg_tld_static wpkg_tld )
+
+if( MSVC )
+    set_property( TARGET tld_target PROPERTY FOLDER ${TLD_FOLDER} )
+endif()
 
 
 ##

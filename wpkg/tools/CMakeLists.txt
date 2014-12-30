@@ -34,8 +34,9 @@
 #      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
+set( TOOLS_FOLDER tools )
 
-
+#####################################################################
 ##
 ## dirsize
 ##
@@ -60,6 +61,10 @@ add_executable( ${PROJECT_NAME}
     license.cpp
 )
 
+if( MSVC )
+    set_target_properties( ${PROJECT_NAME} PROPERTIES FOLDER ${TOOLS_FOLDER} )
+endif()
+
 #StaticCompile()
 
 target_link_libraries( ${PROJECT_NAME}
@@ -81,6 +86,7 @@ install(
     COMPONENT documentation
 )
 
+#####################################################################
 ##
 ## debversion
 ##
@@ -92,7 +98,10 @@ add_executable( ${PROJECT_NAME}
     license.cpp
 )
 
-#StaticCompile()
+
+if( MSVC )
+    set_target_properties( ${PROJECT_NAME} PROPERTIES FOLDER ${TOOLS_FOLDER} )
+endif()
 
 target_link_libraries( ${PROJECT_NAME}
     debpackages
@@ -111,6 +120,7 @@ install(
 )
 
 
+#####################################################################
 ##
 ## dar
 ##
@@ -122,7 +132,9 @@ add_executable( ${PROJECT_NAME}
     license.cpp
 )
 
-#StaticCompile()
+if( MSVC )
+    set_target_properties( ${PROJECT_NAME} PROPERTIES FOLDER ${TOOLS_FOLDER} )
+endif()
 
 target_link_libraries( ${PROJECT_NAME}
     debpackages
@@ -141,6 +153,7 @@ install(
 )
 
 
+#####################################################################
 ##
 ## deb2graph
 ##
@@ -152,7 +165,9 @@ add_executable( ${PROJECT_NAME}
     license.cpp
 )
 
-#StaticCompile()
+if( MSVC )
+    set_target_properties( ${PROJECT_NAME} PROPERTIES FOLDER ${TOOLS_FOLDER} )
+endif()
 
 target_link_libraries( ${PROJECT_NAME}
     debpackages
@@ -175,6 +190,7 @@ install(
 )
 
 
+#####################################################################
 ##
 ## deb2html
 ##
@@ -186,7 +202,9 @@ add_executable( ${PROJECT_NAME}
     license.cpp
 )
 
-#StaticCompile()
+if( MSVC )
+    set_target_properties( ${PROJECT_NAME} PROPERTIES FOLDER ${TOOLS_FOLDER} )
+endif()
 
 target_link_libraries( ${PROJECT_NAME}
     debpackages
@@ -209,6 +227,7 @@ install(
 )
 
 
+#####################################################################
 ##
 ## rc-version
 ##
@@ -220,7 +239,9 @@ add_executable( ${PROJECT_NAME}
     license.cpp
 )
 
-#StaticCompile()
+if( MSVC )
+    set_target_properties( ${PROJECT_NAME} PROPERTIES FOLDER ${TOOLS_FOLDER} )
+endif()
 
 target_link_libraries( ${PROJECT_NAME}
     debpackages
@@ -243,10 +264,10 @@ install(
 )
 
 
+#####################################################################
 ##
 ## wpkg
 ##
-
 project(wpkg)
 
 add_executable( ${PROJECT_NAME}
@@ -254,7 +275,9 @@ add_executable( ${PROJECT_NAME}
     license.cpp
 )
 
-#StaticCompile()
+if( MSVC )
+    set_target_properties( ${PROJECT_NAME} PROPERTIES FOLDER ${TOOLS_FOLDER} )
+endif()
 
 target_link_libraries( ${PROJECT_NAME}
     debpackages
@@ -276,6 +299,42 @@ install(
     COMPONENT runtime
 )
 
+project(wpkg_static)
+
+add_executable( ${PROJECT_NAME}
+    wpkg.cpp
+    license.cpp
+)
+
+StaticCompile()
+
+target_link_libraries( ${PROJECT_NAME}
+    debpackages
+    expr
+    wpkg_z
+    wpkg_bz2
+    wpkg_tld
+)
+
+if( MINGW32 OR MSYS )
+    # The -static-... flags do not seem to have an effect at this point
+    # (I also tried with just -static and the C & C++ libraries are still added!)
+    set_target_properties( ${PROJECT_NAME} PROPERTIES LINK_FLAGS "-static-libgcc -static-libstdc++" )
+elseif( MSVC )
+    set_property( TARGET ${PROJECT_NAME} PROPERTY FOLDER ${TOOLS_FOLDER} )
+endif()
+
+install(
+    TARGETS ${PROJECT_NAME}
+    RUNTIME DESTINATION bin
+    COMPONENT runtime
+)
+
+
+#####################################################################
+##
+## Other installs
+##
 install(
     FILES ${CMAKE_SOURCE_DIR}/documentation/${PROJECT_NAME}.1.gz
     DESTINATION share/man/man1
@@ -291,4 +350,11 @@ install(
     COMPONENT documentation
 )
 
+add_custom_target( tools_target DEPENDS dirsize debversion dar deb2graph deb2html rc-version wpkg wpkg_static )
+
+if( MSVC )
+    set_property( TARGET tools_target PROPERTY FOLDER ${TOOLS_FOLDER} )
+endif()
+
 # vim: ts=4 sw=4 et
+
