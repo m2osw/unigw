@@ -289,7 +289,7 @@ void fstream::seek(off_type offset, seekdir dir)
     }
 #else
     // convert to an std io stream type
-    int d;
+    int d = 0;
     switch(dir)
     {
     case beg:

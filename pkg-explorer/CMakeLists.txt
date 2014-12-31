@@ -200,11 +200,12 @@ if( MO_DARWIN )
 		COMPONENT runtime
 		)
 else()
-	add_custom_command( OUTPUT ${PROJECT_BINARY_DIR}/changelog.Debian.gz
+	set( CHANGELOG_OUTPUT ${PROJECT_BINARY_DIR}/changelog.Debian.gz )
+	add_custom_command( OUTPUT ${CHANGELOG_OUTPUT}
 		COMMAND ${WPKG} -z 9 -Z gzip --force-hold --force-overwrite --compress ${PROJECT_SOURCE_DIR}/Changelog --output-filename ${PROJECT_BINARY_DIR}/changelog.Debian.gz
 		DEPENDS Changelog
 	)
-	add_custom_target( changelog_generation DEPENDS ${PROJECT_BINARY_DIR}/changelog.Debian.gz )
+	add_custom_target( changelog_generation ALL DEPENDS ${CHANGELOG_OUTPUT} )
 	set_property( TARGET changelog_generation PROPERTY FOLDER package )
 
 	install(
@@ -213,7 +214,7 @@ else()
 			${CMAKE_SOURCE_DIR}/AUTHORS
 			${CMAKE_SOURCE_DIR}/documentation/copyright
 			${CMAKE_SOURCE_DIR}/documentation/index.html
-			${PROJECT_BINARY_DIR}/changelog.Debian.gz
+			${CHANGELOG_OUTPUT}
 		DESTINATION share/doc/pkg-explorer
 		COMPONENT runtime
 		)
