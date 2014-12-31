@@ -39,6 +39,7 @@
 set( DEBVERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}-${VERSION_DEVEL}" )
 set( WPKG_ROOT "${CMAKE_BINARY_DIR}/WPKG" )
 set( COMPONENT_LIST runtime )
+set( PACKAGE_FOLDER package )
 if( UNIX )
     set( INSTALL_PREFIX "/usr" )
 else()
@@ -51,8 +52,10 @@ foreach( _comp ${COMPONENT_LIST} )
                         -DCMAKE_INSTALL_PREFIX="${WPKG_ROOT}/${_comp}${INSTALL_PREFIX}"
                         -DCMAKE_INSTALL_COMPONENT=${_comp}
                         -DCMAKE_INSTALL_DO_STRIP=1
+                        -DBUILD_TYPE=$(Configuration)
                         -P ${CMAKE_BINARY_DIR}/cmake_install.cmake
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            DEPENDS package_prereqs
         )
     add_custom_target( ${_comp}
             COMMAND ${WPKG}
@@ -61,8 +64,11 @@ foreach( _comp ${COMPONENT_LIST} )
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
             DEPENDS ${_comp}_install
             )
+    set_property( TARGET ${_comp}_install PROPERTY FOLDER ${PACKAGE_FOLDER} )
+    set_property( TARGET ${_comp} PROPERTY FOLDER ${PACKAGE_FOLDER} )
 endforeach()
 
 add_custom_target( wpkg_package DEPENDS ${COMPONENT_LIST} )
+set_property( TARGET wpkg_package PROPERTY FOLDER ${PACKAGE_FOLDER} )
 
 # vim: ts=4 sw=4 et

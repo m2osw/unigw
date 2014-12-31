@@ -19,6 +19,11 @@ cmake_minimum_required (VERSION 2.8.7)
 
 project( pkg_explorer_project )
 
+# For DEVENV, organize projects into folders
+#
+set_property( GLOBAL PROPERTY USE_FOLDERS ON )
+
+
 #===============================================================================
 # Release version
 #
@@ -195,10 +200,12 @@ if( MO_DARWIN )
 		COMPONENT runtime
 		)
 else()
-	add_custom_target(changelog.Debian.gz ALL
+	add_custom_command( OUTPUT ${PROJECT_BINARY_DIR}/changelog.Debian.gz
 		COMMAND ${WPKG} -z 9 -Z gzip --force-hold --force-overwrite --compress ${PROJECT_SOURCE_DIR}/Changelog --output-filename ${PROJECT_BINARY_DIR}/changelog.Debian.gz
 		DEPENDS Changelog
 	)
+	add_custom_target( changelog_generation DEPENDS ${PROJECT_BINARY_DIR}/changelog.Debian.gz )
+	set_property( TARGET changelog_generation PROPERTY FOLDER package )
 
 	install(
 		FILES
@@ -212,6 +219,8 @@ else()
 		)
 endif()
 
+add_custom_target( package_prereqs DEPENDS changelog_generation pkg-explorer )
+set_property( TARGET package_prereqs PROPERTY FOLDER package )
 add_subdirectory( package )
 
 set(CPACK_PACKAGE_NAME "pkg-explorer")

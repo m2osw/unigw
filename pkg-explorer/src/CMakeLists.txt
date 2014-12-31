@@ -112,6 +112,11 @@ target_link_libraries( ${PROJECT_NAME}
 	${EXTRA_LIBRARIES}
 	)
 
+set_target_properties( ${PROJECT_NAME} PROPERTIES
+	OUTPUT_NAME_DEBUG   pkg-explorer-d
+	OUTPUT_NAME_RELEASE pkg-explorer
+	)
+
 if( MO_DARWIN )
 	set_target_properties( ${PROJECT_NAME}
 			PROPERTIES
