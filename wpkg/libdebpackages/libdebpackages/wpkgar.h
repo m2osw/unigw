@@ -107,7 +107,7 @@ public:
 
 
 // internal class to handle packages individually
-class wpkgar_package;
+class DEBIAN_PACKAGE_EXPORT wpkgar_package;
 
 
 // tracker is set in the manager, but tracking is done with another object

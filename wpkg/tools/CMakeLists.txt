@@ -309,19 +309,24 @@ add_executable( ${PROJECT_NAME}
 StaticCompile()
 
 target_link_libraries( ${PROJECT_NAME}
-    debpackages
-    expr
-    wpkg_z
-    wpkg_bz2
-    wpkg_tld
+    debpackages_static
+    expr_static
+    wpkg_z_static
+    wpkg_bz2_static
+    wpkg_tld_static
 )
 
 if( MINGW32 OR MSYS )
     # The -static-... flags do not seem to have an effect at this point
     # (I also tried with just -static and the C & C++ libraries are still added!)
-    set_target_properties( ${PROJECT_NAME} PROPERTIES LINK_FLAGS "-static-libgcc -static-libstdc++" )
+    set_target_properties( ${PROJECT_NAME} PROPERTIES
+        LINK_FLAGS "-static-libgcc -static-libstdc++"
+        )
 elseif( MSVC )
-    set_property( TARGET ${PROJECT_NAME} PROPERTY FOLDER ${TOOLS_FOLDER} )
+    set_target_properties( ${PROJECT_NAME} PROPERTIES
+        FOLDER      ${TOOLS_FOLDER}
+        OUTPUT_NAME wpkg-static
+        )
 endif()
 
 install(
@@ -336,7 +341,7 @@ install(
 ## Other installs
 ##
 install(
-    FILES ${CMAKE_SOURCE_DIR}/documentation/${PROJECT_NAME}.1.gz
+    FILES ${CMAKE_SOURCE_DIR}/documentation/wpkg.1.gz
     DESTINATION share/man/man1
     COMPONENT documentation
 )

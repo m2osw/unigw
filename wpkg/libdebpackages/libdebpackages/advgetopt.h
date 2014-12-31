@@ -114,7 +114,7 @@ public:
         end_of_options
     };
 
-    struct option
+    struct DEBIAN_PACKAGE_EXPORT option
     {
         char                f_opt;      // letter option (or '\0')
         unsigned char       f_flags;    // set of flags
@@ -138,7 +138,7 @@ public:
     void            usage(status_t status, const char *msg, ...);
 
 private:
-    struct optmap_info
+    struct DEBIAN_PACKAGE_EXPORT optmap_info
     {
         controlled_vars::fbool_t    f_cvt;  // whether f_int is defined (true) or not (false)
         controlled_vars::zint32_t   f_idx;  // index in f_options

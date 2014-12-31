@@ -33,7 +33,7 @@
 namespace wpkg_backup
 {
 
-class wpkgar_backup
+class DEBIAN_PACKAGE_EXPORT wpkgar_backup
 {
 public:
     wpkgar_backup(wpkgar::wpkgar_manager *manager, const std::string& package_name, const char *log_action);

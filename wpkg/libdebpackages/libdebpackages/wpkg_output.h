@@ -79,8 +79,8 @@ enum level_t
 
 typedef controlled_vars::auto_init<level_t, level_info> safe_level_t;
 
-const char * level_to_string(const level_t level);
-int compare_levels(const level_t l1, const level_t l2);
+DEBIAN_PACKAGE_EXPORT const char * level_to_string(const level_t level);
+DEBIAN_PACKAGE_EXPORT int compare_levels(const level_t l1, const level_t l2);
 
 
 enum module_t
@@ -110,14 +110,13 @@ enum module_t
 
 typedef controlled_vars::auto_init<module_t, module_tool> safe_module_t;
 
-const char *module_to_string(const module_t module);
+DEBIAN_PACKAGE_EXPORT const char *module_to_string(const module_t module);
+
+DEBIAN_PACKAGE_EXPORT std::string generate_timestamp();
+DEBIAN_PACKAGE_EXPORT std::string make_raw_message_parsable();
 
 
-std::string generate_timestamp();
-std::string make_raw_message_parsable();
-
-
-class debug_flags
+class DEBIAN_PACKAGE_EXPORT debug_flags
 {
 public:
     typedef unsigned int debug_t;
@@ -147,7 +146,7 @@ public:
     // (i.e. debug flags by name) and other fun things
 };
 
-class message_t
+class DEBIAN_PACKAGE_EXPORT message_t
 {
 public:
     message_t();
@@ -187,7 +186,7 @@ private:
 
 class output;
 
-class log
+class DEBIAN_PACKAGE_EXPORT log
 {
 public:
     log(const char *format);
@@ -283,10 +282,10 @@ private:
 
 
 
-void set_output(output *out);
-output *get_output();
-debug_flags::debug_t get_output_debug_flags();
-uint32_t get_output_error_count();
+DEBIAN_PACKAGE_EXPORT void set_output(output *out);
+DEBIAN_PACKAGE_EXPORT output *get_output();
+DEBIAN_PACKAGE_EXPORT debug_flags::debug_t get_output_debug_flags();
+DEBIAN_PACKAGE_EXPORT uint32_t get_output_error_count();
 
 
 }       // namespace wpkg_output

@@ -556,7 +556,7 @@ bool is_localhost(const std::string& host)
  * It knows how to handle the reading of a directory depending on the
  * Operating System the software runs on.
  */
-class os_dir_impl
+class DEBIAN_PACKAGE_EXPORT os_dir_impl
 {
 public:
                                 os_dir_impl(const wpkg_filename::uri_filename& dir_path);

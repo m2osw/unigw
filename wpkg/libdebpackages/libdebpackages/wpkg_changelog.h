@@ -82,7 +82,7 @@ public:
     class version
     {
     public:
-        class log
+        class DEBIAN_PACKAGE_EXPORT log
         {
         public:
             bool                        parse(state& s, bool& group);

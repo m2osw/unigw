@@ -39,7 +39,7 @@ extern "C" {
 #endif
 
 
-struct debian_version_t;
+struct DEBIAN_PACKAGE_EXPORT debian_version_t;
 typedef struct debian_version_t *debian_version_handle_t;
 
 DEBIAN_PACKAGE_EXPORT int validate_debian_version(const char *string, char *error_string, size_t error_size);

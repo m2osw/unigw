@@ -70,7 +70,7 @@ class DEBIAN_PACKAGE_EXPORT field_file
 public:
     typedef std::vector<std::string>    list_t;
 
-    class field_t
+    class DEBIAN_PACKAGE_EXPORT field_t
     {
     public:
                         field_t();
@@ -110,7 +110,7 @@ public:
 
     typedef std::vector<field_t>        field_list_t;
 
-    class field_factory_t
+    class DEBIAN_PACKAGE_EXPORT field_factory_t
     {
     public:
         typedef std::vector<std::string>    name_list_t;
@@ -132,7 +132,7 @@ public:
         field_factory_t& operator = (const field_factory_t&);
     };
 
-    class field_file_state_t
+    class DEBIAN_PACKAGE_EXPORT field_file_state_t
     {
     public:
         virtual ~field_file_state_t();

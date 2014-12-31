@@ -79,7 +79,7 @@ public:
 class DEBIAN_PACKAGE_EXPORT memory_file
 {
 public:
-    class file_info
+    class DEBIAN_PACKAGE_EXPORT file_info
     {
     public:
         enum field_name_t
@@ -232,7 +232,7 @@ public:
         file_format_other
     };
 
-    class block_manager
+    class DEBIAN_PACKAGE_EXPORT block_manager
     {
     public:
         // the block manager needs buffers that are at least 1Kb in size to

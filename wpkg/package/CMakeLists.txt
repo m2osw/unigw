@@ -50,12 +50,13 @@ foreach( _comp ${COMPONENT_LIST} )
                         -DCMAKE_INSTALL_PREFIX="${WPKG_ROOT}/${_comp}${INSTALL_PREFIX}"
                         -DCMAKE_INSTALL_COMPONENT=${_comp}
                         -DCMAKE_INSTALL_DO_STRIP=1
+                        -DBUILD_TYPE=$(Configuration)
                         -P ${CMAKE_BINARY_DIR}/cmake_install.cmake
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
             DEPENDS package_prereqs
         )
     add_custom_target( ${_comp}
-            COMMAND wpkg
+            COMMAND wpkg_static
                 --output-dir "${WPKG_ROOT}/packages"
                 --build      "${WPKG_ROOT}/${_comp}"
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}

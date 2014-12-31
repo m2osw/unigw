@@ -56,13 +56,13 @@ public:
 class DEBIAN_PACKAGE_EXPORT architecture
 {
 public:
-    struct abbreviation_t
+    struct DEBIAN_PACKAGE_EXPORT abbreviation_t
     {
         const char * const  f_abbreviation;
         const char * const  f_os;
         const char * const  f_processor;
     };
-    struct os_t
+    struct DEBIAN_PACKAGE_EXPORT os_t
     {
         const char * const  f_name;
     };
@@ -73,7 +73,7 @@ public:
     static const endian_t   PROCESSOR_ENDIAN_BIG     = 2;
     static const endian_t   PROCESSOR_ENDIAN_BI      = 3;
     static const endian_t   PROCESSOR_ENDIAN_MIDDLE  = 4;
-    struct processor_t
+    struct DEBIAN_PACKAGE_EXPORT processor_t
     {
         const char * const  f_name;
         const char * const  f_other_names;

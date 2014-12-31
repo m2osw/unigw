@@ -160,7 +160,7 @@ private:
 };
 
 
-class file_list_t : public std::vector<file_item>
+class DEBIAN_PACKAGE_EXPORT file_list_t : public std::vector<file_item>
 {
 public:
     file_list_t(const std::string& name);
@@ -178,7 +178,7 @@ private:
 // helper macros to define fields without having to declare hundreds of functions
 
 #define CONTROL_FILE_FIELD_FACTORY_CLASS(field_name) \
-    class field_##field_name##_factory_t : public control_field_factory_t { \
+    class DEBIAN_PACKAGE_EXPORT field_##field_name##_factory_t : public control_field_factory_t { \
     public: field_##field_name##_factory_t(); \
     static const char *canonicalized_name(); \
     virtual char const *name() const; \
@@ -186,7 +186,7 @@ private:
     virtual std::shared_ptr<wpkg_field::field_file::field_t> create(const field_file& file, const std::string& fullname, const std::string& value) const; };
 
 #define CONTROL_FILE_FIELD_CLASS_START(field_name) \
-    class field_##field_name##_t : public control_field_t { \
+    class DEBIAN_PACKAGE_EXPORT field_##field_name##_t : public control_field_t { \
     public: field_##field_name##_t(const field_file& file, const std::string& name, const std::string& value); \
     virtual void verify_value() const;
 
@@ -198,7 +198,7 @@ private:
     CONTROL_FILE_FIELD_CLASS_END(field_name)
 
 #define CONTROL_FILE_DEPENDENCY_FIELD_CLASS(field_name) \
-    class field_##field_name##_t : public dependency_field_t { \
+    class DEBIAN_PACKAGE_EXPORT field_##field_name##_t : public dependency_field_t { \
     public: field_##field_name##_t(const field_file& file, const std::string& name, const std::string& value); };
 
 #define CONTROL_FILE_FIELD_CONSTRUCTOR(field_name, parent) \
@@ -220,7 +220,7 @@ class DEBIAN_PACKAGE_EXPORT control_file : public wpkg_field::field_file
 {
 public:
     // use this one when loading binary packages for installation
-    class control_file_state_t : public field_file_state_t
+    class DEBIAN_PACKAGE_EXPORT control_file_state_t : public field_file_state_t
     {
     public:
         virtual bool reading_contents() const;
@@ -228,7 +228,7 @@ public:
     };
 
     // use this one when loading control files to build binary packages
-    class build_control_file_state_t : public control_file_state_t
+    class DEBIAN_PACKAGE_EXPORT build_control_file_state_t : public control_file_state_t
     {
     public:
         virtual bool allow_transformations() const;
@@ -236,7 +236,7 @@ public:
     };
 
     // use this one when loading binary packages for perusal
-    class contents_control_file_state_t : public control_file_state_t
+    class DEBIAN_PACKAGE_EXPORT contents_control_file_state_t : public control_file_state_t
     {
     public:
         virtual bool reading_contents() const;
@@ -245,7 +245,7 @@ public:
     // control field description; this intermediate class is used to
     // ensure grouping of all the field descriptions in a control
     // file
-    class control_field_factory_t : public field_factory_t
+    class DEBIAN_PACKAGE_EXPORT control_field_factory_t : public field_factory_t
     {
     public:
         static void register_field(control_field_factory_t *field_factory);
@@ -262,7 +262,7 @@ public:
     // Common class from which all the other fields derive from so they
     // gain access to a set of common functions that are useful in this
     // environment
-    class control_field_t : public field_t
+    class DEBIAN_PACKAGE_EXPORT control_field_t : public field_t
     {
     public:
                         control_field_t(const field_file& file, const std::string& name, const std::string& value);
@@ -278,7 +278,7 @@ public:
 
     // There are many dependency fields so we have a specific entry
     // that all those dependency fields can derive from
-    class dependency_field_t : public control_field_t
+    class DEBIAN_PACKAGE_EXPORT dependency_field_t : public control_field_t
     {
     public:
                         dependency_field_t(const field_file& file, const std::string& name, const std::string& value);
@@ -286,13 +286,13 @@ public:
         virtual void    verify_value() const;
     };
 
-    struct list_of_terms_t
+    struct DEBIAN_PACKAGE_EXPORT list_of_terms_t
     {
         const char *        f_term;
         const char *        f_help;
     };
 
-    static const list_of_terms_t *find_term(const list_of_terms_t *list, const std::string& term, const bool case_insensitive = true);
+	static const list_of_terms_t *find_term(const list_of_terms_t *list, const std::string& term, const bool case_insensitive = true);
 
     // Architecture
     CONTROL_FILE_FIELD_FACTORY_CLASS(architecture)

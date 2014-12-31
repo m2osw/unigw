@@ -35,7 +35,7 @@
 
 namespace wpkg_backup
 {
-class wpkgar_backup;
+class DEBIAN_PACKAGE_EXPORT wpkgar_backup;
 }
 
 namespace wpkgar
@@ -43,7 +43,7 @@ namespace wpkgar
 
 namespace details
 {
-class disk_list_t;
+class DEBIAN_PACKAGE_EXPORT disk_list_t;
 }
 
 class DEBIAN_PACKAGE_EXPORT wpkgar_install
@@ -75,7 +75,7 @@ public:
         wpkgar_install_skip_same_version        // do not re-install over itself
     };
 
-    class install_info_t
+    class DEBIAN_PACKAGE_EXPORT install_info_t
     {
     public:
         friend class wpkgar_install;
@@ -129,7 +129,7 @@ public:
 private:
     friend class details::disk_list_t;
 
-    class package_item_t
+    class DEBIAN_PACKAGE_EXPORT package_item_t
     {
     public:
         enum package_type_t
@@ -222,7 +222,7 @@ private:
         validation_return_unpacked
     };
 
-    class tree_generator
+    class DEBIAN_PACKAGE_EXPORT tree_generator
     {
     public:
         tree_generator(const wpkgar_package_list_t& root_tree);

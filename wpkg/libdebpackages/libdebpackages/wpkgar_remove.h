@@ -64,7 +64,7 @@ public:
     bool deconfigure(int idx);
 
 private:
-    class package_item_t
+    class DEBIAN_PACKAGE_EXPORT package_item_t
     {
     public:
         enum package_type_t

@@ -37,6 +37,8 @@
 #include <netinet/in.h>
 #endif
 
+#include "debian_export.h"
+
 
 namespace tcp_client_server
 {
@@ -70,7 +72,7 @@ public:
 
 
 
-class tcp_client
+class DEBIAN_PACKAGE_EXPORT tcp_client
 {
 public:
                         tcp_client(const std::string& addr, int port);
@@ -90,7 +92,7 @@ private:
 };
 
 
-class tcp_server
+class DEBIAN_PACKAGE_EXPORT tcp_server
 {
 public:
     static const int    MAX_CONNECTIONS = 50;

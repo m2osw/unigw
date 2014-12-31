@@ -82,7 +82,7 @@ public:
     };
 
     // replace struct stat
-    class file_stat
+    class DEBIAN_PACKAGE_EXPORT file_stat
     {
     public:
         bool        is_valid() const;
@@ -165,7 +165,7 @@ public:
     typedef char                os_char_t;
     typedef std::string         os_string_t;
 #endif
-    class os_filename_t
+    class DEBIAN_PACKAGE_EXPORT os_filename_t
     {
     public:
         enum filename_format_t
@@ -309,8 +309,8 @@ public:
 };
 
 
-class os_dir_impl;
-class os_dir
+class DEBIAN_PACKAGE_EXPORT os_dir_impl;
+class DEBIAN_PACKAGE_EXPORT os_dir
 {
 public:
                                 os_dir(const wpkg_filename::uri_filename& dir_path);

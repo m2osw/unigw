@@ -80,7 +80,7 @@ class DEBIAN_PACKAGE_EXPORT copyright_file : public wpkg_field::field_file
 {
 public:
     // use this one when loading binary packages for installation
-    class copyright_file_state_t : public field_file_state_t
+    class DEBIAN_PACKAGE_EXPORT copyright_file_state_t : public field_file_state_t
     {
     public:
         virtual bool accept_sub_packages() const;
@@ -89,7 +89,7 @@ public:
     // copyright field description; this intermediate class is used to
     // ensure grouping of all the field descriptions in a copyright
     // file
-    class copyright_field_factory_t : public field_factory_t
+    class DEBIAN_PACKAGE_EXPORT copyright_field_factory_t : public field_factory_t
     {
     public:
         static void register_field(copyright_field_factory_t *field_factory);
@@ -104,7 +104,7 @@ public:
     // Common class from which all the other fields derive from so they
     // gain access to a set of common functions that are useful in this
     // environment
-    class copyright_field_t : public field_t
+    class DEBIAN_PACKAGE_EXPORT copyright_field_t : public field_t
     {
     public:
                         copyright_field_t(const field_file& file, const std::string& name, const std::string& value);

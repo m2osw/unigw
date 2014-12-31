@@ -45,10 +45,10 @@ public:
         wpkgar_build_run_unit_tests         // run unit tests before creating packages
     };
 
-    class source_validation
+    class DEBIAN_PACKAGE_EXPORT source_validation
     {
     public:
-        class source_property
+        class DEBIAN_PACKAGE_EXPORT source_property
         {
         public:
             enum status_t
