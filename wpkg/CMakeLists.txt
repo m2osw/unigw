@@ -176,6 +176,7 @@ function(StaticCompile)
 endfunction()
 
 
+## Libraries
 add_subdirectory( bzip2              )
 add_subdirectory( zlib               )
 add_subdirectory( controlled_vars    )
@@ -183,11 +184,19 @@ add_subdirectory( libtld             )
 add_subdirectory( libutf8            )
 add_subdirectory( libexpr            )
 add_subdirectory( libdebpackages     )
-add_subdirectory( tools              )
+
+## Make sure we have "_d" for debug binaries
+get_property( LIBRARY_TARGETS GLOBAL PROPERTY ALL_LIBRARY_TARGETS )
+foreach( TGT ${LIBRARY_TARGETS} )
+    set_property( TARGET ${TGT} PROPERTY OUTPUT_NAME_DEBUG ${TGT}_d )
+endforeach()
+
+## Tools and others
+add_subdirectory( tools )
 if( NOT MINGW32 )
-    add_subdirectory( tests/unittests    )
+    add_subdirectory( tests/unittests )
 endif()
-add_subdirectory( documentation      )
+add_subdirectory( documentation )
 
 install(
     DIRECTORY "${CMAKE_SOURCE_DIR}/documentation/."

@@ -84,6 +84,8 @@ install(
     COMPONENT development
 )
 
+set_property( GLOBAL APPEND PROPERTY ALL_LIBRARY_TARGETS wpkg_bz2 wpkg_bz2_static )
+
 add_custom_target( bz2_target DEPENDS wpkg_bz2_static wpkg_bz2 )
 set_property( TARGET bz2_target PROPERTY FOLDER ${BZIP_FOLDER} )
 

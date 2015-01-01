@@ -126,13 +126,21 @@ set( CMAKE_AUTOMOC TRUE )
 
 set( DIST_PATH "$ENV{DIST_PATH}" CACHE PATH "Distribution path to find dependencies from WPKG." ) 
 
-find_library( DEBPACKAGES_LIBRARY debpackages PATH "${DIST_PATH}/lib" )
-find_library( EXPR_LIBRARY        expr        PATH "${DIST_PATH}/lib" )
-find_library( UTF8_LIBRARY        utf8        PATH "${DIST_PATH}/lib" )
-find_library( BZ2_LIBRARY         wpkg_bz2    PATH "${DIST_PATH}/lib" )
-find_library( TLD_LIBRARY         wpkg_tld    PATH "${DIST_PATH}/lib" )
-find_library( ZLIB_LIBRARY        wpkg_z      PATH "${DIST_PATH}/lib" )
-find_program( WPKG                wpkg        PATH "${DIST_PATH}/bin" )
+find_library( DEBPACKAGES_LIBRARY   debpackages   PATH "${DIST_PATH}/lib" )
+find_library( EXPR_LIBRARY          expr          PATH "${DIST_PATH}/lib" )
+find_library( UTF8_LIBRARY          utf8          PATH "${DIST_PATH}/lib" )
+find_library( BZ2_LIBRARY           wpkg_bz2      PATH "${DIST_PATH}/lib" )
+find_library( TLD_LIBRARY           wpkg_tld      PATH "${DIST_PATH}/lib" )
+find_library( ZLIB_LIBRARY          wpkg_z        PATH "${DIST_PATH}/lib" )
+#
+find_library( DEBPACKAGES_D_LIBRARY debpackages_d PATH "${DIST_PATH}/lib" )
+find_library( EXPR_D_LIBRARY        expr_d        PATH "${DIST_PATH}/lib" )
+find_library( UTF8_D_LIBRARY        utf8_d        PATH "${DIST_PATH}/lib" )
+find_library( BZ2_D_LIBRARY         wpkg_bz2_d    PATH "${DIST_PATH}/lib" )
+find_library( TLD_D_LIBRARY         wpkg_tld_d    PATH "${DIST_PATH}/lib" )
+find_library( ZLIB_D_LIBRARY        wpkg_z_d      PATH "${DIST_PATH}/lib" )
+#
+find_program( WPKG                  wpkg          PATH "${DIST_PATH}/bin" )
 #
 find_file( WPKGAR_H_INCLUDE wpkgar.h PATHS ${DIST_PATH}/include/wpkg/libdebpackages /usr/include/wpkg/libdebpackages /usr/local/include/wpkg/libdebpackages )
 if( NOT WPKGAR_H_INCLUDE )
@@ -175,15 +183,30 @@ function( InstallBinaries Release_DLL Debug_DLL )
 		CONFIGURATIONS Debug
 		COMPONENT runtime
 		)
-endforeach()
-
+endfunction()
 
 if( MO_WINDOWS )
 	set( EXTRA_LIBRARIES wsock32 ws2_32 mpr )
-	#
+	##
+	## Copy DLLs for debugging purposes
+	##
 	foreach( _lib ${QT4_REQ_LIBS} )
-		set( Release_DLL "${QT_BINARY_DIR}/${_lib}4.dll" )
-		set( Debug_DLL "${QT_BINARY_DIR}/${_lib}d4.dll" )
+		set( Release_DLL "${QT_BINARY_DIR}/${_lib}4.dll"  )
+		set( Debug_DLL   "${QT_BINARY_DIR}/${_lib}d4.dll" )
+		InstallBinaries( ${Release_DLL} ${Debug_DLL} )
+	endforeach()
+
+	set( DEBPACKAGES_LIBS
+		debpackages
+		expr
+		utf8
+		wpkg_bz2
+		wpkg_tld
+		wpkg_z
+		)
+	foreach( _lib ${DEBPACKAGES_LIBS} )
+		set( Release_DLL "${DIST_PATH}/bin/${_lib}.dll"   )
+		set( Debug_DLL   "${DIST_PATH}/bin/${_lib}_d.dll" )
 		InstallBinaries( ${Release_DLL} ${Debug_DLL} )
 	endforeach()
 endif()

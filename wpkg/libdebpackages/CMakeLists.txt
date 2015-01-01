@@ -216,11 +216,10 @@ install(
     COMPONENT development
 )
 
-add_custom_target( debpackages_target DEPENDS debpackages_static debpackages )
+set_property( GLOBAL APPEND PROPERTY ALL_LIBRARY_TARGETS debpackages debpackages_static )
 
-if( MSVC )
-    set_property( TARGET debpackages_target PROPERTY FOLDER ${DEBPACKAGES_FOLDER} )
-endif()
+add_custom_target( debpackages_target DEPENDS debpackages_static debpackages )
+set_property( TARGET debpackages_target PROPERTY FOLDER ${DEBPACKAGES_FOLDER} )
 
 
 # vim: ts=4 sw=4 et

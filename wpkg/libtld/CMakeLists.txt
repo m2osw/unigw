@@ -122,11 +122,10 @@ install(
     COMPONENT development
 )
 
-add_custom_target( tld_target DEPENDS wpkg_tld_static wpkg_tld )
+set_property( GLOBAL APPEND PROPERTY ALL_LIBRARY_TARGETS wpkg_tld wpkg_tld_static )
 
-if( MSVC )
-    set_property( TARGET tld_target PROPERTY FOLDER ${TLD_FOLDER} )
-endif()
+add_custom_target( tld_target DEPENDS wpkg_tld_static wpkg_tld )
+set_property( TARGET tld_target PROPERTY FOLDER ${TLD_FOLDER} )
 
 
 ##

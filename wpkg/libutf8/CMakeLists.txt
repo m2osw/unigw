@@ -128,11 +128,10 @@ install(
     PATTERN .svn EXCLUDE
 )
 
-add_custom_target( utf8_target DEPENDS utf8_static utf8 )
+set_property( GLOBAL APPEND PROPERTY ALL_LIBRARY_TARGETS utf8 utf8_static )
 
-if( MSVC )
-    set_property( TARGET utf8_target PROPERTY FOLDER ${UTF8_FOLDER} )
-endif()
+add_custom_target( utf8_target DEPENDS utf8_static utf8 )
+set_property( TARGET utf8_target PROPERTY FOLDER ${UTF8_FOLDER} )
 
 
 # vim: ts=4 sw=4 et

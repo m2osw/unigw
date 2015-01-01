@@ -182,11 +182,10 @@ install(
     COMPONENT documentation
 )
 
-add_custom_target( expr_target DEPENDS expr_static expr c_expr )
+set_property( GLOBAL APPEND PROPERTY ALL_LIBRARY_TARGETS expr expr_static )
 
-if( MSVC )
-    set_property( TARGET expr_target PROPERTY FOLDER ${EXPR_FOLDER} )
-endif()
+add_custom_target( expr_target DEPENDS expr_static expr c_expr )
+set_property( TARGET expr_target PROPERTY FOLDER ${EXPR_FOLDER} )
 
 
 # vim: ts=4 sw=4 et

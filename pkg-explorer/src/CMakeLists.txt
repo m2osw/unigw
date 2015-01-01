@@ -103,13 +103,19 @@ endif()
 
 target_link_libraries( ${PROJECT_NAME}
 	${QT_LIBRARIES}
-	${DEBPACKAGES_LIBRARY}
-	${EXPR_LIBRARY}
-	${TLD_LIBRARY}
-	${ZLIB_LIBRARY}
-	${BZ2_LIBRARY}
-	${UTF8_LIBRARY}
 	${EXTRA_LIBRARIES}
+	debug ${DEBPACKAGES_D_LIBRARY}
+	debug ${EXPR_D_LIBRARY}
+	debug ${TLD_D_LIBRARY}
+	debug ${ZLIB_D_LIBRARY}
+	debug ${BZ2_D_LIBRARY}
+	debug ${UTF8_D_LIBRARY}
+	optimized ${DEBPACKAGES_LIBRARY}
+	optimized ${EXPR_LIBRARY}
+	optimized ${TLD_LIBRARY}
+	optimized ${ZLIB_LIBRARY}
+	optimized ${BZ2_LIBRARY}
+	optimized ${UTF8_LIBRARY}
 	)
 
 set_target_properties( ${PROJECT_NAME} PROPERTIES

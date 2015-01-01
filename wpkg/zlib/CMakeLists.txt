@@ -95,10 +95,9 @@ install(
     COMPONENT development
 )
 
-add_custom_target( zlib_target DEPENDS wpkg_z_static wpkg_z )
+set_property( GLOBAL APPEND PROPERTY ALL_LIBRARY_TARGETS wpkg_z wpkg_z_static )
 
-if( MSVC )
-    set_property( TARGET zlib_target PROPERTY FOLDER ${ZLIB_FOLDER} )
-endif()
+add_custom_target( zlib_target DEPENDS wpkg_z_static wpkg_z )
+set_property( TARGET zlib_target PROPERTY FOLDER ${ZLIB_FOLDER} )
 
 # vim: ts=4 sw=4 et
