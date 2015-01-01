@@ -45,6 +45,9 @@ cmake_minimum_required(VERSION 2.8.4)
 
 project( wpkg_project )
 
+# Look in our local module dir
+set( CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake )
+
 # If you redesign wpkg and your version becomes
 # incompatible with ours, change this name!
 set( WPKG_VENDOR m2osw )
