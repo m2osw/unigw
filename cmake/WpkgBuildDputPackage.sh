@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# This script uploads a source package to the lp servers, using "ppa:snapcpp/ppa".
+# This script uploads a source package to the lp servers, using "ppa:wpkg/ppa".
 #
 # The parameter to the script is the package name which will be built. It is assumed that
 # the debian subfolder is one level down, in the folder name provided. Package will
@@ -34,6 +34,6 @@ fi
 VERSION=`dpkg-parsechangelog --show-field Version`
 NAME=`dpkg-parsechangelog --show-field Source`
 
-dput ppa:snapcpp/ppa ../${NAME}_${VERSION}_source.changes
+dput ppa:wpkg/ppa ../${NAME}_${VERSION}_source.changes
 
 # vim: ts=4 sw=4 et
