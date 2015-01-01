@@ -43,7 +43,7 @@ project( unigw )
 # Load up necessary modules
 #
 set( CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake )
-find_package( SnapBuild REQUIRED )
+find_package( WpkgBuild REQUIRED )
 
 
 ################################################################################
