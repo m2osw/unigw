@@ -42,7 +42,7 @@ project(unittest)
 if( NOT CMAKE_MODULE_PATH )
     set( CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake )
 endif()
-include( FindCPPUNIT )
+include( FindCppUnit )
 
 if( CPPUNIT_FOUND )
 

@@ -1,10 +1,10 @@
-# File:         FindSnapBuild.cmake
+# File:         FindWpkgBuild.cmake
 # Object:       Provide functions to build projects.
 #
 # Copyright:    Copyright (c) 2011-2014 Made to Order Software Corp.
 #               All Rights Reserved.
 #
-# http://snapwebsites.org/
+# http://windowspackager.org
 # contact@m2osw.com
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,7 +25,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# If you have included Snap's Third Party package, then this module will
+# If you have included Wpkg's Third Party package, then this module will
 # point to that instead of trying to locate it on the system.
 #
 include( CMakeParseArguments )
@@ -33,10 +33,10 @@ include( CMakeParseArguments )
 set_property( GLOBAL PROPERTY USE_FOLDERS ON )
 
 if( NOT MSVC )
-	find_program( MAKE_SOURCE_SCRIPT SnapBuildMakeSourcePackage.sh PATHS ${CMAKE_MODULE_PATH} )
-	find_program( MAKE_DPUT_SCRIPT   SnapBuildDputPackage.sh       PATHS ${CMAKE_MODULE_PATH} )
-	find_program( INC_DEPS_SCRIPT    SnapBuildIncDeps.pl           PATHS ${CMAKE_MODULE_PATH} )
-	find_program( PBUILDER_SCRIPT    SnapPBuilder.sh			   PATHS ${CMAKE_MODULE_PATH} )
+	find_program( MAKE_SOURCE_SCRIPT WpkgBuildMakeSourcePackage.sh PATHS ${CMAKE_MODULE_PATH} )
+	find_program( MAKE_DPUT_SCRIPT   WpkgBuildDputPackage.sh       PATHS ${CMAKE_MODULE_PATH} )
+	find_program( INC_DEPS_SCRIPT    WpkgBuildIncDeps.pl           PATHS ${CMAKE_MODULE_PATH} )
+	find_program( PBUILDER_SCRIPT    WpkgPBuilder.sh			   PATHS ${CMAKE_MODULE_PATH} )
 endif()
 
 function( ConfigureMakeProject )
@@ -56,7 +56,7 @@ function( ConfigureMakeProject )
 		set( SRC_DIR   ${CMAKE_SOURCE_DIR}/${ARG_PROJECT_NAME} )
 		set( BUILD_DIR ${CMAKE_BINARY_DIR}/${ARG_PROJECT_NAME} )
 	endif()
-	set( SNAP_DIST_DIR "${CMAKE_SOURCE_DIR}/dist" CACHE PATH "Destination installation folder." )
+	set( WPKG_DIST_DIR "${CMAKE_SOURCE_DIR}/dist" CACHE PATH "Destination installation folder." )
 	if( ARG_DISTFILE_PATH )
 		set( RM_DIR ${SRC_DIR}   )
 		else()
@@ -92,7 +92,7 @@ function( ConfigureMakeProject )
 		set( CONFIGURE_TARGETS ${BUILD_DIR}/config.log  )
 		add_custom_command(
 			OUTPUT ${CONFIGURE_TARGETS}
-			COMMAND ${BUILD_DIR}/configure --prefix=${SNAP_DIST_DIR} ${ARG_CONFIG_ARGS}
+			COMMAND ${BUILD_DIR}/configure --prefix=${WPKG_DIST_DIR} ${ARG_CONFIG_ARGS}
 				1> ${BUILD_DIR}/${ARG_PROJECT_NAME}_configure.log
 				2> ${BUILD_DIR}/${ARG_PROJECT_NAME}_configure.err
 			DEPENDS ${ARG_PROJECT_NAME}-depends
@@ -102,8 +102,8 @@ function( ConfigureMakeProject )
 	else()
 		set( COMMAND_LIST
 			${CMAKE_COMMAND}
-				-DCMAKE_INSTALL_PREFIX:PATH=${SNAP_DIST_DIR}
-				-DCMAKE_MODULE_PATH:PATH=${SNAP_DIST_DIR}/share/cmake-2.8/Modules
+				-DCMAKE_INSTALL_PREFIX:PATH=${WPKG_DIST_DIR}
+				-DCMAKE_MODULE_PATH:PATH=${WPKG_DIST_DIR}/share/cmake-2.8/Modules
 				${ARG_CONFIG_ARGS}
 				${SRC_DIR}
 	    )

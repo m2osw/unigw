@@ -101,21 +101,38 @@ if( MSVC )
 	)
 endif()
 
-target_link_libraries( ${PROJECT_NAME}
-	${QT_LIBRARIES}
-	${EXTRA_LIBRARIES}
+
+set( DEBUG_LIBRARIES
 	debug ${DEBPACKAGES_D_LIBRARY}
 	debug ${EXPR_D_LIBRARY}
 	debug ${TLD_D_LIBRARY}
 	debug ${ZLIB_D_LIBRARY}
 	debug ${BZ2_D_LIBRARY}
 	debug ${UTF8_D_LIBRARY}
+	)
+set( RELEASE_LIBRARIES
 	optimized ${DEBPACKAGES_LIBRARY}
 	optimized ${EXPR_LIBRARY}
 	optimized ${TLD_LIBRARY}
 	optimized ${ZLIB_LIBRARY}
 	optimized ${BZ2_LIBRARY}
 	optimized ${UTF8_LIBRARY}
+	)
+
+if( CMAKE_BUILD_TYPE )
+	if( ${CMAKE_BUILD_TYPE} STREQUAL "Release" )
+		set( WPKG_LIBRARIES ${RELEASE_LIBRARIES} )
+	else()
+		set( WPKG_LIBRARIES ${DEBUG_LIBRARIES} )
+	endif()
+else()
+	set( WPKG_LIBRARIES ${DEBUG_LIBRARIES} ${RELEASE_LIBRARIES} )
+endif()
+
+target_link_libraries( ${PROJECT_NAME}
+	${QT_LIBRARIES}
+	${EXTRA_LIBRARIES}
+	${WPKG_LIBRARIES}
 	)
 
 set_target_properties( ${PROJECT_NAME} PROPERTIES

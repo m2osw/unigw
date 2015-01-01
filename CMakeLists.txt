@@ -47,11 +47,12 @@ find_package( WpkgBuild REQUIRED )
 
 
 ################################################################################
-# Snap libraries
+# WPKG libraries
 #
 ConfigureMakeProject( PROJECT_NAME pkg-explorer
     CONFIG_ARGS
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DDIST_PATH:PATH="${WPKG_DIST_DIR}"
     DEPENDS wpkg
 )
 

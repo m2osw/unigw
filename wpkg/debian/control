@@ -1,7 +1,7 @@
 Source: wpkg
 Priority: extra
 Maintainer: R. Douglas Barbieri <doug@dooglio.net>
-Build-Depends: debhelper, cmake, doxygen, graphviz, 
+Build-Depends: debhelper, cmake, doxygen, graphviz, libcppunit-dev
 Standards-Version: 3.9.4
 Section: admin
 Homepage: http://www.windowspackager.org/
