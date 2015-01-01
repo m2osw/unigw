@@ -36,9 +36,17 @@ set( VERSION_DEVEL 0 )
 #===============================================================================
 # Set up system
 #
-set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin" )
-set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" )
-set( CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" )
+if( CMAKE_BUILD_TYPE )
+   set( CMAKE_PDB_OUTPUT_DIRECTORY     ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE} )
+   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE} )
+   set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE} )
+   set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE} )
+else()
+   set( CMAKE_PDB_OUTPUT_DIRECTORY     ${CMAKE_BINARY_DIR} )
+   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
+   set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
+   set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
+endif()
 
 
 #===============================================================================
@@ -116,45 +124,6 @@ include( ${QT_USE_FILE} )
 add_definitions( ${QT_DEFINITIONS} )
 set( CMAKE_AUTOMOC TRUE )
 
-if( MO_WINDOWS )
-	foreach( _lib ${QT4_REQ_LIBS} )
-		set( Release_DLL "${QT_BINARY_DIR}/${_lib}4.dll" )
-		set( Debug_DLL "${QT_BINARY_DIR}/${_lib}d4.dll" )
-		#
-		if( DEFINED CMAKE_BUILD_TYPE )
-			#
-			# Nmake build
-			#
-			file( INSTALL "${${CMAKE_BUILD_TYPE}_DLL}"
-				DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-				)
-		else()
-			#
-			# Visual Studio appends the Debug/Release folder to the output name
-			#
-			file( INSTALL "${Release_DLL}"
-				DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release"
-				)
-			file( INSTALL "${Debug_DLL}"
-				DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug"
-				)
-		endif()
-		#
-		install(
-			FILES "${Release_DLL}"
-			DESTINATION bin
-			CONFIGURATIONS Release
-			COMPONENT runtime
-			)
-		install(
-			FILES "${Debug_DLL}"
-			DESTINATION bin
-			CONFIGURATIONS Debug
-			COMPONENT runtime
-			)
-	endforeach()
-endif()
-
 set( DIST_PATH "$ENV{DIST_PATH}" CACHE PATH "Distribution path to find dependencies from WPKG." ) 
 
 find_library( DEBPACKAGES_LIBRARY debpackages PATH "${DIST_PATH}/lib" )
@@ -174,8 +143,49 @@ get_filename_component( DEBPACKAGES_DIR  ${WPKGAR_H_INCLUDE}  PATH )
 get_filename_component( DEBPACKAGES_IDIR ${DEBPACKAGES_DIR} PATH )
 set( DEBPACKAGES_INCLUDE "${DEBPACKAGES_DIR}" "${DEBPACKAGES_IDIR}" )
 
+function( InstallBinaries Release_DLL Debug_DLL )
+	if( DEFINED CMAKE_BUILD_TYPE )
+		#
+		# Nmake build
+		#
+		file( INSTALL "${${CMAKE_BUILD_TYPE}_DLL}"
+			DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+			)
+	else()
+		#
+		# Visual Studio appends the Debug/Release folder to the output name
+		#
+		file( INSTALL "${Release_DLL}"
+			DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release"
+			)
+		file( INSTALL "${Debug_DLL}"
+			DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug"
+			)
+	endif()
+	#
+	install(
+		FILES "${Release_DLL}"
+		DESTINATION bin
+		CONFIGURATIONS Release
+		COMPONENT runtime
+		)
+	install(
+		FILES "${Debug_DLL}"
+		DESTINATION bin
+		CONFIGURATIONS Debug
+		COMPONENT runtime
+		)
+endforeach()
+
+
 if( MO_WINDOWS )
 	set( EXTRA_LIBRARIES wsock32 ws2_32 mpr )
+	#
+	foreach( _lib ${QT4_REQ_LIBS} )
+		set( Release_DLL "${QT_BINARY_DIR}/${_lib}4.dll" )
+		set( Debug_DLL "${QT_BINARY_DIR}/${_lib}d4.dll" )
+		InstallBinaries( ${Release_DLL} ${Debug_DLL} )
+	endforeach()
 endif()
 
 
