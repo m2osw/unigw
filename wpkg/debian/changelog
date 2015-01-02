@@ -1,3 +1,9 @@
+wpkg (0.9.4.1~trusty) trusty; urgency=high
+
+  * Nightly build.
+
+ -- Build Server <build@m2osw.com>  Thu, 01 Jan 2015 18:25:02 -0800
+
 wpkg (0.9.4) trusty; urgency=high
 
   * Initial release of packaging.
