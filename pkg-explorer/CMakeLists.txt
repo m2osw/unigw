@@ -151,7 +151,7 @@ get_filename_component( DEBPACKAGES_DIR  ${WPKGAR_H_INCLUDE}  PATH )
 get_filename_component( DEBPACKAGES_IDIR ${DEBPACKAGES_DIR} PATH )
 set( DEBPACKAGES_INCLUDE "${DEBPACKAGES_DIR}" "${DEBPACKAGES_IDIR}" )
 
-function( InstallBinaries Release_DLL Debug_DLL )
+function( CopyBinaries Release_DLL Debug_DLL )
 	if( DEFINED CMAKE_BUILD_TYPE )
 		#
 		# Nmake build
@@ -170,7 +170,9 @@ function( InstallBinaries Release_DLL Debug_DLL )
 			DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug"
 			)
 	endif()
-	#
+endfunction()
+#
+function( InstallBinaries Release_DLL Debug_DLL )
 	install(
 		FILES "${Release_DLL}"
 		DESTINATION bin
@@ -193,7 +195,8 @@ if( MO_WINDOWS )
 	foreach( _lib ${QT4_REQ_LIBS} )
 		set( Release_DLL "${QT_BINARY_DIR}/${_lib}4.dll"  )
 		set( Debug_DLL   "${QT_BINARY_DIR}/${_lib}d4.dll" )
-		InstallBinaries( ${Release_DLL} ${Debug_DLL} )
+		CopyBinaries( ${Release_DLL} ${Debug_DLL} )
+		#InstallBinaries( ${Release_DLL} ${Debug_DLL} )
 	endforeach()
 
 	set( DEBPACKAGES_LIBS
@@ -207,7 +210,7 @@ if( MO_WINDOWS )
 	foreach( _lib ${DEBPACKAGES_LIBS} )
 		set( Release_DLL "${DIST_PATH}/bin/${_lib}.dll"   )
 		set( Debug_DLL   "${DIST_PATH}/bin/${_lib}_d.dll" )
-		InstallBinaries( ${Release_DLL} ${Debug_DLL} )
+		CopyBinaries( ${Release_DLL} ${Debug_DLL} )
 	endforeach()
 endif()
 
