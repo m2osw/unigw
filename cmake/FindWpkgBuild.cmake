@@ -100,10 +100,17 @@ function( ConfigureMakeProject )
 			COMMENT "Running ${ARG_PROJECT_NAME} configure script..."
 			)
 	else()
+		unset( TOOLCHAIN )
+		if( CMAKE_TOOLCHAIN_FILE )
+			set( TOOLCHAIN "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}" )
+		endif()
 		set( COMMAND_LIST
 			${CMAKE_COMMAND}
 				-DCMAKE_INSTALL_PREFIX:PATH=${WPKG_DIST_DIR}
 				-DCMAKE_MODULE_PATH:PATH=${WPKG_DIST_DIR}/share/cmake-2.8/Modules
+				-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+				-DDIST_PATH:PATH="${WPKG_DIST_DIR}"
+				${TOOLCHAIN}
 				${ARG_CONFIG_ARGS}
 				${SRC_DIR}
 	    )

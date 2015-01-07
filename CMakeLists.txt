@@ -49,19 +49,13 @@ find_package( WpkgBuild REQUIRED )
 ################################################################################
 # WPKG libraries
 #
-ConfigureMakeProject( PROJECT_NAME pkg-explorer
-    CONFIG_ARGS
-        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        -DDIST_PATH:PATH="${WPKG_DIST_DIR}"
-    DEPENDS wpkg
-)
+ConfigureMakeProject( PROJECT_NAME pkg-explorer DEPENDS wpkg )
+ConfigureMakeProject( PROJECT_NAME wpkg                      )
 
-ConfigureMakeProject( PROJECT_NAME wpkg )
-
-get_property( BUILD_TARGETS    GLOBAL PROPERTY BUILD_TARGETS    )
-get_property( CLEAN_TARGETS    GLOBAL PROPERTY CLEAN_TARGETS    )
+get_property( BUILD_TARGETS GLOBAL PROPERTY BUILD_TARGETS )
+get_property( CLEAN_TARGETS GLOBAL PROPERTY CLEAN_TARGETS )
 #
-if( NOT MSVC )
+if( UNIX )
     get_property( PACKAGE_TARGETS  GLOBAL PROPERTY PACKAGE_TARGETS  )
     get_property( DPUT_TARGETS     GLOBAL PROPERTY DPUT_TARGETS     )
     get_property( PBUILDER_TARGETS GLOBAL PROPERTY PBUILDER_TARGETS )
@@ -74,7 +68,7 @@ add_custom_target( clean-all
     COMMAND ${CMAKE_COMMAND} ${CMAKE_BINARY_DIR}
     DEPENDS ${CLEAN_TARGETS}
     )
-if( NOT MSVC )
+if( UNIX )
     add_custom_target( debuild
         DEPENDS ${PACKAGE_TARGETS}
         )
