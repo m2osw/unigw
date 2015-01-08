@@ -42,6 +42,7 @@ private slots:
     void on_f_addButton_clicked();
     void on_f_removeButton_clicked();
 	void OnSelectionChanged( const QItemSelection &, const QItemSelection& );
+    void OnModelReset();
     void on_f_buttonBox_clicked(QAbstractButton *button);
     void on_f_forceAllCB_clicked();
 	void on_f_forceArchCB_clicked();

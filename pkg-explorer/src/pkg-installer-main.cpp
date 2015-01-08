@@ -74,7 +74,7 @@ int main( int argc, char *argv[] )
 	//
 	QApplication::setOrganizationName   ( "M2OSW"        );
 	QApplication::setOrganizationDomain ( "m2osw.com"    );
-    QApplication::setApplicationName    ( "pkg-installer" );
+    QApplication::setApplicationName    ( "pkg-explorer" );
 
 	// Make sure the wpkg database is created and initialized.
 	//
@@ -82,7 +82,7 @@ int main( int argc, char *argv[] )
 
     QSharedPointer<wpkgar::wpkgar_manager>	manager( new wpkgar_manager );
     //manager->set_interrupt_handler( &interrupt );
-    manager->add_self("pkg-installer");
+    manager->add_self("pkg-explorer");
 
 	QSettings settings;
 	const QString root_path     ( settings.value( "root_path" ).toString()  );
@@ -105,11 +105,6 @@ int main( int argc, char *argv[] )
     import_dlg.AddPackages( args );
     import_dlg.show();
 
-    //app.setQuitOnLastWindowClosed( false );
-    //
-	// We need the above to keep the app from qutting when
-	// we are minimized to systray and a dialog closes
-	//
 	return app.exec();
 }
 

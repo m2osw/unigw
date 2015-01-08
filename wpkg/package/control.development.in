@@ -8,4 +8,5 @@ Maintainer: Made to Order Software Corporation <contact@m2osw.com>
 Description: Multi-platform packager.
  WPKG allows you to create packages targeted at specific platforms (Linux, Windows and Mac),
  and install and maintain those packages and their dependencies.
+ .
  This is the development package.

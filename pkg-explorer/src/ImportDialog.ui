@@ -6,12 +6,16 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>601</width>
+    <width>607</width>
     <height>435</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Import Packages</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="resources.qrc">
+    <normaloff>:/icons/logo</normaloff>:/icons/logo</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_5">
    <item>
@@ -304,6 +308,8 @@
   <tabstop>f_optionsButton</tabstop>
   <tabstop>f_buttonBox</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

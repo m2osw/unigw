@@ -33,6 +33,11 @@ ImportDialog::ImportDialog( QWidget *p, QSharedPointer<wpkgar_manager> manager )
     f_listView->setSelectionModel( &f_selectModel );
 
     QObject::connect
+        ( &f_model, SIGNAL( modelReset  ())
+        , this    , SLOT  ( OnModelReset())
+        );
+
+    QObject::connect
         ( &f_selectModel, SIGNAL( selectionChanged  ( const QItemSelection&, const QItemSelection& ))
         , this          , SLOT  ( OnSelectionChanged( const QItemSelection&, const QItemSelection& ))
         );
@@ -114,10 +119,16 @@ void ImportDialog::OnSelectionChanged( const QItemSelection &/*selected*/, const
 {
 	QModelIndexList selrows = f_selectModel.selectedRows();
     f_removeButton->setEnabled( selrows.size() > 0 );
-    //
+}
+
+
+void ImportDialog::OnModelReset()
+{
+    const bool model_empty = f_model.stringList().empty();
     QPushButton* applyBtn = f_buttonBox->button( QDialogButtonBox::Apply );
     Q_ASSERT( applyBtn != NULL );
-    applyBtn->setEnabled( false );
+    applyBtn->setEnabled( !model_empty );
+    f_removeButton->setEnabled( false );
 }
 
 
@@ -301,6 +312,15 @@ void ImportDialog::OnInstallComplete()
 			  , QMessageBox::Ok
 			);
 	}
+    else
+    {
+        QMessageBox::information
+            ( this
+              , tr("Package Installation Succeeded!")
+              , tr("Your package(s) install successfully!" )
+              , QMessageBox::Ok
+            );
+    }
 
     ShowProcessDialog( false, true );
 
