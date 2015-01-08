@@ -18,7 +18,6 @@
 
 #pragma once
 
-#include "LogForm.h"
 #include "include_qt4.h"
 #include <libdebpackages/wpkgar_install.h>
 
@@ -33,18 +32,19 @@ public:
     explicit InstallDialog(
             QWidget *p,
             QSharedPointer<wpkgar::wpkgar_manager> manager,
-            LogForm* logForm,
             Mode mode = InstallMode
             );
     ~InstallDialog();
- 
+
+signals:
+    void ShowProcessDialog( bool show_it, bool enable_cancel );
+
 private:
     QStandardItemModel                     f_model;
     QItemSelectionModel                    f_selectModel;
     QSharedPointer<wpkgar::wpkgar_manager> f_manager;
     QSharedPointer<wpkgar::wpkgar_install> f_installer;
     QSharedPointer<QThread>                f_thread;
-    LogForm*                               f_logForm;
     Mode                                   f_mode;
 
     void SetInstallerSources();

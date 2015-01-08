@@ -20,13 +20,12 @@
 
 using namespace wpkgar;
 
-RemoveDialog::RemoveDialog( QWidget *p, QSharedPointer<wpkgar_manager> manager, LogForm* logForm )
+RemoveDialog::RemoveDialog( QWidget *p, QSharedPointer<wpkgar_manager> manager )
     : QDialog(p)
     , f_model(this)
     , f_selectModel(static_cast<QAbstractItemModel*>(&f_model))
     , f_manager(manager)
     , f_remover(QSharedPointer<wpkgar_remove>(new wpkgar_remove(f_manager.data())))
-	, f_logForm(logForm)
 {
     setupUi(this);
     f_listView->setModel( &f_model );
@@ -238,7 +237,7 @@ void RemoveDialog::on_f_buttonBox_clicked(QAbstractButton *button)
 	//
     if( button == applyBtn )
 	{
-		f_logForm->ShowProcessDialog( true, false /*cancel_button*/ );
+        ShowProcessDialog( true, false /*cancel_button*/ );
         SetSwitches();
 
         QMap<QString,int> folders;
@@ -266,7 +265,7 @@ void RemoveDialog::on_f_buttonBox_clicked(QAbstractButton *button)
 				  , tr("One or more packages failed to validate for removal! See log pane for details...")
 				  , QMessageBox::Ok
 				);
-			f_logForm->ShowProcessDialog( false );
+            ShowProcessDialog( false, true );
             reject();
         }
     }
@@ -289,7 +288,7 @@ void RemoveDialog::OnRemoveComplete()
 			);
 	}
 
-	f_logForm->ShowProcessDialog( false );
+    ShowProcessDialog( false, true );
 	accept();
 }
 

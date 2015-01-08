@@ -29,14 +29,12 @@ using namespace wpkgar;
 InstallDialog::InstallDialog(
             QWidget *p,
             QSharedPointer<wpkgar::wpkgar_manager> manager,
-            LogForm* logForm,
             Mode mode
             )
     : QDialog(p)
     , f_model(this)
     , f_selectModel(static_cast<QAbstractItemModel*>(&f_model))
     , f_manager(manager)
-    , f_logForm(logForm)
     , f_mode(mode)
 {
     setupUi(this);
@@ -224,7 +222,7 @@ void InstallDialog::StartThread()
     }
 
     QSharedPointer<InstallThread> _thread( new InstallThread( this, f_manager.data(), f_installer.data(), InstallThread::ThreadValidateOnly ) );
-    f_logForm->ShowProcessDialog( true );
+    ShowProcessDialog( true, true );
 
     connect
         ( _thread.data(), SIGNAL(finished())
@@ -238,7 +236,7 @@ void InstallDialog::StartThread()
 
 void InstallDialog::OnValidateComplete()
 {
-    f_logForm->ShowProcessDialog( false );
+    ShowProcessDialog( false, true );
 
     if( f_thread.dynamicCast<InstallThread>()->get_state() == InstallThread::ThreadFailed )
     {
@@ -340,7 +338,7 @@ void InstallDialog::OnValidateComplete()
     {
         QSharedPointer<InstallThread> _thread( new InstallThread( this, f_manager.data(), f_installer.data(), InstallThread::ThreadInstallOnly ) );
 
-        f_logForm->ShowProcessDialog( true );
+        ShowProcessDialog( true, true );
 
         connect
             ( _thread.data(), SIGNAL(finished())
@@ -355,7 +353,7 @@ void InstallDialog::OnValidateComplete()
 
 void InstallDialog::OnInstallComplete()
 {
-    f_logForm->ShowProcessDialog( false );
+    ShowProcessDialog( false, true );
 
     if( f_thread.dynamicCast<InstallThread>()->get_state() == InstallThread::ThreadFailed )
     {

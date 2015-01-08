@@ -21,13 +21,12 @@
 
 using namespace wpkgar;
 
-ImportDialog::ImportDialog( QWidget *p, QSharedPointer<wpkgar_manager> manager, LogForm* logForm )
+ImportDialog::ImportDialog( QWidget *p, QSharedPointer<wpkgar_manager> manager )
 	: QDialog(p)
     , f_model(this)
     , f_selectModel(static_cast<QAbstractItemModel*>(&f_model))
     , f_manager(manager)
     , f_installer(QSharedPointer<wpkgar_install>(new wpkgar_install(f_manager.data())))
-    , f_logForm(logForm)
 {
     setupUi(this);
     f_listView->setModel( &f_model );
@@ -51,9 +50,22 @@ ImportDialog::~ImportDialog()
 }
 
 
+void ImportDialog::AddPackages( const QStringList& package_list, const bool clear )
+{
+    // Append to the end of the model list of packages.
+    //
+    QStringList contents( clear? QStringList(): f_model.stringList() );
+    f_model.setStringList( contents + package_list );
+
+    QPushButton* applyBtn = f_buttonBox->button( QDialogButtonBox::Apply );
+    Q_ASSERT( applyBtn != NULL );
+    applyBtn->setEnabled( !(contents + package_list).empty() );
+}
+
+
 void ImportDialog::on_f_addButton_clicked()
 {
-    QStringList contents = f_model.stringList();
+    //QStringList contents = f_model.stringList();
 	QSettings settings;
 	QFileDialog importDlg( this
 						, tr("Select one or more WPKG files to import.")
@@ -64,11 +76,7 @@ void ImportDialog::on_f_addButton_clicked()
 
     if( importDlg.exec() )
     {
-		f_model.setStringList( contents + importDlg.selectedFiles() );
-		//
-        QPushButton* applyBtn = f_buttonBox->button( QDialogButtonBox::Apply );
-		Q_ASSERT( applyBtn != NULL );
-		applyBtn->setEnabled( true );
+        AddPackages( importDlg.selectedFiles() );
 	}
 
 	settings.setValue( "import_add_dialog", importDlg.saveState() );
@@ -255,7 +263,7 @@ void ImportDialog::on_f_buttonBox_clicked(QAbstractButton *button)
 	//
     if( button == applyBtn )
     {
-        f_logForm->ShowProcessDialog( true );
+        ShowProcessDialog( true, true );
         SetSwitches();
 
 		QMap<QString,int> folders;
@@ -294,7 +302,7 @@ void ImportDialog::OnInstallComplete()
 			);
 	}
 
-    f_logForm->ShowProcessDialog( false );
+    ShowProcessDialog( false, true );
 
 	accept();
 }

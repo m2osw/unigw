@@ -28,8 +28,6 @@ public:
     PrefsDialog( QWidget *p = 0 );
     ~PrefsDialog();
 
-	static void InitDatabase();
-
     virtual void accept();
 
 private:

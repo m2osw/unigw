@@ -17,6 +17,7 @@
 //===============================================================================
 
 #include "PrefsDialog.h"
+#include "database.h"
 
 #include <QtCore>
 #include <QtGui>
@@ -45,11 +46,6 @@ PrefsDialog::~PrefsDialog()
 
 namespace
 {
-	QString GetDefaultDbRoot()
-	{
-		return QDesktopServices::storageLocation( QDesktopServices::DataLocation ) + "/WPKG_ROOT";
-	}
-
 #if defined(MO_LINUX) || defined(MO_DARWIN)
 	QString GetUnameArch()
 	{
@@ -97,11 +93,12 @@ namespace
 	}
 }
 
-
+#if 0
+// See database.h/cpp
 void PrefsDialog::InitDatabase()
 {
     QSettings settings;
-    const QString root_path       ( settings.value( "root_path", GetDefaultDbRoot() ).toString() );
+    const QString root_path       ( settings.value( "root_path", Database::GetDefaultDbRoot() ).toString() );
     const QString wpkg_admin_path ( QString("%1/var/lib/wpkg").arg(root_path) );
     const QString control_file	  ( QString("%1/core/control").arg(wpkg_admin_path) );
 
@@ -131,6 +128,7 @@ void PrefsDialog::InitDatabase()
         settings.setValue( "root_path", root_path );
     }
 }
+#endif
 
 
 void PrefsDialog::accept()
@@ -138,7 +136,7 @@ void PrefsDialog::accept()
     const QString root_path = f_repositoryRootLineEdit->text();
     QSettings settings;
     settings.setValue( "root_path", root_path );
-	InitDatabase();
+    Database::InitDatabase();
     QDialog::accept();
 }
 
@@ -147,7 +145,7 @@ void PrefsDialog::on_f_repositoryBrowseBtn_clicked()
 {
 	const QString root_path = QFileDialog::getExistingDirectory( this
 							, tr("Select WPKG Database Root")
-							, GetDefaultDbRoot()
+                            , Database::GetDefaultDbRoot()
 							, QFileDialog::ShowDirsOnly
 							);
     if( !root_path.isEmpty()        )
@@ -162,7 +160,7 @@ void PrefsDialog::on_f_buttonBox_clicked(QAbstractButton *button)
 		static_cast<QAbstractButton*>( f_buttonBox->button( QDialogButtonBox::RestoreDefaults ) );
 	if( button == defaultsBtn )
 	{
-		f_repositoryRootLineEdit->setText( GetDefaultDbRoot() );
+        f_repositoryRootLineEdit->setText( Database::GetDefaultDbRoot() );
 	}
 }
 

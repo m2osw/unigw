@@ -627,7 +627,7 @@ void MainWindow::OnRefreshListing()
 	}
 
 	UpdateActions();
-    f_logForm->ShowProcessDialog( false );
+    f_logForm->ShowProcessDialog( false, true );
 }
 
 
@@ -704,7 +704,11 @@ void MainWindow::on_actionFileImport_triggered()
 {
     ActionsDisable ad( f_actionList );
 	ResetErrorCount();
-    ImportDialog dlg( this, f_manager, f_logForm );
+    ImportDialog dlg( this, f_manager );
+    connect
+        ( &dlg      , SIGNAL(ShowProcessDialog(bool,bool))
+        , f_logForm , SLOT  (ShowProcessDialog(bool,bool))
+        );
     if( dlg.exec() == QDialog::Accepted )
     {
         InitManager();
@@ -715,7 +719,11 @@ void MainWindow::on_actionFileImport_triggered()
 void MainWindow::on_actionInstall_triggered()
 {
     ActionsDisable ad( f_actionList );
-    InstallDialog dlg( this, f_manager, f_logForm );
+    InstallDialog dlg( this, f_manager );
+    connect
+        ( &dlg      , SIGNAL(ShowProcessDialog(bool,bool))
+        , f_logForm , SLOT  (ShowProcessDialog(bool,bool))
+        );
     if( dlg.exec() == QDialog::Accepted )
     {
         InitManager();
@@ -736,8 +744,12 @@ void MainWindow::on_actionRemove_triggered()
 	}
 
 	ResetErrorCount();
-    RemoveDialog dlg( this, f_manager, f_logForm );
-	dlg.SetPackagesToRemove( packages_to_remove );
+    RemoveDialog dlg( this, f_manager );
+    connect
+        ( &dlg      , SIGNAL(ShowProcessDialog(bool,bool))
+        , f_logForm , SLOT  (ShowProcessDialog(bool,bool))
+        );
+    dlg.SetPackagesToRemove( packages_to_remove );
     if( dlg.exec() == QDialog::Accepted )
     {
         f_webForm->ClearHistory();
@@ -825,7 +837,7 @@ void MainWindow::on_actionUpdate_triggered()
 void MainWindow::OnUpdateFinished()
 {
 	ActionsDisable ad( f_actionList );
-    f_logForm->ShowProcessDialog( false );
+    f_logForm->ShowProcessDialog( false, true );
 }
 
 
@@ -841,7 +853,11 @@ void MainWindow::OnSystrayMessage( const QString& msg )
 void MainWindow::on_actionUpgrade_triggered()
 {
     ActionsDisable ad( f_actionList );
-    InstallDialog dlg( this, f_manager, f_logForm, InstallDialog::UpgradeMode );
+    InstallDialog dlg( this, f_manager, InstallDialog::UpgradeMode );
+    connect
+        ( &dlg      , SIGNAL(ShowProcessDialog(bool,bool))
+        , f_logForm , SLOT  (ShowProcessDialog(bool,bool))
+        );
     if( dlg.exec() == QDialog::Accepted )
     {
         InitManager();

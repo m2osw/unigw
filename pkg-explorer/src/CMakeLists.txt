@@ -39,6 +39,38 @@ endif()
 
 include_directories( ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR} ${DEBPACKAGES_INCLUDE} )
 
+set( DEBUG_LIBRARIES
+	debug ${DEBPACKAGES_D_LIBRARY}
+	debug ${EXPR_D_LIBRARY}
+	debug ${TLD_D_LIBRARY}
+	debug ${ZLIB_D_LIBRARY}
+	debug ${BZ2_D_LIBRARY}
+	debug ${UTF8_D_LIBRARY}
+	)
+set( RELEASE_LIBRARIES
+	optimized ${DEBPACKAGES_LIBRARY}
+	optimized ${EXPR_LIBRARY}
+	optimized ${TLD_LIBRARY}
+	optimized ${ZLIB_LIBRARY}
+	optimized ${BZ2_LIBRARY}
+	optimized ${UTF8_LIBRARY}
+	)
+
+if( CMAKE_BUILD_TYPE )
+	if( ${CMAKE_BUILD_TYPE} STREQUAL "Debug" )
+		set( WPKG_LIBRARIES ${DEBUG_LIBRARIES} )
+	else()
+		set( WPKG_LIBRARIES ${RELEASE_LIBRARIES} )
+	endif()
+else()
+	set( WPKG_LIBRARIES ${DEBUG_LIBRARIES} ${RELEASE_LIBRARIES} )
+endif()
+
+
+###############################################################################
+##
+## pkg-explorer
+
 QT4_WRAP_UI( UIC_FILES
 	ImportDialog.ui
 	InstallDialog.ui
@@ -65,6 +97,8 @@ add_executable(
 	${UIC_FILES}
     ${RES_FILES}
     ${PLATFORM_RESOURCES}
+	database.h
+	database.cpp
     include_qt4.h
 	ImportDialog.ui
 	ImportDialog.cpp
@@ -99,34 +133,6 @@ if( MSVC )
 	set_target_properties( ${PROJECT_NAME} PROPERTIES
 		LINK_FLAGS ${WIN_MACHINE_FLAGS}
 	)
-endif()
-
-
-set( DEBUG_LIBRARIES
-	debug ${DEBPACKAGES_D_LIBRARY}
-	debug ${EXPR_D_LIBRARY}
-	debug ${TLD_D_LIBRARY}
-	debug ${ZLIB_D_LIBRARY}
-	debug ${BZ2_D_LIBRARY}
-	debug ${UTF8_D_LIBRARY}
-	)
-set( RELEASE_LIBRARIES
-	optimized ${DEBPACKAGES_LIBRARY}
-	optimized ${EXPR_LIBRARY}
-	optimized ${TLD_LIBRARY}
-	optimized ${ZLIB_LIBRARY}
-	optimized ${BZ2_LIBRARY}
-	optimized ${UTF8_LIBRARY}
-	)
-
-if( CMAKE_BUILD_TYPE )
-	if( ${CMAKE_BUILD_TYPE} STREQUAL "Debug" )
-		set( WPKG_LIBRARIES ${DEBUG_LIBRARIES} )
-	else()
-		set( WPKG_LIBRARIES ${RELEASE_LIBRARIES} )
-	endif()
-else()
-	set( WPKG_LIBRARIES ${DEBUG_LIBRARIES} ${RELEASE_LIBRARIES} )
 endif()
 
 target_link_libraries( ${PROJECT_NAME}
@@ -187,5 +193,63 @@ if( MO_LINUX )
 		COMPONENT runtime
 		)
 endif()
+
+
+###############################################################################
+##
+## pkg-installer
+
+project( pkg-installer )
+
+QT4_WRAP_UI( UIC_FILES
+	ImportDialog.ui
+	OPTIONS -n
+	)
+
+QT4_ADD_RESOURCES( RES_FILES
+	resources.qrc
+	)
+
+add_executable(
+	${PROJECT_NAME}
+	WIN32
+	${UIC_FILES}
+	${RES_FILES}
+	${PLATFORM_RESOURCES}
+	database.h
+	database.cpp
+	include_qt4.h
+	ImportDialog.ui
+	ImportDialog.cpp
+	InstallThread.h
+	InstallThread.cpp
+	ProcessDialog.h
+	ProcessDialog.cpp
+	ProcessWindow.h
+	pkg-installer-main.cpp
+	)
+
+if( MSVC )
+	set_target_properties( ${PROJECT_NAME} PROPERTIES
+		LINK_FLAGS ${WIN_MACHINE_FLAGS}
+	)
+endif()
+
+target_link_libraries( ${PROJECT_NAME}
+	${QT_LIBRARIES}
+	${EXTRA_LIBRARIES}
+	${WPKG_LIBRARIES}
+	)
+
+set_target_properties( ${PROJECT_NAME} PROPERTIES
+	OUTPUT_NAME_DEBUG   pkg-installer-d
+	OUTPUT_NAME_RELEASE pkg-installer
+	)
+
+install( TARGETS ${PROJECT_NAME}
+		RUNTIME DESTINATION bin
+		COMPONENT runtime
+		)
+
 
 ## vim: ts=4 sw=4 noexpandtab

@@ -44,9 +44,6 @@ public:
     ~LogForm();
 
     wpkg_output::output* GetLogOutput() const;
-
-    void ShowProcessDialog( const bool show_it, const bool enable_cancel = true );
-
     wpkg_output::level_t GetLogLevel() const;
     void SetLogLevel( wpkg_output::level_t level );
 
@@ -61,6 +58,9 @@ private:
 
 signals:
     void SystrayMessage( const QString& msg );
+
+public slots:
+    void ShowProcessDialog( const bool show_it, const bool enable_cancel );
 
 private slots:
 	void OnDisplayText();

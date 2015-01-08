@@ -18,7 +18,6 @@
 
 #pragma once
 
-#include "LogForm.h"
 #include "include_qt4.h"
 #include "ui_RemoveDialog.h"
 
@@ -29,11 +28,14 @@ class RemoveDialog : public QDialog, private Ui::RemoveDialog
     Q_OBJECT
     
 public:
-    RemoveDialog( QWidget *p, QSharedPointer<wpkgar::wpkgar_manager> manager, LogForm* logForm );
+    RemoveDialog( QWidget *p, QSharedPointer<wpkgar::wpkgar_manager> manager );
     ~RemoveDialog();
 
 	void SetPackagesToRemove( const QStringList& list );
- 
+
+signals:
+    void ShowProcessDialog( bool show_it, bool enable_cancel );
+
 private slots:
 	void OnSelectionChanged( const QItemSelection &, const QItemSelection& );
     void on_f_buttonBox_clicked(QAbstractButton *button);
@@ -52,7 +54,6 @@ private:
     QSharedPointer<wpkgar::wpkgar_manager> f_manager;
     QSharedPointer<wpkgar::wpkgar_remove>  f_remover;
     QSharedPointer<QThread>                f_thread;
-    LogForm*                               f_logForm;
 
 	void SetSwitches();
 	void ChangeAllChecked();

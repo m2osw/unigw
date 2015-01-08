@@ -18,7 +18,6 @@
 
 #pragma once
 
-#include "LogForm.h"
 #include "include_qt4.h"
 #include "ui_ImportDialog.h"
 
@@ -31,9 +30,14 @@ class ImportDialog
     Q_OBJECT
     
 public:
-    ImportDialog( QWidget *p, QSharedPointer<wpkgar::wpkgar_manager> manager, LogForm* logForm );
+    ImportDialog( QWidget *p, QSharedPointer<wpkgar::wpkgar_manager> manager );
     ~ImportDialog();
-    
+
+    void AddPackages( const QStringList& package_list, const bool clear = false );
+
+signals:
+    void ShowProcessDialog( bool show_it, bool enable_cancel );
+
 private slots:
     void on_f_addButton_clicked();
     void on_f_removeButton_clicked();
@@ -60,7 +64,6 @@ private:
     QSharedPointer<wpkgar::wpkgar_manager>	f_manager;
     QSharedPointer<wpkgar::wpkgar_install>	f_installer;
     QSharedPointer<QThread>               	f_thread;
-    LogForm*                              	f_logForm;
 
 	void SetSwitches();
 	void ChangeAllChecked();

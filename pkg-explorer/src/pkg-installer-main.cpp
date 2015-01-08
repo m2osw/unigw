@@ -1,5 +1,6 @@
 //===============================================================================
 // Copyright:	Copyright (c) 2013 Made to Order Software Corp.
+
 //
 // All Rights Reserved.
 //
@@ -20,9 +21,11 @@
 /// \brief Main Function
 //===============================================================================
 
-#include "MainWindow.h"
-#include "PrefsDialog.h"
 #include "database.h"
+#include "ImportDialog.h"
+#include "ProcessDialog.h"
+
+#include <libdebpackages/wpkgar.h>
 
 #include <iostream>
 #include <memory>
@@ -30,6 +33,10 @@
 // Qt4
 //
 #include <QtGui>
+
+#include "ProcessWindow.h"
+
+using namespace wpkgar;
 
 int main( int argc, char *argv[] )
 {
@@ -40,35 +47,66 @@ int main( int argc, char *argv[] )
 	QStringList args(app.arguments());
 	if( args.contains("--help") || args.contains("-h") )
 	{
-		printf("Usage: pkg-explorer [--help | --version]\n\n");
-		printf("  Run pkg-explorer by itself and use the menus to do work.\n\n");
-		printf("  If you are looking for a command line tool to manage your installation\n");
+        printf("Usage: pkg-installer [--help | --version] [package1] [package2] ... [packageN]\n\n");
+        printf("  Run pkg-installer to import WPKG packages into the database, but with a graphical meter.\n\n");
+        printf("  Useful for the Windows Explorer shell, Nautilis or Mac OS/X Finder.\n");
+        printf("  If you are looking for a command line tool to manage your installation\n");
 		printf("  environment, use wpkg instead.\n");
 		exit(0);
 	}
 	if( args.contains("--version") || args.contains("-v") )
 	{
-		printf("pkg-explorer %s\n", VERSION);
+        printf("pkg-installer %s\n", VERSION);
 		exit(0);
+	}
+
+	QStringList full_args( args );
+    args.clear();
+    for( auto arg : full_args )
+	{
+        if( arg.endsWith( ".deb" ) )
+        {
+            args << arg;
+        }
 	}
 
 	// Set-up core application info
 	//
 	QApplication::setOrganizationName   ( "M2OSW"        );
 	QApplication::setOrganizationDomain ( "m2osw.com"    );
-	QApplication::setApplicationName    ( "pkg-explorer" );
+    QApplication::setApplicationName    ( "pkg-installer" );
 
 	// Make sure the wpkg database is created and initialized.
 	//
     Database::InitDatabase();
 
+    QSharedPointer<wpkgar::wpkgar_manager>	manager( new wpkgar_manager );
+    //manager->set_interrupt_handler( &interrupt );
+    manager->add_self("pkg-installer");
+
+	QSettings settings;
+	const QString root_path     ( settings.value( "root_path" ).toString()  );
+    const QString database_path ( QString("%1/var/lib/wpkg").arg(root_path) );
+    manager->set_root_path      ( root_path.toStdString()     );
+    manager->set_database_path  ( database_path.toStdString() );
+	//
+    QSharedPointer<wpkgar::wpkgar_lock>		lock( new wpkgar_lock( manager.data(), "Package Installer" ) );
+
 	// Create and show main window
 	//
-	MainWindow mainWnd;
-	mainWnd.show();
-	//
-	app.setQuitOnLastWindowClosed( false );
-	//
+    ImportDialog import_dlg( 0, manager );
+    ProcessWindow proc_dlg;
+
+    QObject::connect
+        ( &import_dlg , SIGNAL(ShowProcessDialog(bool,bool))
+        , &proc_dlg   , SLOT  (ShowProcessDialog(bool,bool))
+        );
+
+    import_dlg.AddPackages( args );
+    import_dlg.show();
+
+    //app.setQuitOnLastWindowClosed( false );
+    //
 	// We need the above to keep the app from qutting when
 	// we are minimized to systray and a dialog closes
 	//
