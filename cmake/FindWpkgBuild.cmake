@@ -110,6 +110,7 @@ function( ConfigureMakeProject )
 				-DCMAKE_MODULE_PATH:PATH=${WPKG_DIST_DIR}/share/cmake-2.8/Modules
 				-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 				-DDIST_PATH:PATH="${WPKG_DIST_DIR}"
+				-G "${CMAKE_GENERATOR}"
 				${TOOLCHAIN}
 				${ARG_CONFIG_ARGS}
 				${SRC_DIR}
