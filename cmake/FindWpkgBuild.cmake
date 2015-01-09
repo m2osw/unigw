@@ -28,8 +28,6 @@
 # If you have included Wpkg's Third Party package, then this module will
 # point to that instead of trying to locate it on the system.
 #
-cmake_minimum_required(VERSION 3.0)
-
 include( CMakeParseArguments )
 
 set_property( GLOBAL PROPERTY USE_FOLDERS ON )
@@ -136,24 +134,28 @@ function( ConfigureMakeProject )
 	endif()
 
 	if( MSVC )
-		if( ${MSVC_VERSION} VERSION_LESS "1600" )
-			message( FATAL_ERROR "Your version of Visual Studio is too old. I need at least VS 2010." )
+		if( ${CMAKE_BUILD_TOOL} STREQUAL "devenv.exe" )
+			message( FATAL_ERROR "Please use nmake/jom at this level. This won't work right trying to use devenv." )
 		endif()
 
-		find_program( INCREDIBUILD_COMMAND "BuildConsole.exe" )
+		#if( ${MSVC_VERSION} VERSION_LESS "1600" )
+		#	message( FATAL_ERROR "Your version of Visual Studio is too old. I need at least VS 2010." )
+		#endif()
 
-		if( ${INCREDIBUILD_COMMAND} STREQUAL "INCREDIBUILD_COMMAND-NOTFOUND" )
-			set( BUILD_CMD ${CMAKE_VS_MSBUILD_COMMAND} )
-		else()
-			set( BUILD_CMD ${INCREDIBUILD_COMMAND} )
-		endif()
+		#find_program( INCREDIBUILD_COMMAND "BuildConsole.exe" )
 
-		list( APPEND BUILD_CMD ${ARG_PROJECT_NAME}_project.sln )
-		set( INSTALL_CMD ${CMAKE_VS_MSBUILD_COMMAND} "INSTALL.vcxproj" )
-	else()
-		set( BUILD_CMD ${CMAKE_BUILD_TOOL} )
-		set( INSTALL_CMD ${CMAKE_BUILD_TOOL} install )
+		#if( ${INCREDIBUILD_COMMAND} STREQUAL "INCREDIBUILD_COMMAND-NOTFOUND" )
+		#	set( BUILD_CMD ${CMAKE_VS_MSBUILD_COMMAND} )
+		#else()
+		#	set( BUILD_CMD ${INCREDIBUILD_COMMAND} )
+		#endif()
+
+		#list( APPEND BUILD_CMD ${ARG_PROJECT_NAME}_project.sln )
+		#set( INSTALL_CMD ${CMAKE_VS_MSBUILD_COMMAND} "INSTALL.vcxproj" )
 	endif()
+
+	set( BUILD_CMD ${CMAKE_BUILD_TOOL} )
+	set( INSTALL_CMD ${CMAKE_BUILD_TOOL} install )
 
 	add_custom_target(
 		${ARG_PROJECT_NAME}-make
