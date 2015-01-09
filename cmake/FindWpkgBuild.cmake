@@ -134,7 +134,7 @@ function( ConfigureMakeProject )
 	endif()
 
 	if( MSVC )
-		if( ${CMAKE_BUILD_TOOL} STREQUAL "devenv.exe" )
+		if( ${CMAKE_BUILD_TOOL} STREQUAL "devenv" )
 			message( FATAL_ERROR "Please use nmake/jom at this level. This won't work right trying to use devenv." )
 		endif()
 
