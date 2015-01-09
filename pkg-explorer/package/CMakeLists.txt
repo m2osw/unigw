@@ -38,35 +38,38 @@
 
 set( DEBVERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}-${VERSION_DEVEL}" )
 set( WPKG_ROOT "${CMAKE_BINARY_DIR}/WPKG" )
-set( COMPONENT_LIST runtime )
 set( PACKAGE_FOLDER package )
 if( UNIX )
     set( INSTALL_PREFIX "/usr" )
 else()
     set( INSTALL_PREFIX "" )
 endif()
-foreach( _comp ${COMPONENT_LIST} )
-    configure_file( control.${_comp}.in "${WPKG_ROOT}/${_comp}/WPKG/control" @ONLY )
-    add_custom_target( ${_comp}_install
-            COMMAND ${CMAKE_COMMAND}
-                        -DCMAKE_INSTALL_PREFIX="${WPKG_ROOT}/${_comp}${INSTALL_PREFIX}"
-                        -DCMAKE_INSTALL_COMPONENT=${_comp}
-                        -DCMAKE_INSTALL_DO_STRIP=1
-                        -DBUILD_TYPE=$(Configuration)
-                        -P ${CMAKE_BINARY_DIR}/cmake_install.cmake
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-            DEPENDS package_prereqs
+set( COMPONENT "runtime" )
+configure_file( control.${COMPONENT}.in "${WPKG_ROOT}/${COMPONENT}/WPKG/control" @ONLY )
+add_custom_target( ${COMPONENT}_install
+        COMMAND ${CMAKE_COMMAND}
+                    -DCMAKE_INSTALL_PREFIX="${WPKG_ROOT}/${COMPONENT}${INSTALL_PREFIX}"
+                    -DCMAKE_INSTALL_COMPONENT=${COMPONENT}
+                    -DCMAKE_INSTALL_DO_STRIP=1
+                    -DBUILD_TYPE=$(Configuration)
+                    -P ${CMAKE_BINARY_DIR}/cmake_install.cmake
+        #COMMAND ${CMAKE_COMMAND}
+        #            -DCMAKE_INSTALL_PREFIX="${WPKG_ROOT}/${COMPONENT}${INSTALL_PREFIX}"
+        #            -DCMAKE_INSTALL_COMPONENT=package
+        #            -DBUILD_TYPE=$(Configuration)
+        #            -P ${CMAKE_BINARY_DIR}/cmake_install.cmake
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        DEPENDS package_prereqs
+    )
+add_custom_target( ${COMPONENT}
+        COMMAND ${WPKG}
+            --output-dir "${WPKG_ROOT}/packages"
+            --build      "${WPKG_ROOT}/${COMPONENT}"
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        DEPENDS ${COMPONENT}_install
         )
-    add_custom_target( ${_comp}
-            COMMAND ${WPKG}
-                --output-dir "${WPKG_ROOT}/packages"
-                --build      "${WPKG_ROOT}/${_comp}"
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-            DEPENDS ${_comp}_install
-            )
-    set_property( TARGET ${_comp}_install PROPERTY FOLDER ${PACKAGE_FOLDER} )
-    set_property( TARGET ${_comp} PROPERTY FOLDER ${PACKAGE_FOLDER} )
-endforeach()
+set_property( TARGET ${COMPONENT}_install PROPERTY FOLDER ${PACKAGE_FOLDER} )
+set_property( TARGET ${COMPONENT} PROPERTY FOLDER ${PACKAGE_FOLDER} )
 
 add_custom_target( wpkg_package DEPENDS ${COMPONENT_LIST} )
 set_property( TARGET wpkg_package PROPERTY FOLDER ${PACKAGE_FOLDER} )

@@ -28,6 +28,8 @@
 # If you have included Wpkg's Third Party package, then this module will
 # point to that instead of trying to locate it on the system.
 #
+cmake_minimum_required(VERSION 3.0)
+
 include( CMakeParseArguments )
 
 set_property( GLOBAL PROPERTY USE_FOLDERS ON )
@@ -133,9 +135,29 @@ function( ConfigureMakeProject )
 			)
 	endif()
 
+	if( MSVC )
+		if( ${MSVC_VERSION} VERSION_LESS "1600" )
+			message( FATAL_ERROR "Your version of Visual Studio is too old. I need at least VS 2010." )
+		endif()
+
+		find_program( INCREDIBUILD_COMMAND "BuildConsole.exe" )
+
+		if( ${INCREDIBUILD_COMMAND} STREQUAL "INCREDIBUILD_COMMAND-NOTFOUND" )
+			set( BUILD_CMD ${CMAKE_VS_MSBUILD_COMMAND} )
+		else()
+			set( BUILD_CMD ${INCREDIBUILD_COMMAND} )
+		endif()
+
+		list( APPEND BUILD_CMD ${ARG_PROJECT_NAME}_project.sln )
+		set( INSTALL_CMD ${CMAKE_VS_MSBUILD_COMMAND} "INSTALL.vcxproj" )
+	else()
+		set( BUILD_CMD ${CMAKE_BUILD_TOOL} )
+		set( INSTALL_CMD ${CMAKE_BUILD_TOOL} install )
+	endif()
+
 	add_custom_target(
 		${ARG_PROJECT_NAME}-make
-		COMMAND ${CMAKE_BUILD_TOOL}
+		COMMAND ${BUILD_CMD}
 			1> ${BUILD_DIR}/${ARG_PROJECT_NAME}_make.log
 			2> ${BUILD_DIR}/${ARG_PROJECT_NAME}_make.err
 		DEPENDS ${CONFIGURE_TARGETS}
@@ -146,7 +168,7 @@ function( ConfigureMakeProject )
 
 	add_custom_target(
 		${ARG_PROJECT_NAME}-install
-		COMMAND ${CMAKE_BUILD_TOOL} install
+		COMMAND ${BUILD_CMD}
 			1>> ${BUILD_DIR}/${ARG_PROJECT_NAME}_make.log
 			2>> ${BUILD_DIR}/${ARG_PROJECT_NAME}_make.err
 		DEPENDS ${ARG_PROJECT_NAME}-make

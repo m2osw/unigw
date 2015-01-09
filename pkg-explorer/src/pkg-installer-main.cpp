@@ -62,13 +62,14 @@ int main( int argc, char *argv[] )
 
 	QStringList full_args( args );
     args.clear();
-    for( auto arg : full_args )
+    std::for_each( full_args.begin(), full_args.end(), [&args]( QString arg )
 	{
         if( arg.endsWith( ".deb" ) )
         {
             args << arg;
         }
-	}
+    }
+    );
 
 	// Set-up core application info
 	//

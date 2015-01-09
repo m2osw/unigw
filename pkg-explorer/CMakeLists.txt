@@ -23,6 +23,7 @@ project( pkg_explorer_project )
 #
 set_property( GLOBAL PROPERTY USE_FOLDERS ON )
 
+option( BUILD_WPKG "Build the wpkg package" ON )
 
 #===============================================================================
 # Release version
@@ -172,18 +173,18 @@ function( CopyBinaries Release_DLL Debug_DLL )
 	endif()
 endfunction()
 #
-function( InstallBinaries Release_DLL Debug_DLL )
+function( InstallBinaries Release_DLL Debug_DLL Component )
 	install(
 		FILES "${Release_DLL}"
 		DESTINATION bin
 		CONFIGURATIONS Release
-		COMPONENT runtime
+        COMPONENT ${Component}
 		)
 	install(
 		FILES "${Debug_DLL}"
 		DESTINATION bin
 		CONFIGURATIONS Debug
-		COMPONENT runtime
+        COMPONENT ${Component}
 		)
 endfunction()
 
@@ -196,22 +197,24 @@ if( MO_WINDOWS )
 		set( Release_DLL "${QT_BINARY_DIR}/${_lib}4.dll"  )
 		set( Debug_DLL   "${QT_BINARY_DIR}/${_lib}d4.dll" )
 		CopyBinaries( ${Release_DLL} ${Debug_DLL} )
-		#InstallBinaries( ${Release_DLL} ${Debug_DLL} )
+        InstallBinaries( ${Release_DLL} ${Debug_DLL} "runtime" )
 	endforeach()
 
-	set( DEBPACKAGES_LIBS
-		debpackages
-		expr
-		utf8
-		wpkg_bz2
-		wpkg_tld
-		wpkg_z
-		)
-	foreach( _lib ${DEBPACKAGES_LIBS} )
-		set( Release_DLL "${DIST_PATH}/bin/${_lib}.dll"   )
-		set( Debug_DLL   "${DIST_PATH}/bin/${_lib}_d.dll" )
-		CopyBinaries( ${Release_DLL} ${Debug_DLL} )
-	endforeach()
+	if( BUILD_WPKG )
+		set( DEBPACKAGES_LIBS
+			debpackages
+			expr
+			utf8
+			wpkg_bz2
+			wpkg_tld
+			wpkg_z
+			)
+		foreach( _lib ${DEBPACKAGES_LIBS} )
+			set( Release_DLL "${DIST_PATH}/bin/${_lib}.dll"   )
+			set( Debug_DLL   "${DIST_PATH}/bin/${_lib}_d.dll" )
+			CopyBinaries( ${Release_DLL} ${Debug_DLL} "runtime" )
+		endforeach()
+	endif()
 endif()
 
 
@@ -256,7 +259,6 @@ else()
 		)
 endif()
 
-option( BUILD_WPKG "Build the wpkg package" OFF )
 if( BUILD_WPKG )
 	add_custom_target( package_prereqs DEPENDS changelog_generation pkg-explorer )
 	set_property( TARGET package_prereqs PROPERTY FOLDER package )
