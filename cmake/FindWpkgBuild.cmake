@@ -134,10 +134,14 @@ function( ConfigureMakeProject )
 	endif()
 
 	if( MSVC )
-		if( ${CMAKE_BUILD_TOOL} STREQUAL "devenv" )
+		if( NOT (${CMAKE_MAKE_PROGRAM} STREQUAL "nmake") AND NOT (${CMAKE_MAKE_PROGRAM} STREQUAL "jom") )
 			message( FATAL_ERROR "Please use nmake/jom at this level. This won't work right trying to use devenv." )
 		endif()
 
+		# TODO: nice try, but this is broken for now. It seems that when I try to kick off a build
+		# from devenv or msbuild (or even buildconsole via incredibuild), it fails to work. It just opens
+		# up a devenv session instead of actually building.
+		#
 		#if( ${MSVC_VERSION} VERSION_LESS "1600" )
 		#	message( FATAL_ERROR "Your version of Visual Studio is too old. I need at least VS 2010." )
 		#endif()
