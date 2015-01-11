@@ -30,7 +30,6 @@ public:
 
     // Thread-safe methods
     //
-    void AddMessage( const QString& message );
     void AddProgressValue( const int value );
     static bool CancelClicked();
 
@@ -38,7 +37,11 @@ public:
     //
     void EnableCancelButton( const bool enable );
 	void ShowProgressBar( const bool show );
-	void SetProgressRange( const int min, const int max );
+    void SetProgressRange( const int min, const int max );
+    void ShowLogPane( const bool show );
+
+public slots:
+    void AddMessage( const QString& message );
 
 protected:
 	virtual void hideEvent( QHideEvent* evt );

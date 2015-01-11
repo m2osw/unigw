@@ -133,25 +133,25 @@ MainWindow::MainWindow( const bool showSysTray )
     actionHistoryForward->setEnabled ( false );
 
     QObject::connect
-        ( f_webForm, SIGNAL( StackStatus  ( bool, bool ))
-        , this         , SLOT  ( OnStackStatus( bool, bool ))
+        ( f_webForm, SIGNAL( StackStatus     ( bool, bool ) )
+        , this     , SLOT  ( OnStackStatus   ( bool, bool ) )
         );
     QObject::connect
-        ( f_webForm, SIGNAL( HistoryChanged( const QString& ) )
-        , this         , SLOT  ( OnHistoryChanged( const QString& ))
+        ( f_webForm, SIGNAL( HistoryChanged  ( const QString& ) )
+        , this     , SLOT  ( OnHistoryChanged( const QString& ) )
         );
     QObject::connect
-        ( f_webForm, SIGNAL( PackageClicked( const QString& ) )
-        , this         , SLOT  ( OnPackageClicked( const QString& ))
+        ( f_webForm, SIGNAL( PackageClicked  ( const QString& ) )
+        , this     , SLOT  ( OnPackageClicked( const QString& ) )
         );
     QObject::connect
-        ( f_webForm, SIGNAL( WebPageClicked  ( const QString& ))
-        , this         , SLOT  ( OnWebPageClicked( const QString& ))
+        ( f_webForm, SIGNAL( WebPageClicked  ( const QString& ) )
+        , this     , SLOT  ( OnWebPageClicked( const QString& ) )
         );
 
     QObject::connect
-        ( f_logForm, SIGNAL( SystrayMessage  (const QString&) )
-        , this         , SLOT  ( OnSystrayMessage(const QString&) )
+        ( f_logForm, SIGNAL( SetSystrayMessage(const QString&) )
+        , this     , SLOT  ( OnSystrayMessage (const QString&) )
         );
 
 	f_actionList
@@ -252,8 +252,8 @@ void MainWindow::LoadSettings()
 void MainWindow::SaveSettings()
 {
     QSettings settings;
-    settings.setValue( "geometry",            saveGeometry()                           );
-    settings.setValue( "state",               saveState()                              );
+    settings.setValue( "geometry",            saveGeometry()                       );
+    settings.setValue( "state",               saveState()                          );
     settings.setValue( "show_installed",      actionShowInstalled->isChecked()     );
     settings.setValue( "show_log",            actionShowLog->isChecked()           );
     settings.setValue( "log_level",           f_logForm->GetLogLevel()             );
@@ -351,6 +351,7 @@ void MainWindow::LogFatal( const QString& msg )
 }
 
 
+
 void MainWindow::InitManager()
 {
     f_lock.clear();
@@ -364,7 +365,7 @@ void MainWindow::InitManager()
 
 	// TODO: add the Qt packages we depend on once ready
 	//       (specifically for MS-Windows)
-    f_manager->add_self("pkg-explorer");
+    f_manager->add_self("pkg-ex/plorer");
 
     wpkg_output::output* out = f_logForm->GetLogOutput();
     Q_ASSERT( out );
@@ -957,7 +958,7 @@ void MainWindow::on_actionAboutWindowsPackager_triggered()
 
 void MainWindow::on_actionClearLog_triggered()
 {
-    f_logForm->clear();
+    f_logForm->Clear();
 }
 
 void MainWindow::on_actionShowInstalled_triggered()

@@ -1,6 +1,5 @@
 //===============================================================================
-// Copyright:	Copyright (c) 2013 Made to Order Software Corp.
-
+// Copyright:	Copyright (c) 2013-2015 Made to Order Software Corp.
 //
 // All Rights Reserved.
 //
@@ -16,44 +15,36 @@
 // WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
 // COMPLETENESS OR PERFORMANCE.
 //===============================================================================
-#pragma once
 
-#include "include_qt4.h"
-#include "ProcessDialog.h"
-#include "LogForm.h"
-#include "LogOutput.h"
-#include "ui_LogForm.h"
+#pragma once 
 
-#include <libdebpackages/wpkg_output.h>
+#include <QtGui>
+#include <libdebpackages/wpkgar.h>
 
-class LogForm
-    : public QWidget
-    , private Ui::LogForm
+class LogOutput
+        : public QObject
+        , public wpkg_output::output
 {
-    Q_OBJECT
-    
+	Q_OBJECT
+
 public:
-    LogForm( QWidget *p = 0 );
-    ~LogForm();
+    LogOutput();
 
-    wpkg_output::output*    GetLogOutput();
-    wpkg_output::level_t    GetLogLevel() const;
-    void                    SetLogLevel( wpkg_output::level_t level );
-    void                    Clear();
-
-private:
-    ProcessDialog           f_procDlg;
-    LogOutput               f_logOutput;
-    QTimer					f_timer;
+    virtual void           log_message( const wpkg_output::message_t& msg ) const;
+    wpkg_output::level_t   get_level() const;
+	bool                   pending_messages() const;
+	wpkg_output::message_t pop_next_message();
+    void                   set_level( wpkg_output::level_t level );
+	void                   clear();
 
 signals:
-    void SetSystrayMessage( const QString& msg );
+	void                   AddProcessMessage( const QString& msg ) const;
 
-public slots:
-    void ShowProcessDialog( const bool show_it, const bool enable_cancel );
-
-private slots:
-	void OnDisplayText();
+private:
+    wpkg_output::level_t	                    f_logLevel;
+	//
+    mutable QMutex								f_mutex;
+    mutable QVector<wpkg_output::message_t>		f_messageFifo;
 };
 
 // vim: ts=4 sw=4 noet

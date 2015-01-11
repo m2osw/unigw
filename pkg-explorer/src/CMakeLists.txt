@@ -108,6 +108,7 @@ add_executable(
 	InstallThread.cpp
 	LogForm.ui
 	LogForm.cpp
+	LogOutput.cpp
 	MainWindow.ui
 	MainWindow.cpp
 	PrefsDialog.ui

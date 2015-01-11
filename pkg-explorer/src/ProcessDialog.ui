@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>541</width>
-    <height>111</height>
+    <width>529</width>
+    <height>101</height>
    </rect>
   </property>
   <property name="contextMenuPolicy">
@@ -26,7 +26,7 @@
   <property name="modal">
    <bool>true</bool>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0,0">
    <item>
     <widget class="QLabel" name="f_label">
      <property name="text">

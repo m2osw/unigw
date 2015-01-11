@@ -37,6 +37,8 @@ ProcessDialog::ProcessDialog(QWidget *p)
 
     connect( &f_timer, SIGNAL(timeout()), this, SLOT(DisplayMessages()));
     f_timer.start( 100 );
+
+    //f_logPane->hide();
 }
 
 ProcessDialog::~ProcessDialog()
@@ -108,6 +110,19 @@ void ProcessDialog::SetProgressRange( const int min, const int max )
 {
 	f_progressBar->setMinimum( min );
 	f_progressBar->setMaximum( max );
+}
+
+
+void ProcessDialog::ShowLogPane( const bool show_pane )
+{
+    if( show_pane )
+    {
+        //f_logPane->show();
+    }
+    else
+    {
+        //f_logPane->hide();
+    }
 }
 
 

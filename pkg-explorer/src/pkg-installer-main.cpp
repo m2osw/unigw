@@ -93,6 +93,13 @@ int main( int argc, char *argv[] )
 	//
     QSharedPointer<wpkgar::wpkgar_lock>		lock( new wpkgar_lock( manager.data(), "Package Installer" ) );
 
+#if 0
+    wpkg_output::output* out = f_logForm->GetLogOutput();
+    Q_ASSERT( out );
+    wpkg_output::set_output( out );
+    out->set_debug( wpkg_output::debug_flags::debug_progress );
+#endif
+
 	// Create and show main window
 	//
     ImportDialog import_dlg( 0, manager );
