@@ -22,7 +22,7 @@ class ProcessWindow : public QObject
     Q_OBJECT
 
 public:
-    ProcessWindow() { f_procDlg.ShowLogPane( false ); }
+    ProcessWindow( QWidget* p ) : f_procDlg(p) {}
 
 public slots:
     void ShowProcessDialog( const bool show_it, const bool enable_cancel )

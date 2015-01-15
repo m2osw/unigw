@@ -224,6 +224,9 @@ add_executable(
 	ImportDialog.cpp
 	InstallThread.h
 	InstallThread.cpp
+	LogForm.ui
+	LogForm.cpp
+	LogOutput.cpp
 	ProcessDialog.h
 	ProcessDialog.cpp
 	ProcessWindow.h

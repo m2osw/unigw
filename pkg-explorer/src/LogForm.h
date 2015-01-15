@@ -24,8 +24,6 @@
 #include "LogOutput.h"
 #include "ui_LogForm.h"
 
-#include <libdebpackages/wpkg_output.h>
-
 class LogForm
     : public QWidget
     , private Ui::LogForm

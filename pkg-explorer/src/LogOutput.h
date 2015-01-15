@@ -16,6 +16,12 @@
 // COMPLETENESS OR PERFORMANCE.
 //===============================================================================
 
+/// \class LogOutput
+///
+/// This class is useful for marshalling incoming messages from the wpkg thread
+/// into the GUI thread in a thread-safe, serialized manner.
+///
+
 #pragma once 
 
 #include <QtGui>

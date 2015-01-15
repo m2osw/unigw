@@ -38,7 +38,6 @@ public:
     void EnableCancelButton( const bool enable );
 	void ShowProgressBar( const bool show );
     void SetProgressRange( const int min, const int max );
-    void ShowLogPane( const bool show );
 
 public slots:
     void AddMessage( const QString& message );
@@ -51,7 +50,7 @@ private:
     QVector<int>         	f_progressFifo;
     QTimer           		f_timer;
 
-    static QMutex            f_mutex;
+    static QMutex           f_mutex;
     static bool				f_cancelClicked;
 
 private slots:

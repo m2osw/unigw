@@ -113,19 +113,6 @@ void ProcessDialog::SetProgressRange( const int min, const int max )
 }
 
 
-void ProcessDialog::ShowLogPane( const bool show_pane )
-{
-    if( show_pane )
-    {
-        //f_logPane->show();
-    }
-    else
-    {
-        //f_logPane->hide();
-    }
-}
-
-
 void ProcessDialog::on_f_cancelButton_clicked()
 {
     QMessageBox::StandardButton answer = QMessageBox::question
