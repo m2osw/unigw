@@ -21,20 +21,11 @@
 #include "include_qt4.h"
 #include "ProcessDialog.h"
 #include "LogForm.h"
+#include "LogOutput.h"
 #include "ui_LogForm.h"
-
-#include <libdebpackages/wpkg_output.h>
-
-class SystrayMessageCB
-{
-public:
-    virtual void OnSystrayMessage( const QString& msg ) = 0;
-};
-
 
 class LogForm
     : public QWidget
-    , private SystrayMessageCB
     , private Ui::LogForm
 {
     Q_OBJECT
@@ -43,21 +34,18 @@ public:
     LogForm( QWidget *p = 0 );
     ~LogForm();
 
-    wpkg_output::output* GetLogOutput() const;
-    wpkg_output::level_t GetLogLevel() const;
-    void SetLogLevel( wpkg_output::level_t level );
-
-	void clear();
+    wpkg_output::output*    GetLogOutput();
+    wpkg_output::level_t    GetLogLevel() const;
+    void                    SetLogLevel( wpkg_output::level_t level );
+    void                    Clear();
 
 private:
-    ProcessDialog			f_procDlg;
-    wpkg_output::output *	f_logOutput;
+    ProcessDialog           f_procDlg;
+    LogOutput               f_logOutput;
     QTimer					f_timer;
 
-    virtual void OnSystrayMessage( const QString& msg );
-
 signals:
-    void SystrayMessage( const QString& msg );
+    void SetSystrayMessage( const QString& msg );
 
 public slots:
     void ShowProcessDialog( const bool show_it, const bool enable_cancel );

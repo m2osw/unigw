@@ -37,6 +37,8 @@ ProcessDialog::ProcessDialog(QWidget *p)
 
     connect( &f_timer, SIGNAL(timeout()), this, SLOT(DisplayMessages()));
     f_timer.start( 100 );
+
+    //f_logPane->hide();
 }
 
 ProcessDialog::~ProcessDialog()

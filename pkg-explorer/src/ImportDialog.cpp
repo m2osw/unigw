@@ -47,11 +47,42 @@ ImportDialog::ImportDialog( QWidget *p, QSharedPointer<wpkgar_manager> manager )
     applyBtn->setEnabled( false );
 
     f_optionsFrame->hide();
+    f_logFrame->hide();
 }
 
 
 ImportDialog::~ImportDialog()
 {
+}
+
+
+void ImportDialog::ShowLogPane( const bool show_pane )
+{
+    if( show_pane )
+	{
+		connect
+			( this      , SIGNAL(ShowProcessDialog(bool,bool))
+			, f_logForm , SLOT  (ShowProcessDialog(bool,bool))
+			);
+		//
+		wpkg_output::output* out = f_logForm->GetLogOutput();
+		Q_ASSERT( out );
+		wpkg_output::set_output( out );
+		out->set_debug( wpkg_output::debug_flags::debug_progress );
+
+        f_logFrame->show();
+	}
+	else
+	{
+        f_logFrame->hide();
+
+		wpkg_output::set_output( 0 );
+		//
+		connect
+			( this      , SIGNAL(ShowProcessDialog(bool,bool))
+			, f_logForm , SLOT  (ShowProcessDialog(bool,bool))
+			);
+	}
 }
 
 
@@ -293,7 +324,7 @@ void ImportDialog::on_f_buttonBox_clicked(QAbstractButton *button)
 			( f_thread.data(), SIGNAL(finished())
 			  , this           , SLOT(OnInstallComplete())
 			);
-	}
+    }
     else if( button == closeBtn )
     {
         reject();
@@ -304,14 +335,14 @@ void ImportDialog::on_f_buttonBox_clicked(QAbstractButton *button)
 void ImportDialog::OnInstallComplete()
 {
     if( dynamic_cast<InstallThread*>(f_thread.data())->get_state() == InstallThread::ThreadFailed )
-	{
-		QMessageBox::critical
+    {
+        QMessageBox::critical
 			( this
 			  , tr("Package Installation Error!")
 			  , tr("One or more packages failed to install! See log pane for details...")
 			  , QMessageBox::Ok
 			);
-	}
+    }
     else
     {
         QMessageBox::information
@@ -320,11 +351,10 @@ void ImportDialog::OnInstallComplete()
               , tr("Your package(s) install successfully!" )
               , QMessageBox::Ok
             );
+        accept();
     }
 
     ShowProcessDialog( false, true );
-
-	accept();
 }
 
 

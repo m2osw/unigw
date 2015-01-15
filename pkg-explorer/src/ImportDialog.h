@@ -34,6 +34,7 @@ public:
     ~ImportDialog();
 
     void AddPackages( const QStringList& package_list, const bool clear = false );
+	void ShowLogPane( const bool show = true );
 
 signals:
     void ShowProcessDialog( bool show_it, bool enable_cancel );

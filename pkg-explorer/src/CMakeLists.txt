@@ -108,6 +108,7 @@ add_executable(
 	InstallThread.cpp
 	LogForm.ui
 	LogForm.cpp
+	LogOutput.cpp
 	MainWindow.ui
 	MainWindow.cpp
 	PrefsDialog.ui
@@ -223,6 +224,9 @@ add_executable(
 	ImportDialog.cpp
 	InstallThread.h
 	InstallThread.cpp
+	LogForm.ui
+	LogForm.cpp
+	LogOutput.cpp
 	ProcessDialog.h
 	ProcessDialog.cpp
 	ProcessWindow.h

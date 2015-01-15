@@ -23,6 +23,7 @@
 
 #include "database.h"
 #include "ImportDialog.h"
+#include "LogOutput.h"
 #include "ProcessDialog.h"
 
 #include <libdebpackages/wpkgar.h>
@@ -93,10 +94,16 @@ int main( int argc, char *argv[] )
 	//
     QSharedPointer<wpkgar::wpkgar_lock>		lock( new wpkgar_lock( manager.data(), "Package Installer" ) );
 
+	LogOutput	log_output;
+    wpkg_output::set_output( &log_output );
+    log_output.set_debug( wpkg_output::debug_flags::debug_progress );
+
 	// Create and show main window
 	//
     ImportDialog import_dlg( 0, manager );
-    ProcessWindow proc_dlg;
+	import_dlg.ShowLogPane();
+
+    ProcessWindow proc_dlg( &import_dlg );
 
     QObject::connect
         ( &import_dlg , SIGNAL(ShowProcessDialog(bool,bool))
