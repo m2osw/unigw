@@ -23,7 +23,6 @@
 
 #include "database.h"
 #include "ImportDialog.h"
-#include "LogOutput.h"
 #include "ProcessDialog.h"
 
 #include <libdebpackages/wpkgar.h>
@@ -92,11 +91,7 @@ int main( int argc, char *argv[] )
     manager->set_root_path      ( root_path.toStdString()     );
     manager->set_database_path  ( database_path.toStdString() );
 	//
-    QSharedPointer<wpkgar::wpkgar_lock>		lock( new wpkgar_lock( manager.data(), "Package Installer" ) );
-
-	LogOutput	log_output;
-    wpkg_output::set_output( &log_output );
-    log_output.set_debug( wpkg_output::debug_flags::debug_progress );
+    QSharedPointer<wpkgar::wpkgar_lock> lock( new wpkgar_lock( manager.data(), "Package Installer" ) );
 
 	// Create and show main window
 	//
