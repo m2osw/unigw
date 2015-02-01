@@ -1,3 +1,9 @@
+wpkg (0.9.4.17~trusty) trusty; urgency=high
+
+  * Nightly build.
+
+ -- Build Server <build@m2osw.com>  Sun, 01 Feb 2015 03:56:03 -0800
+
 wpkg (0.9.4.16~trusty) trusty; urgency=high
 
   * Nightly build.
