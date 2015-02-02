@@ -25,7 +25,7 @@
 # This is the official script I use to generate all the files generated
 # under Linux and uploaded on SourceForge.net
 #
-# The final output (packages, README, ...) is saved under:
+# The final output (packages, README.txt, ...) is saved under:
 #
 #    ../packages/wpkg_<version>/...
 #
@@ -133,7 +133,7 @@ make wpkg_package
 cp WPKG/packages/*.deb $OUTPUTDIR
 
 # Finally copy our current README file
-cp $SRC/README $OUTPUTDIR
+cp $SRC/README.txt $OUTPUTDIR
 
 
 # vim: ts=4 sw=4 et
