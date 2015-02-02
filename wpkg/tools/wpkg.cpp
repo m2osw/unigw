@@ -51,6 +51,7 @@
 #else
 #   include    <unistd.h>
 #endif
+#include    <iostream>
 
 #ifdef _MSC_VER
 // "unknown pragma"
@@ -2636,7 +2637,7 @@ command_line::command_line(int argc, char *argv[], std::vector<std::string> conf
         f_debug_flags |= strtol(debug.c_str(), NULL, 0);
         g_output.set_level(wpkg_output::level_debug);
     }
-    g_output.set_debug(f_debug_flags);
+    g_output.set_debug_flags(f_debug_flags);
 
     // if the default files is turn on, keep the temporary files
     if(f_debug_flags & wpkg_output::debug_flags::debug_detail_files)
@@ -3443,7 +3444,7 @@ void upgrade(command_line& cl)
         // one removed before we can move on
         wpkgar::wpkgar_lock lock_wpkg(&manager, "Upgrading");
         const wpkgar::wpkgar_repository::wpkgar_package_list_t& list(repository.upgrade_list());
-        size_t max(list.size());
+        const size_t max(list.size());
         for(size_t i(0); i < max; ++i)
         {
             if(list[i].get_status() == wpkgar::wpkgar_repository::package_item_t::need_upgrade)
@@ -5946,16 +5947,20 @@ void list_index_packages(command_line& cl)
 {
     if(cl.size() != 0)
     {
-        printf("error:%s: --list-index-packages does not take extra parameters.\n",
-            cl.opt().get_program_name().c_str());
+        std::cerr << "error:"
+            << cl.opt().get_program_name()
+            << ": --list-index-packages does not take extra parameters."
+            << std::endl;
         exit(1);
     }
 
     int max(cl.opt().size("list-index-packages"));
     if(max == 0)
     {
-        printf("error:%s: --list-index-packages expects at least one package index name.\n",
-            cl.opt().get_program_name().c_str());
+        std::cerr << "error:"
+            << cl.opt().get_program_name()
+            << ": --list-index-packages expects at least one package index name."
+            << std::endl;
         exit(1);
     }
     wpkgar::wpkgar_manager manager;

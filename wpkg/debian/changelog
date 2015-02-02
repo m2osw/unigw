@@ -1,3 +1,21 @@
+wpkg (0.9.5) stable unstable; urgency=medium
+
+  * Applied a couple of patches by Mathieu SCHROETER to fix the compilation
+    under MinGW.
+  * Mathieu also found a fix to main() so Unicode if fully supported.
+  * Applied a patch by Trent Clarke to fix the basic authentication when
+    using HTTP to retrieve packages. A \r\n was missing.
+  * Fixed a problem with os_stat() that would throw when checking paths
+    representing a URI.
+  * Fixed 3 errors that would say "validate removal" instead of "repository".
+  * Fixed the -V so it works with control.info files.
+  * Fixed the propagation of the --debug flag when building sources or
+    compiling binary packages.
+  * Fixed the --list-index-packages so it supports paths.
+  * Moved the ChangeLog to the debian/changelog file instead.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Tue, 12 Aug 2014 00:09:10 -0800
+
 wpkg (0.9.4.17~trusty) trusty; urgency=high
 
   * Nightly build.
@@ -100,8 +118,434 @@ wpkg (0.9.4.1~trusty) trusty; urgency=high
 
  -- Build Server <build@m2osw.com>  Thu, 01 Jan 2015 18:25:02 -0800
 
-wpkg (0.9.4) trusty; urgency=high
+wpkg (0.9.4) stable unstable; urgency=medium
 
-  * Initial release of packaging.
+  * Applied a patch by Trent Clarke to fix big problems with large trees
+    of dependencies so all possibilities do get tested as expected.
+  * Fixed the problems with architectures not being canonicalized when
+    determining whether a script should be added or not.
+  * Fixed architecture <= and >= operators.
+  * Fixed the output when vendor is defined, but all three parameters are
+    "any" (we expect "any" as a return value of to_string()).
+  * Properly detect "validate" scripts.
+  * Detect additional shell scripts to determine that a script is for Unix.
+  * Do not add any scripts to source packages (mistake?)
+  * Check whether a processor name include invalid characters in case a
+    pattern is used to match the name.
+  * Updated the copyright date of all files to 2014.
 
- -- R. Douglas Barbieri <doug@dooglio.net>  Sat, 20 Dec 2014 22:27:55 -0800
+ -- Alexis Wilke <alexis@m2osw.com>  Sun, 27 Jul 2014 02:39:17 -0800
+
+wpkg (0.9.3) stable unstable; urgency=medium
+
+  * Found out why the UTF-8 library documentation was not making it in.
+  * Fixed the upgrade so it does not fail with remote URLs and paths.
+    (found by Trent Clarke, see
+    https://sourceforge.net/p/unigw/discussion/647573/thread/17a08da5/)
+  * Fixed the upgrade info prints which would use a temporary string
+    (also found by Trent Clarke, see same link)
+
+ -- Alexis Wilke <alexis@m2osw.com>  Tue, 05 Sep 2013 21:50:30 -0800
+
+wpkg (0.9.2) stable unstable; urgency=medium
+
+  * Fixed the advgetopt parser to properly handle single parameters so we
+    really keep only the last one used.
+  * Strengthen the advgetopt parser to break in more cases as it was first
+    expected (especially useful for developers).
+  * Fixed the strcasecmp() to properly compare UTF-8 strings.
+  * Fixed the number of items check in get_string() and similar.
+  * Fixed a number of 'unpack' or 'install' references in wpkgar_remove.cpp.
+  * Added some logs in the remove process in case of failure.
+  * Changed the calling of scripts to use deconfigure or purge as required.
+  * Fixed the name of the SunOS operating system: solaris.
+  * The build script now automatically creates a source package.
+  * The build script copies the output to our wpkg archive.
+  * Fixed the usage() function that would write some information using stderr
+    and others with stdout and call fflush on stdout once done.
+  * Fixed the wpkg_filename class so it compiles under FreeBSD and Solaris.
+  * Added a script to run devenv.exe the 6x we need to build everything.
+  * Fixed the name of the OS under Microsoft Windows.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Tue, 05 Sep 2013 21:50:30 -0800
+
+wpkg (0.9.1) stable unstable; urgency=medium
+
+  * Fixed the full_path() function so spaces are returned as such for file://
+    schemes instead of %20 (URI encoded).
+  * Fixed script execution under MS-Windows when path or command includes
+    a space.
+  * Fixed an error module and action parameters.
+  * Fixed the File: fields so filenames with spaces are saved properly.
+  * Fixed a few exceptions that were privately derived.
+  * Added some documentation.
+  * Added a few functions to access copyright files data.
+  * Changed the source package validation to make use of basename instead
+    of the full name.
+  * Updated scripts to better test spaces in filenames.
+  * Spell checked the library and fixed many mispelled words.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Tue, 27 Aug 2013 23:39:38 -0800
+
+wpkg (0.9.0) stable unstable; urgency=medium
+
+  * Added support for an area in the Section field.
+  * Added advanced --help functions, try: wpkg --help help
+  * Added support for reading changelog & copyright files.
+  * Added support to create source packages.
+  * Added support to create binary packages from source packages.
+  * Added support for long filenames in tarballs (GNU extension/PaxHeader.)
+  * Added support for user defined validation scripts.
+  * Added support for global validation scripts.
+  * Added --autoremove to remove now unused implicitly installed packages.
+  * Added alias support for command line arguments.
+  * Added --[enforce-]path-length-limit to build sensible packages.
+  * Added support to manage build numbers.
+  * Added support for a Minimum-Upgradable-Version field.
+  * Added support for the --reconfigure command.
+  * Added support for full rollback of installation or removal.
+  * Added more ways to access variables in field (control) files.
+  * Added support for a vendor in architectures.
+  * Added pkgconfig like support (i.e. reading of .pc files.)
+  * Added a Component field to use along the Distribution field.
+  * Added many new unit tests and upgraded many existing tests.
+  * Added the --reconfigure command to re-run the configuration scripts.
+  * Added doxygen documentation
+
+  * Redesign the loading of control files with the field_file.
+  * Redesign the log feature with C++ capabilities.
+  * Redesign the temporary directory and always use /tmp/wpkg-<pid> under
+    Unix and $TEMP/wpkg-<pid> under MS-Windows plus auto-delete it on exit,
+    so content based functions (--contents) do not require a --root anymore.
+  * Implemented a class to handle all Debian architectures seemlessly.
+  * Changed win32/win64 to mswindows as the operating system name.
+  * Added alias --verify-fields for --validate-fields.
+  * Made --status an alias of --field.
+  * Changed the old --status code to print as --status-fd, but using the
+    --package-status command because we do not support an 'fd'.
+  * Put support for the Distribution field back, checked at install time.
+  * Put support for --force-distribution back to allow any Distribution.
+  * Change the handling of the Distribution field.
+  * Updated different scripts to get better packages, coverage info, etc.
+  * Changed support for long filenames so UNC is used in many more cases even
+    when path is not absolute or too many things fail.
+ 
+  * Fixed several improper references in log messages.
+  * Fixed the --force-architecture, actually test the flag!
+  * Fixed the --fsys-tarfile which would crash with files over 64Kb
+  * Fixed a missing version test of an unpacked package that needs
+    configuration (we would accept any version)
+  * Fixed test of unpacked packages to auto-configure to properly use the
+    --force-configure-any instead of --force-depends-version
+  * Fixed dependency search to test installed packages after we checked
+    for explicit packages; this will allows us to avoid longer searches
+  * Fixed the Hold status check when --configure is used.
+  * Fixed the time zone in the Date field under MS-Windows
+  * Fixed time value so we keep them as 64 bit values.
+  * Fixed some problems with reading files which names use Unicode.
+  * Fixed the dynamic libraries and the static libraries are still working
+    fine (requires a newer version of cmake to work right)
+
+ -- Alexis Wilke <alexis@m2osw.com>  Tue, 11 Jun 2013 07:37:18 -0800
+
+wpkg (0.8.4) unstable; urgency=low
+
+  * Fixed the advgetopt parser to properly handle single parameters so we
+    really keep only the last one used.
+  * Fixed the handling of '-' since it is like a standalone default option.
+  * Properly prevent default options in environment variable if so marked.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Tue, 05 Sep 2013 21:50:30 -0800
+
+wpkg (0.8.3) unstable; urgency=low
+
+  * Fixed the compilation of static libraries under MS-Windows (and messed
+    up the compilation of dynamic libraries... which is fixed in 0.9.0+)
+
+ -- Alexis Wilke <alexis@m2osw.com>  Tue, 06 Aug 2013 10:46:22 -0800
+
+wpkg (0.8.2) stable unstable; urgency=low
+
+  * Fixed the test of unpacked packages to be configured to make use of
+    the --force-configure-any option instead of --force-downgrade.
+  * Fixed the unpacked packages validation to also check the package version.
+  * Fixed the time zone of the Date field among others.
+  * Fixed parsing of '/' in current directory of WPKG_SUBST.
+  * Fixed basename extraction with name starting with "..".
+  * Fixed several functions to handle long filenames throughout.
+  * Fixed size check for tarballs (swapped 155 & 100.)
+  * Fixed a few errors and other messages.
+  * Fixed the unlink_rf() use of errno.
+  * Fixed the unlink_rf() by adding a second try in MS-Windows.
+  * Fixed the unit tests so they run under Linux and MS-Windows.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Sat, 29 Jun 2013 05:05:19 -0800
+
+wpkg (0.8.1) stable unstable; urgency=low
+
+  * Fixed several improper references in log messages.
+  * Removed one unused parameter in one message.
+  * Fixed the --force-architecture, actually test that flag!
+  * Fixed the derived class of the wpkg_control exceptions.
+  * Fixed the --fsys-tarfile which would crash with files larger than 64Kb
+
+ -- Alexis Wilke <alexis@m2osw.com>  Sun, 09 Jun 2013 11:43:22 -0800
+
+wpkg (0.8.0) stable unstable; urgency=medium
+
+  * Added support for MS-Windows network filenames (UNC)
+  * Added support to recognize protocols (smb and http)
+  * Added support for long filenames (over 260 characters)
+  * Added support for HTTP protocol to read files from websites (for --install)
+  * Added a TCP/IP client and server class
+  * Added support for configuration files (system & user)
+  * Added support for the environment variable WPKG_OPTIONS
+  * Added support for wpkg to self-upgrade
+  * Added and enhanced inline documentation and errors
+  * Added support for directories and symbolic links in filesmetadata
+  * Added a vendor string to the library
+  * Added --architecture, --os, --processor, --triplet, and --vendor to wpkg
+  * Added a shell() command to libexpr
+  * Added a vendor() command to the library for control files
+  * Added support for repository indexes and access
+  * Added support for updates and upgrades from repositories
+  * Added unit tests with Qt support and that can run under MS-Windows
+  * Added a new error in the libexpr when a variable is expected and not found
+  * Added support for wide strings in libexpr and other parts of the software
+  * Added a --log-output to save logs in a local file
+  * Added a selection state of "Hold" to prevent auto-upgrades if needed
+  * Added a --dry-run to only run validations of install/remove commands
+  * Added a callback for Ctrl-C to better control interruption
+  * Added support for UTF-16 characters in filenames under MS-Windows
+  * Added package support so we can create wpkg packages for distribution
+  * Added simple manual pages for Unix distributions
+  * Added the --compress and --decompress commands
+  * Added an --md5sums to create an md5sums file from packages and other files
+  * Added compressed ChangeLog to the package using wpkg
+  * Made necessary changes to compile under darwin, mingw, and cygwin
+  * Moved the architecture determination to libversion.c so it is public
+  * Enhanced the operating system and processor detection in CMakeLists.txt
+  * Enhanced the output and logging capabilities
+  * Properly prevent files from being used from the WPKG directory
+  * Make use of the --validate-fields when installing packages
+  * Changed test on load package: use full path as an invalid duplicate test
+  * Updated the dar tool to support HTTP
+  * Skip "." and ".." from reading directories under MS-Windows
+  * Prevent usage of special MS-Windows filenames such as COM1 and LPT3
+  * Prevent usage of characters not supported in filenames under MS-Windows
+  * In packages, prevent filenames that start/end with a space
+  * In packages, prevent filenames that end with a period
+  * Prevent using SUID/GUID in filesmetadata when creating a source package
+  * Prevent the use of the "shlibs:" variable name
+  * Changed the catch() in main() into an exit(1) instead of re-throw
+  * Changed the Linux behavior to also use the exit(1) on error
+  * Changed the catch() to log the exception message
+  * Removed unused functions in the wpkgar_install class
+  * Enhanced the output of control file errors with a filename and line number
+  * Made the is_architecture_valid() a public function
+  * Fixed the inter-drive installation capability under MS-Windows
+  * Fixed the --install so it deletes the files that disappeared on upgrade
+  * Fixed the installation order, if a depends on b, install b first
+  * Fixed dependency version checks while installing
+  * Fixed the fact that a failure of preinst was not generating an error
+  * Fixed an installation bug where postinst would not get executed
+  * Fixed the use of --instdir for installations and removals
+  * Fixed overwrite tests so it works as expected in all cases
+  * Fixed the backup so it can delete new files if no old files existed
+  * Fixed the --remove/--purge against unpacked packages
+  * Fixed the --configure and --deconfigure so they work as expected
+  * Fixed the state on --unpack
+  * Fixed the handling of the default operator in the output, it is '>='
+  * Fixed the --unpack so it can be used to upgrade already unpacked packages
+  * Fixed wpkg so it exits with 1 on errors
+  * Fixed the DLL so it is possible to link against them properly
+  * Fixed several operators in libexpr so they loop as expected
+  * Fixed several floating point operations in variable.cpp
+  * Fixed the --remove dependency check when multiple packages are specified
+  * Fixed the CMakeLists.txt to properly install everything
+  * Fixed the use of optional_multiple_argument in the advgetopt class
+  * Fixed the printing of errors + usage, that made it hard to find the errors
+  * Fixed the filesmetadata parsing as 'p' is for FIFO (not 'f')
+  * Fixed filesmetadata support of FIFO filenames
+  * Fixed some error messages (better, include some filename, etc.)
+  * Fixed several problems in the memfile implementation
+  * Fixed the --output-filename to prevent drive specifications
+  * Fixed the --exception to prevent drive specifications
+  * Fixed a bug with the unlock() which would fail in some cases
+  * Fixed a bug with the copying of the database and the wpkg-status file
+  * Fixed the dar tool so it catches exceptions
+  * Fixed the pow() command and use the 2nd parameter as expected
+
+ -- Alexis Wilke <alexis@m2osw.com>  Tue, 09 Dec 2012 23:40:18 -0800
+
+wpkg (0.7.2) unstable; urgency=medium
+
+  * Added support to setup mode and owner/group on Linux
+  * Added --force-file-info to avoid errors on owner/group failures
+  * Added support to setup Read-Only flag on windows
+  * Added support to force the owner/group (number/name) of all the files
+  * Added support for a text format (filesmetadata) as an archive of meta data
+  * Added support to define meta data for files externally
+  * Added support to add special files without having to do so in the install
+  * Added support for symbolic links under Unix
+  * Added support for the Distribution field, checked at install time
+  * Added --build-and-install to immediately install after a build
+  * Added --numbers to show user/group/mode as numbers in --contents
+  * Added a shared version of all the libraries for 3rd party development
+  * Added the libtld to support checking URI addresses in control files
+  * Added a pack script to generate the Debian like wpkg packages
+  * Added function distribution() which returns the wpkg distribution
+  * Added function architecture() which returns the wpkg architecture
+  * Added --force-any-distribution to allow installing any package
+  * Added check of Standards-Version field, optional
+  * Added checks on many more control file fields
+  * Swapped display of long and short command line options
+  * Remove the Build-Depends/Conflicts[-Indep] from non-source packages
+  * Properly run prerm script when deconfiguring
+  * Properly test that --output-filename and a .info are not used together
+  * Forbidding lines that start with a period, a space, and something else
+  * Fixed a bug with the bzip2 decompression that would fail in one case
+  * Fixed the status after deconfiguring to "Unpacked"
+  * Fixed the creation of directories, that is done although not yet backed up
+  * Fixed order of command line options so it is alphabetical
+  * Fixed a few tests that improperly checked paths as absolute
+  * Fixed the time when variables/expressions get applied to control fields
+  * Fixed the script calling convensions so paths/args can include spaces
+  * Fixed documentation so as to avoid one directory level
+  * Fixed unpacking over a read-only file
+  * Fixed the C/C++ expression ?: operator right hand-side computation
+  * Fixed the & expression, it was using ^ instead
+  * Fixed the fmod() function, it needs 2 parameters
+  * Fixed the TOK_INTEGER, in case of 0 it was missing an ungetc() call
+  * Fixed the --help output so it is limited to 80 columns
+  * Fixed several commands that tested for "_" only instead of "_/"
+  * Fixed warnings in 32 & 64 bit Windows (size_t missused)
+  * Fixed the naming for the z and bz2 libraries (wpkg_z, wpkg_bz2)
+  * Fixed the library references of each library and tool
+  * Fixed the dir_rewind() that would setup the position offset too soon
+  * Fixed the mkdir_p() function to ignore C:/ at the start of paths
+  * Fixed the size computation, f_block_size was unsigned
+  * Fixed the ChangeLog format to match Debian
+  * Fixed the installation of runtime versus development files
+  * Fixed the Installed-Size and Extra-Size to be in Kb instead of bytes
+  * Updated README to include information about DLL usage
+  * Updated copyright notice to include 2013
+
+ -- Alexis Wilke <alexis@m2osw.com>  Tue, 09 Dec 2012 23:40:18 -0800
+
+wpkg (0.7.1) unstable; urgency=medium
+
+  * Fixed the bz2 compression
+  * Fixed the ar creation (append was failing with large files)
+  * Fixed the audit so configuration files are ignored
+  * Fixed the --fsys-tarfile so it works as in dpkg
+  * Fixed the memfile maximum size to 1Gb instead of 128Mb.
+  * Fixed the extraction code so it is safe even with ".." in filenames
+  * Fixed bug in filename canonalization
+  * Fixed compression of control.tar.gz, must be gzip so it is
+  * Added check on ar filenames, they cannot be empty
+  * Fixed the lzma and xz tests so such files can be added to data.tar.gz
+  * Fixed the --force-remove-essential (singular)
+  * Fixed the --force-configure-any check (used the wrong enum)
+  * Fixed the dependency version test for unpacked packages
+  * Fixed the return value of configure_package() so failures are detected
+  * Actually test the --force-depends, --force-breaks
+  * Added --output-dir and --output-filename for --install
+  * Fixed installation and do pre-configurations as expected (Pre-Depends)
+  * Fixed the --root so a full path is always used (fixed scripts calling)
+  * Fixed the --list output with 'n' instead of 'p' when [N]ot installed
+  * Fixed the --remove recursive feature (dependencies validation)
+  * Fixed the --remove of already removed but still configured packages
+  * Fixed the --remove so implicitly defined packages do get removed
+  * Renamed set_output_folder() to set_output_dir()
+  * Fixed the list of explicit packages to the --remove command
+  * Fixed a few file.bad() check with !file.good() to test for all errors
+  * Added field named X-Explicit to detect implicitly installed targets
+  * Fixed different error message for conciseness and extra details
+  * Fixed several installation definitions in CMakeLists.txt
+
+ -- Alexis Wilke <alexis@m2osw.com>  Tue, 08 Dec 2012 23:40:18 -0800
+
+wpkg (0.7.0) unstable; urgency=medium
+
+  * Finishing up on cmake switch
+  * Removed boost dependency
+  * Moved the zlib dependency to within wpkg
+  * Added bz2 support within wpkg
+  * Fully implemented the --install and --remove
+  * More output commands working with installed packages and .deb files
+  * Added audit capability (--audit or -C)
+  * Added proper globbing for --list and --exception
+  * Added dot support (generates dot files)
+  * Reorganized the project quite a bit
+
+ -- Alexis Wilke <alexis@m2osw.com>  Tue, 10 Jul 2012 02:06:14 -0800
+
+wpkg (0.6.0) unstable; urgency=medium
+
+  * Added the libexpr library
+  * Added support for --validate-fields
+  * Fixed the mkdir_p() so full paths work under Linux too
+  * Changed from configure to cmake
+
+ -- Alexis Wilke <alexis@m2osw.com>  Sat, 06 Jan 2007 01:26:51 -0800
+
+wpkg (0.5) unstable; urgency=medium
+
+  * Fixed the doc so it is easier to find the installation instructions
+  * Reviewed the English on some pages of the documentation
+  * Added a link in the menu to the Bugs tracker
+  * Implemented the --build command line option
+  * Documented the --build
+  * Documented the .info file
+  * Renamed --content into --contents (as in dpkg)
+  * Many fixes to the archive and directory handling (internal)
+  * Creates missing parent directories on installation
+  * Added a new tool named debversion to test and compare Debian versions
+  * Extracted the Debian version test from the tool to a library
+
+ -- Alexis Wilke <alexis@m2osw.com>  Sat, 06 Jan 2007 01:26:51 -0800
+
+wpkg (0.4) unstable; urgency=medium
+
+  * Fixed the binary packages so they include the database
+  * Removed the warning in regard to the missing MSYS DLL
+
+ -- Alexis Wilke <alexis@m2osw.com>  Fri, 05 Jan 2007 23:59:59 -0800
+
+wpkg (0.3) unstable; urgency=medium
+
+  * Added support for --directory-size
+  * Added the tool dirsize
+  * Save the dependents of a parent package in its status file
+  * Added the necessary tests of dependents in --remove
+  * Fixed the directory reader; the recusivity works right now
+  * Updated the documentation accordingly
+
+ -- Alexis Wilke <alexis@m2osw.com>  Sun, 20 Dec 2006 18:41:29 -0800
+
+wpkg (0.2) unstable; urgency=medium
+
+  * Added the --[no-]force-... and --refuse-... options
+  * wpkg only warns when it cannot find msys-1.0.dll
+  * Check the [Pre-]Depends: fields when installing a package
+  * Check the Conflicts field when installing a package
+  * Check the Priority & Essential fields when removing a package
+  * The install makes sure package file paths don't include /../
+  * Changed the distribution to include wpkg by itself and msys in a .deb
+  * Accept installing packages with their architecture set to "source"
+  * Added the administration flag --remove-database-lock; just in case
+  * Updated the documentation accordingly
+
+ -- Alexis Wilke <alexis@m2osw.com>  Sun, 20 Dec 2006 18:41:29 -0800
+
+wpkg (0.1) unstable; urgency=medium
+
+  * Initial release
+    Note that this release includes some files (the .hpp) which are
+    supposed to be from boost-extras.sf.net but these are not yet
+    properly documented and thus I include them directly in this
+    package for now.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Sun, 03 Dec 2006 18:41:29 -0800
+

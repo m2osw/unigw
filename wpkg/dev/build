@@ -98,6 +98,9 @@ cp documentation/wpkg-doc_*.tar.gz "$OUTPUTDIR"
 
 # Unit tests run when you do dev/coverage and that's better because we have
 # more debug turned on!
+echo "***"
+echo "*** WARNING: unit tests not run on dev/build, please run dev/coverage instead."
+echo "***"
 #tests/unittest/unittest --tmp tests/output --wpkg tools/wpkg
 
 for prog in tools/dar tools/deb2graph tools/deb2html tools/debversion tools/dirsize tools/rc-version tools/wpkg libexpr/c_expr

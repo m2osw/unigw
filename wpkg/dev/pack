@@ -1,4 +1,11 @@
 #!/bin/sh
+#
+# This script still works, but really I use the dev/build script now.
+# You can always remove the exit 1 to make use of this script.
+
+echo "Please look at the dev/build script instead."
+exit 1;
+
 set -e
 rm -rf BUILD/pack
 mkdir -p BUILD/pack

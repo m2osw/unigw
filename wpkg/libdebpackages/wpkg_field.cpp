@@ -55,6 +55,7 @@
 #include    "libexpr/expr.h"
 
 #include    <sstream>
+#include    <iostream>
 #include    <algorithm>
 
 

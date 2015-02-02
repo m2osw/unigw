@@ -15,7 +15,7 @@ echo "***"
 # You probably want to edit these variables if you think they do not
 # match your system installation
 export SOURCE=`pwd`
-export PATH=$PATH:`pwd`/../../../BUILD/tools
+export PATH=$PATH:`pwd`/../../../BUILD/wpkg/tools
 export VERSION=1.2.8
 export ARCH=amd64
 export HTTP_REPOSITORY_PATH=~/public_html/repository

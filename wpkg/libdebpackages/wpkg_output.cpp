@@ -780,6 +780,10 @@ controlled_vars::ptr_auto_init<output> g_log_output;
  */
 void set_output(output *out)
 {
+    if(out == g_log_output)
+    {
+        return;
+    }
     if(g_log_output)
     {
         g_log_output->release();
@@ -1821,7 +1825,7 @@ void output::log(const message_t& message) const
  *
  * \param[in] debug_flags  A set of debug flags.
  */
-void output::set_debug(debug_flags::debug_t debug_flags)
+void output::set_debug_flags(debug_flags::debug_t debug_flags)
 {
     f_debug_flags = debug_flags;
 }

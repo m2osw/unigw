@@ -254,24 +254,24 @@ private:
 class DEBIAN_PACKAGE_EXPORT output
 {
 public:
-    output();
-    virtual ~output() {}
+                            output();
+    virtual                 ~output() {}
 
-    void addref();
-    void release();
+    void                    addref();
+    void                    release();
 
-    void set_program_name(const std::string& program_name);
-    const std::string& get_program_name() const;
-    void set_debug(debug_flags::debug_t debug_flags);
-    debug_flags::debug_t get_debug_flags() const;
-    uint32_t error_count() const;
-    void reset_error_count();
+    void                    set_program_name(const std::string& program_name);
+    const std::string&      get_program_name() const;
+    void                    set_debug_flags(debug_flags::debug_t debug_flags);
+    debug_flags::debug_t    get_debug_flags() const;
+    uint32_t                error_count() const;
+    void                    reset_error_count();
 
-    void log(const message_t& message) const;
+    void                    log(const message_t& message) const;
 
 protected:
-    virtual void log_message( const message_t& msg_obj ) const;
-    virtual void output_message( const message_t& msg_obj ) const;
+    virtual void            log_message( const message_t& msg_obj ) const;
+    virtual void            output_message( const message_t& msg_obj ) const;
 
 private:
     controlled_vars::muint32_t          f_refcount;
@@ -282,10 +282,10 @@ private:
 
 
 
-DEBIAN_PACKAGE_EXPORT void set_output(output *out);
-DEBIAN_PACKAGE_EXPORT output *get_output();
-DEBIAN_PACKAGE_EXPORT debug_flags::debug_t get_output_debug_flags();
-DEBIAN_PACKAGE_EXPORT uint32_t get_output_error_count();
+DEBIAN_PACKAGE_EXPORT void                  set_output(output *out);
+DEBIAN_PACKAGE_EXPORT output *              get_output();
+DEBIAN_PACKAGE_EXPORT debug_flags::debug_t  get_output_debug_flags();
+DEBIAN_PACKAGE_EXPORT uint32_t              get_output_error_count();
 
 
 }       // namespace wpkg_output

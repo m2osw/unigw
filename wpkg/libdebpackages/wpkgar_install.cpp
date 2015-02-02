@@ -34,10 +34,11 @@
 #include    "libdebpackages/wpkg_backup.h"
 #include    "libdebpackages/wpkg_util.h"
 #include    "libdebpackages/debian_packages.h"
-#include    <sstream>
-#include    <fstream>
 #include    <algorithm>
 #include    <set>
+#include    <fstream>
+#include    <iostream>
+#include    <sstream>
 #include    <stdarg.h>
 #include    <errno.h>
 #include    <time.h>
@@ -166,7 +167,7 @@ wpkgar_install::package_item_t::package_item_t(wpkgar_manager *manager, const wp
 
 void wpkgar_install::package_item_t::load(bool ctrl)
 {
-    // if we're only interested in a control file and it is available, then
+    // if we are only interested in a control file and it is available, then
     // load that data from the accompanying control file
     if(ctrl && f_ctrl)
     {
@@ -840,7 +841,7 @@ bool wpkgar_install::validate_directories()
                 }
                 if(info.get_file_type() != memfile::memory_file::file_info::regular_file)
                 {
-                    // we're only interested by regular files, anything
+                    // we are only interested by regular files, anything
                     // else we skip silently
                     continue;
                 }
@@ -2115,7 +2116,7 @@ void wpkgar_install::read_repositories()
                 package_item_t package(f_manager, it->append_child(filename), package_item_t::package_type_available, ctrl);
 
                 // verify package architecture
-                std::string arch(package.get_architecture());
+                const std::string arch(package.get_architecture());
                 if(arch != "all" && !wpkg_dependencies::dependencies::match_architectures(arch, f_architecture, get_parameter(wpkgar_install_force_vendor, false) != 0))
                 {
                     // this is not an error, although in the end we may not
