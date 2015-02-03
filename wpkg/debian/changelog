@@ -1,3 +1,9 @@
+wpkg (0.9.5.1~trusty) trusty; urgency=high
+
+  * Nightly build.
+
+ -- Build Server <build@m2osw.com>  Tue, 03 Feb 2015 03:46:29 -0800
+
 wpkg (0.9.5) stable unstable; urgency=medium
 
   * Applied a couple of patches by Mathieu SCHROETER to fix the compilation
