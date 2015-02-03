@@ -1,5 +1,5 @@
 /*    wpkg_control.cpp -- implementation of the control file handling
- *    Copyright (C) 2012-2014  Made to Order Software Corporation
+ *    Copyright (C) 2012-2015  Made to Order Software Corporation
  *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -727,7 +727,7 @@ void info_control_file::verify_file() const
  * Source control files are heavily checked for their contents. However,
  * contrary to a binary control file, the mandatory fields are not required
  * to exist in the control file because we can gather that information from
- * other files. For example, the ChangeLog defines the package name, version,
+ * other files. For example, the changelog defines the package name, version,
  * urgency, maintainer, version date, and change logs (obviously!)
  *
  * In most cases, the Architecture field is not defined. This is because we
@@ -765,7 +765,7 @@ source_control_file::source_control_file()
  * in full. The main test is to verify that a set of fields are defined.
  *
  * In case of a source control file we expect the Package field to exist.
- * Although the Package field could be taken from the ChangeLog, it is used
+ * Although the Package field could be taken from the changelog, it is used
  * as a sanity check.
  *
  * We also expect the Description field to be defined. Most everything else

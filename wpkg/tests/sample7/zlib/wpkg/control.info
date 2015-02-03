@@ -1,0 +1,17 @@
+Sub-Packages: runtime*, documentation, development
+Package/runtime: zlib
+Package/documentation: zlib-doc
+Package/development: zlib-dev
+Version: ${VERSION}
+Architecture: amd64
+Architecture/doc: all
+Depends/development: zlib
+Suggest/runtime: zlib-doc
+Description: compression library
+ zlib is a library implementing the deflate compression method found
+ in gzip and PKZIP.  This package includes the shared library.
+Homepage: http://zlib.net/
+Maintainer: Alexis Wilke <alexis@m2osw.com>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Origin: wpkg
+Section: libs

@@ -1,5 +1,5 @@
 /*    wpkgar_repository.cpp -- manage a repository of debian packages
- *    Copyright (C) 2013-2014  Made to Order Software Corporation
+ *    Copyright (C) 2013-2015  Made to Order Software Corporation
  *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -565,7 +565,7 @@ void wpkgar_repository::create_index(memfile::memory_file& index_file)
             const wpkg_filename::uri_filename& filename(info.get_uri());
             if(info.get_file_type() != memfile::memory_file::file_info::regular_file)
             {
-                // we're only interested by regular files,
+                // we are only interested by regular files,
                 // anything else we skip silently
                 if(info.get_file_type() != memfile::memory_file::file_info::directory
                 || !get_parameter(wpkgar_repository_recursive, false))
@@ -638,7 +638,7 @@ void wpkgar_repository::create_index(memfile::memory_file& index_file)
                             ctrl.set_input_file(NULL);
                             memfile::memory_file::file_info idx_info;
                             wpkg_filename::uri_filename path(filename.remove_common_segments(*it).dirname(false));
-                            std::string ctrl_name(path.append_child(filename.basename() + ".ctrl").path_only());
+                            const std::string ctrl_name(path.append_child(filename.basename() + ".ctrl").path_only());
                             wpkg_output::log("add package %1 to this repository index file.")
                                     .quoted_arg(ctrl_name)
                                 .module(wpkg_output::module_repository)
@@ -721,15 +721,16 @@ void wpkgar_repository::load_index(const memfile::memory_file& file, entry_vecto
         }
         const std::string filename(idx_info.get_filename());
 
-        // no path allowed; the path is part of the sources.list file URI
-        if(filename.find_first_of('/') != std::string::npos)
+        // we always expect a path before the package name
+        const std::string::size_type pos(filename.find_last_of('/'));
+        if(pos == std::string::npos)
         {
-            throw wpkgar_exception_invalid("an index filename cannot include a \"/\" character");
+            throw wpkgar_exception_invalid("an index filename always expects at least one path segment before a package name");
         }
 
         // all files must have .ctrl as their extension
-        std::string::size_type dot(filename.find_last_of('.'));
-        if(dot == std::string::npos)
+        const std::string::size_type dot(filename.find_last_of('.'));
+        if(dot == std::string::npos || dot < pos)
         {
             throw wpkgar_exception_invalid("an index filename must have a valid extension");
         }
@@ -737,24 +738,25 @@ void wpkgar_repository::load_index(const memfile::memory_file& file, entry_vecto
         {
             throw wpkgar_exception_invalid("all the files in an index must have the \".ctrl\" extension, \"" + filename.substr(dot) + "\" is not valid");
         }
-        const std::string basename = filename.substr(0, dot);
+        const std::string basename = filename.substr(pos + 1, dot - pos - 1);
 
         // we must at least have a package name and a version
-        std::string::size_type p(basename.find_first_of('_'));
+        const std::string::size_type p(basename.find_first_of('_'));
         if(p == std::string::npos)
         {
             throw wpkgar_exception_invalid("an index filename must include at least one \"_\" character");
         }
         // verify the package name
-        std::string package_name(basename.substr(0, p));
+        const std::string package_name(basename.substr(0, p));
         if(!wpkg_util::is_package_name(package_name))
         {
             throw wpkgar_exception_invalid("\"" + package_name + "\" is not a valid package name and thus this index filename cannot be valid");
         }
-        std::string::size_type q(basename.find_last_of('_'));
+        const std::string::size_type q(basename.find_last_of('_'));
         std::string version;
         if(p != q)
         {
+            // there is an architecture, verify that too!
             std::string arch(basename.substr(q + 1));
             if(!wpkg_dependencies::dependencies::is_architecture_valid(arch))
             {
@@ -841,9 +843,13 @@ void wpkgar_repository::read_sources(const memfile::memory_file& file, source_ve
 
         // parse the line
         // format is:
-        //      1. deb type (i.e. "deb" or "deb-src")
-        //      2. [ options... ] (optional, set of variable/value pairs defined in square brackets)
-        //           Debian defines:   arch=arch1,arch2,... and trusted=yes|no
+        //      1. deb type (i.e. "deb" or "deb-src" in Debian, "wpkg"
+        //         and "wpkg-src" for us)
+        //      2. [ options... ] (optional, set of variable/value pairs
+        //         defined in square brackets)
+        //           Debian defines:
+        //               arch=arch1,arch2,... and
+        //               trusted=yes|no
         //      3. URI (protocols we understand: file, http, copy, smb)
         //      4. distribution
         //      5. components (optional, multiple entries possible)
@@ -1181,7 +1187,7 @@ const wpkgar_repository::wpkgar_package_list_t& wpkgar_repository::upgrade_list(
         f_manager->load_package("core");
         f_manager->list_installed_packages(f_installed_packages);
 
-        size_t max(f_update_index.size());
+        const size_t max(f_update_index.size());
         for(size_t i(0); i < max; ++i)
         {
             // make sure we had at least one successful read
@@ -1210,6 +1216,15 @@ const wpkgar_repository::wpkgar_package_list_t& wpkgar_repository::upgrade_list(
     return f_packages;
 }
 
+/** \brief Add the packages found in this index to the list of packages.
+ *
+ * This function reads each file in the specified index file and adds
+ * packages to the list of packages. It will have a flag that indicates
+ * whether the package is already installed.
+ *
+ * \param[in] i  The index in the f_update_index which we are working with.
+ * \param[in[ index_file  The index file, a tarball with the repository index.
+ */
 void wpkgar_repository::upgrade_index(size_t i, memfile::memory_file& index_file)
 {
     index_file.dir_rewind();
@@ -1239,9 +1254,18 @@ void wpkgar_repository::upgrade_index(size_t i, memfile::memory_file& index_file
     }
 }
 
+/** \brief Check whether the specified package is already installed.
+ *
+ * This function searches the database of installed packages to see
+ * whether the named package is already installed.
+ *
+ * \param[in] name  The name of the package to check.
+ *
+ * \return true if the named package is laready installed on the target.
+ */
 bool wpkgar_repository::is_installed_package(const std::string& name) const
 {
-    size_t max(f_installed_packages.size());
+    const size_t max(f_installed_packages.size());
     for(size_t i(0); i < max; ++i)
     {
         if(f_installed_packages[i] == name)

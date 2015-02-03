@@ -68,6 +68,25 @@ is found on the wpkg website here:
    http://windowspackager.org/documentation/wpkg/wpkg-known-bugs
 
 
+COMPILATION OF THE WPKG SOLUTION (VC++ IDE)
+
+When creating a solution file and running a "Build Solution", you get errors.
+This is because the IDE builds everything all at once and it is incorrect in
+our environment.
+
+What you want to do is: right click on the ALL_BUILD target, then select
+Build. That will build everything, except the packages. To then build the
+packages, right click on the wpkg_package target, and do the same (the
+wpkg_package target is under the package folder). However, the wpkg_package
+only builds packages for a Release build (VC++ loads in Debug mode by
+default.) Make sure that you first run the Build on the ALL_BUILD in the
+Release configuration.
+
+Supported configurations: We only support the Release and Debug
+configurations. cmake adds other configurations that we do not use or
+support in any way.
+
+
 WARNING ABOUT COMPRESSION LIBRARIES
 
 The zlib and bzip2 libraries were slightly modified to fully support

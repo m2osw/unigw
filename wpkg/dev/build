@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 #    wpkg -- a windows packager
-#    Copyright (C) 2006-2014  Made to Order Software Corporation
+#    Copyright (C) 2006-2015  Made to Order Software Corporation
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 # This is the official script I use to generate all the files generated
 # under Linux and uploaded on SourceForge.net
 #
-# The final output (packages, README, ...) is saved under:
+# The final output (packages, README.txt, ...) is saved under:
 #
 #    ../packages/wpkg_<version>/...
 #
@@ -98,6 +98,9 @@ cp documentation/wpkg-doc_*.tar.gz "$OUTPUTDIR"
 
 # Unit tests run when you do dev/coverage and that's better because we have
 # more debug turned on!
+echo "***"
+echo "*** WARNING: unit tests not run on dev/build, please run dev/coverage instead."
+echo "***"
 #tests/unittest/unittest --tmp tests/output --wpkg tools/wpkg
 
 for prog in tools/dar tools/deb2graph tools/deb2html tools/debversion tools/dirsize tools/rc-version tools/wpkg libexpr/c_expr
@@ -130,7 +133,7 @@ make wpkg_package
 cp WPKG/packages/*.deb $OUTPUTDIR
 
 # Finally copy our current README file
-cp $SRC/README $OUTPUTDIR
+cp $SRC/README.txt $OUTPUTDIR
 
 
 # vim: ts=4 sw=4 et

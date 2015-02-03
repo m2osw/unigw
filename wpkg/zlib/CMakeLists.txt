@@ -37,7 +37,7 @@ add_library( ${PROJECT_NAME} STATIC
 if( MSVC )
     set_target_properties( ${PROJECT_NAME} PROPERTIES
         FOLDER ${ZLIB_FOLDER}
-        )
+    )
 endif()
 
 StaticCompile()
@@ -75,7 +75,7 @@ if( MSVC )
     set_target_properties( ${PROJECT_NAME} PROPERTIES
         COMPILE_FLAGS -DZLIB_DLL
         FOLDER ${ZLIB_FOLDER}
-        )
+    )
 else()
     set_target_properties( ${PROJECT_NAME} PROPERTIES
         VERSION ${WPKG_VERSION_MAJOR}.${WPKG_VERSION_MINOR}

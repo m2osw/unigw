@@ -1,4 +1,11 @@
 #!/bin/sh
+#
+# This script still works, but really I use the dev/build script now.
+# You can always remove the exit 1 to make use of this script.
+
+echo "Please look at the dev/build script instead."
+exit 1;
+
 set -e
 rm -rf BUILD/pack
 mkdir -p BUILD/pack
@@ -23,7 +30,7 @@ Description: wpkg to package and manage complex installations under MS-Windows
   can write your own tools using the exact same code and quickly browse
   packages created with wpkg or dpkg alike.
 Maintainer: Alexis Wilke <alexis@m2osw.com>
-Copyright: 2006-2014 (c) Made to Order Software Corporation
+Copyright: 2006-2015 (c) Made to Order Software Corporation
 Essential: Yes' >out/WPKG/control
 tools/wpkg -b out
 
@@ -48,7 +55,7 @@ Description: wpkg to package and manage complex installations under MS-Windows
   Debian packages.
 Maintainer: Alexis Wilke <alexis@m2osw.com>
 Depends: wpkg
-Copyright: 2006-2014 (c) Made to Order Software Corporation
+Copyright: 2006-2015 (c) Made to Order Software Corporation
 Essential: Yes' >out/WPKG/control
 tools/wpkg -b out
 
@@ -72,7 +79,7 @@ Description: wpkg to package and manage complex installations under MS-Windows
   This package includes the files you need to build your own tools to manage
   Debian packages.
 Maintainer: Alexis Wilke <alexis@m2osw.com>
-Copyright: 2006-2014 (c) Made to Order Software Corporation
+Copyright: 2006-2015 (c) Made to Order Software Corporation
 Recommended: wpkg
 Essential: Yes' >out/WPKG/control
 tools/wpkg -b out

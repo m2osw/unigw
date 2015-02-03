@@ -1,5 +1,5 @@
 /*    wpkgar.cpp -- implementation of the wpkg archive
- *    Copyright (C) 2012-2014  Made to Order Software Corporation
+ *    Copyright (C) 2012-2015  Made to Order Software Corporation
  *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
 #include    "libdebpackages/wpkg_util.h"
 #include    <algorithm>
 #include    <fstream>
+#include    <iostream>
 #include    <fcntl.h>
 #include    <errno.h>
 #include    <time.h>
@@ -1460,7 +1461,7 @@ void wpkgar_manager::load_package(const wpkg_filename::uri_filename& filename, b
         if(force_reload)
         {
             // since the package is a shared pointer, it will get deleted
-            // if necessary
+            // once released by all users
             f_packages.erase(pkg);
         }
         else
@@ -1498,7 +1499,7 @@ void wpkgar_manager::load_package(const wpkg_filename::uri_filename& filename, b
  * two different locations (i.e. the same file or two different files
  * with exactly the same basename loaded from two different directories
  * creates a conflict.) This exception is also raised when the file
- * being loaded is not an ar archive (i.e. a valid .deb file.)
+ * being loaded is not an ar archive (i.e. not a valid .deb file.)
  *
  * \param[in] filename  The name of the package file to load.
  */
@@ -1859,7 +1860,7 @@ void wpkgar_manager::add_repository(const wpkg_filename::uri_filename& repositor
             wpkg_output::log("repository %1 does not exist or is not accessible.")
                     .quoted_arg(repository)
                 .level(wpkg_output::level_error)
-                .module(wpkg_output::module_validate_removal)
+                .module(wpkg_output::module_repository)
                 .action("validation");
             return;
         }
@@ -1868,7 +1869,7 @@ void wpkgar_manager::add_repository(const wpkg_filename::uri_filename& repositor
             wpkg_output::log("repository %1 is not a directory as expected.")
                     .quoted_arg(repository)
                 .level(wpkg_output::level_error)
-                .module(wpkg_output::module_validate_removal)
+                .module(wpkg_output::module_repository)
                 .action("validation");
             return;
         }
@@ -1878,7 +1879,7 @@ void wpkgar_manager::add_repository(const wpkg_filename::uri_filename& repositor
         wpkg_output::log("repository %1 is not a local file and cannot be checked prior to actually attempting to use it.")
                 .quoted_arg(repository)
             .level(wpkg_output::level_warning)
-            .module(wpkg_output::module_validate_removal)
+            .module(wpkg_output::module_repository)
             .action("validation");
     }
 

@@ -1,5 +1,5 @@
 /*    wpkg_filename.cpp -- handle filenames and low level disk functions
- *    Copyright (C) 2012-2014  Made to Order Software Corporation
+ *    Copyright (C) 2012-2015  Made to Order Software Corporation
  *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -3160,9 +3160,9 @@ uri_filename uri_filename::os_real_path() const
  * we canonicalize paths.
  *
  * Note that paths that are neither a direct filename or a NetBIOS path
- * fail.
+ * fail and the function returns false.
  *
- * The \p st parameter does not get set when the stat() call
+ * The \p s out parameter does not get set when the stat() call
  * returns an error.
  *
  * \note
@@ -3172,7 +3172,7 @@ uri_filename uri_filename::os_real_path() const
  * it successfully returns a copy of the stat() from the first successful
  * call.
  *
- * \param[out] st  The stat() call results.
+ * \param[out] s  The stat() call results, unchanged if the function returns -1.
  *
  * \return 0 if the call succeeds, -1 on error (i.e. the same as the stat(2) call)
  */
@@ -3180,6 +3180,12 @@ int uri_filename::os_stat(file_stat& s) const
 {
     if(!f_stat.is_valid())
     {
+        if(!is_direct())
+        {
+            // not a direct filename so we cannot call os_filename()
+            return false;
+        }
+
         f_stat.reset();
         os_filename_t cname(os_filename());
 //::stat(cname.c_str(), &f_stat);

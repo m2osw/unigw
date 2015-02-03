@@ -1,0 +1,152 @@
+#!/bin/sh
+#
+# Name: build.linux
+#
+# The build.linux script is likely to work in other Unices although
+# it was not tested.
+#
+
+############################################################################
+echo "***"
+echo "*** Prepare environment from scratch"
+echo "***"
+
+###
+# You probably want to edit these variables if you think they do not
+# match your system installation
+export SOURCE=`pwd`
+export PATH=$PATH:`pwd`/../../../BUILD/wpkg/tools
+export VERSION=1.2.8
+export ARCH=amd64
+export HTTP_REPOSITORY_PATH=~/public_html/repository
+export HTTP_SOURCE=http://192.168.2.1:81/~alexis
+
+###
+# The script always starts from the beginning, just comment out
+# parts if you do not want to lose all and rebuild all, although
+# compile the z library is generally fast
+rm -rf BUILD
+
+###
+# This rm is commented out by default because it should not be in
+# effect; we use it when we use the --debug 0100 to keep the temporary
+# files and thus to avoid seeing entries from older runs
+rm -rf /tmp/wpkg-*
+
+###
+# Create a BUILD directory with:
+#   install -- installation directory to install the source to compile
+#              and its dependencies
+mkdir -p BUILD/install/var/lib/wpkg
+
+###
+# Create an installation environment, used to do the build and test the
+# installation.
+# 
+wpkg --root $SOURCE/BUILD/install --create-admindir admindir.control
+
+
+
+############################################################################
+echo "***"
+echo "*** Build source package (a .deb with the source tarball)"
+echo "***"
+
+###
+# Create a source package with wpkg; change the PATH at the top
+# to include the location where you have wpkg compiled unless
+# you installed it and it already is in your path.
+#
+# Use "--build" without a directory or .deb filename to build source.
+#
+# Add "--debug 0100" to keep the temporary files when wpkg exists.
+#
+cd zlib
+wpkg --field-variables VERSION=$VERSION --build --output-repository-dir "$HTTP_REPOSITORY_PATH"
+cd ..
+
+
+
+############################################################################
+echo "***"
+echo "*** Build binary package (a .deb using the source .deb file)"
+echo "***"
+
+###
+# Now build the package by compiling all the sources in the repository.
+#
+# We could also build just that one package by specify the source .deb
+# file as in:
+#
+#    wpkg --build "$HTTP_REPOSITORY_PATH/sources/zlib-src_1.2.8.deb"
+#
+# You would also need to specify the --output-repository-dir option in
+# this case.
+#
+# Add "--debug 0100" to keep the temporary files when wpkg exists.
+#
+wpkg --build "$HTTP_REPOSITORY_PATH" --root $SOURCE/BUILD/install
+
+###
+# PS. this will install the source under your install/src directory
+#     although it may look like it does not get removed, the files
+#     do get removed, only wpkg does not yet track the directories
+#     properly to remove them... (that's a "known bug")
+
+
+
+############################################################################
+echo "***"
+echo "*** Try to retrieve a package remotely using wpkg"
+echo "***"
+
+###
+# wget attempts a GET on one of the binary .deb files we just generated
+# so it should just work.
+#
+if ! wget $HTTP_SOURCE/repository/wpkg/zlib_${VERSION}_${ARCH}.deb
+then
+	echo "error: Download of main .deb file did not work. Verify you have wget, then verify that your HTTP server setup allows access to those files."
+	exit 1;
+fi
+# if it works, get right of the file, we don't need it here...
+rm -rf zlib_${VERSION}_${ARCH}.deb
+
+
+
+############################################################################
+echo "***"
+echo "*** Attempt installing zlib-dev from the remote repository"
+echo "***"
+
+###
+# Now that we have a valid remote repository, add it as a source.
+#
+# Note that in most cases you will want to have one more indirection in
+# your repository and use a 4th entry. That can be achieved, although
+# we would have to add a Distribution or a path in the Section field.
+# You can see the effect of these fields by adding them to the control.info
+# file and see the changes in the repository tree.
+#
+wpkg --root $SOURCE/BUILD/install --add-sources "wpkg $HTTP_SOURCE repository/"
+
+###
+# It is necessary to run --update after an --add-sources, the command
+# does not do it automatically in case you wanted to add many sources
+# in a row and then query the indexes using the --update command
+# just once
+#
+wpkg --root $SOURCE/BUILD/install --update
+
+###
+# By installing zlib-dev we prove that the repository works as expected
+# because zlib-dev needs zlib to be installed first to work.
+#
+#wpkg --root $SOURCE/BUILD/install --repository $HTTP_SOURCE/repository --install zlib-dev_1.2.8_amd64.deb
+wpkg --root $SOURCE/BUILD/install --install $HTTP_SOURCE/repository/wpkg/zlib_1.2.8_amd64.deb
+
+###
+# Show the result to the tester that the zlib and zlib-dev were installed
+#
+wpkg --root $SOURCE/BUILD/install --list
+

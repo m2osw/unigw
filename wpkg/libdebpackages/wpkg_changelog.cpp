@@ -1,5 +1,5 @@
 /*    wpkg_changelog.cpp -- implementation of the changelog file format
- *    Copyright (C) 2013-2014  Made to Order Software Corporation
+ *    Copyright (C) 2013-2015  Made to Order Software Corporation
  *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -42,10 +42,10 @@
 #include    "libdebpackages/compatibility.h"
 
 
-/** \brief The ChangeLog namespace.
+/** \brief The changelog namespace.
  *
  * This namespace encompasses the declarations and implementation of
- * the ChangeLog parser and manager.
+ * the changelog parser and manager.
  */
 namespace wpkg_changelog
 {
@@ -70,7 +70,7 @@ namespace wpkg_changelog
 
 
 /** \class changelog_file
- * \brief The ChangeLog File class is used to manage changelog files.
+ * \brief The changelog File class is used to manage changelog files.
  *
  * This class handles the loading of a changelog file and allows
  * access to the data in the changelog:

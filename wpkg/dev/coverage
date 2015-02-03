@@ -86,7 +86,7 @@ gcov -o ../BUILD/libdebpackages/CMakeFiles/debpackages_static.dir/wpkgar_install
 cd ..
 
 
-lcov --capture --directory BUILD --output-file coverage.info
+lcov --capture --no-external --directory BUILD --base-directory $source --output-file coverage.info
 mkdir -p html
 genhtml --legend --demangle-cpp --no-branch-coverage --html-prolog $source/dev/coverage-header.html --html-epilog $source/dev/coverage-footer.html --show-details coverage.info --output-directory html
 
