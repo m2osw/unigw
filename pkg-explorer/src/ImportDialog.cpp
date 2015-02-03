@@ -68,7 +68,7 @@ void ImportDialog::ShowLogPane( const bool show_pane )
 		wpkg_output::output* out = f_logForm->GetLogOutput();
 		Q_ASSERT( out );
 		wpkg_output::set_output( out );
-		out->set_debug( wpkg_output::debug_flags::debug_progress );
+        out->set_debug_flags( wpkg_output::debug_flags::debug_progress );
 
         f_logFrame->show();
 	}

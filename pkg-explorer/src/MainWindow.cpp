@@ -370,7 +370,7 @@ void MainWindow::InitManager()
     wpkg_output::output* out = f_logForm->GetLogOutput();
     Q_ASSERT( out );
     wpkg_output::set_output( out );
-    out->set_debug( wpkg_output::debug_flags::debug_progress );
+    out->set_debug_flags( wpkg_output::debug_flags::debug_progress );
 
 	QSettings settings;
 	const QString root_path = settings.value( "root_path" ).toString();
