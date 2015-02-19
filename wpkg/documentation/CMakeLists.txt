@@ -36,9 +36,34 @@
 
 project(wpkg_documentation)
 
+set( GENERATE_DOCS TRUE )
+
+if( MSVC )
+    set( PATH_HINT "c:\\cygwin\\bin" )
+else()
+    set( PATH_HINT "/usr/bin" )
+endif()
+
+find_program( RM rm${CMAKE_EXECUTABLE_SUFFIX} PATHS ${PATH_HINT} )
+find_program( MV mv${CMAKE_EXECUTABLE_SUFFIX} PATHS ${PATH_HINT} )
+
 if( MSVC )
     set( DOC_FOLDER documentation )
+    find_program( ZIP zip${CMAKE_EXECUTABLE_SUFFIX} PATHS ${PATH_HINT} )
+    if( ${ZIP} MATCHES "ZIP-NOTFOUND" )
+        unset( GENERATE_DOCS )
+    endif()
+else()
+    find_program( TAR_CMD tar${CMAKE_EXECUTABLE_SUFFIX} PATHS ${PATH_HINT} )
+    if( ${TAR_CMD} MATCHES "TAR_CMD-NOTFOUND" )
+        unset( GENERATE_DOCS )
+    endif()
 endif()
+
+if( (${RM} MATCHES "RM-NOTFOUND") OR (${MV} MATCHES "MV-NOTFOUND") )
+    unset( GENERATE_DOCS )
+endif()
+
 
 ################################################################################
 # Function AddDoxygenTarget taken from the Snap! environment
@@ -58,6 +83,10 @@ endif()
 # Also, for version, use @FULL_VERSION@, which contains the major, minor and patch.
 #
 function( AddDoxygenTarget TARGET_NAME VERSION_MAJOR VERSION_MINOR VERSION_PATCH )
+    if( NOT GENERATE_DOCS )
+        return()
+    endif()
+
     project( ${TARGET_NAME}_Documentation )
 
     set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}" )
@@ -73,20 +102,13 @@ function( AddDoxygenTarget TARGET_NAME VERSION_MAJOR VERSION_MINOR VERSION_PATCH
         configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${TARGET_NAME}.doxy.in ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}.doxy @ONLY)
         set( DOCUMENTATION_OUTPUT ${TARGET_NAME}-doc_${VERSION} )
         
-        if( MO_WINDOWS )
-            set( PATH_HINT "c:\\cygwin\\bin" )
-            find_program( ZIP zip${CMAKE_EXECUTABLE_SUFFIX} PATHS ${PATH_HINT} )
+        if( MSVC )
             set( TAR ${ZIP} -r -q )
             set( SUFFIX ".zip" )
         else()
-            set( PATH_HINT "/usr/bin" )
-            find_program( TAR_CMD tar${CMAKE_EXECUTABLE_SUFFIX} PATHS ${PATH_HINT} )
             set( TAR ${TAR_CMD} --exclude='*.md5' -czf )
             set( SUFFIX ".tar.gz" )
         endif()
-        find_program( RM rm${CMAKE_EXECUTABLE_SUFFIX} PATHS ${PATH_HINT} )
-        find_program( MV mv${CMAKE_EXECUTABLE_SUFFIX} PATHS ${PATH_HINT} )
-        find_program( MV mv${CMAKE_EXECUTABLE_SUFFIX} PATHS ${PATH_HINT} )
 
         add_custom_command( OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${DOCUMENTATION_OUTPUT}${SUFFIX} ${DOCUMENTATION_OUTPUT}
             COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}.doxy > ${CMAKE_CURRENT_BINARY_DIR}/doxygen.out 2> ${CMAKE_CURRENT_BINARY_DIR}/doxygen.err

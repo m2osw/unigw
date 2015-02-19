@@ -6,6 +6,8 @@ Priority: optional
 Priority/runtime: required
 Architecture: $(architecture())
 Architecture/documentation: all
+Version: 0.9.5
+Maintainer: Alexis Wilke <alexis@m2osw.com>
 Homepage: http://windowspackager.org/
 DESCRIPTION=Multi-platform packager.
  WPKG allows you to create packages targetted at specific platforms (Linux, Windows and Mac),
