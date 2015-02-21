@@ -3012,7 +3012,7 @@ void init_installer
     {
         for(int i(0); i < max; ++i)
         {
-            const auto name( cl.get_string( option, i ) );
+            const std::string& name( cl.get_string( option, i ) );
             const wpkg_filename::uri_filename package( name );
             if( package.extension() == "deb")
             {
@@ -3021,7 +3021,7 @@ void init_installer
             else
             {
                 wpkgar::wpkgar_repository repository(&manager);
-                for( auto entry : repository.upgrade_list() )
+                for( wpkgar::wpkgar_repository::package_item_t entry : repository.upgrade_list() )
                 {
                     if( entry.get_status() != wpkgar::wpkgar_repository::package_item_t::not_installed )
                     {
