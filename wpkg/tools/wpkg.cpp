@@ -3021,19 +3021,17 @@ void init_installer
             else
             {
                 wpkgar::wpkgar_repository repository(&manager);
-                for( wpkgar::wpkgar_repository::package_item_t entry : repository.upgrade_list() )
+                const auto& list( repository.upgrade_list() );
+                std::for_each( list.begin(), list.end(), [&]( wpkgar::wpkgar_repository::package_item_t entry )
                 {
-                    if( entry.get_status() != wpkgar::wpkgar_repository::package_item_t::not_installed )
-                    {
-                        continue;
-                    }
-
-                    if( entry.get_name() == name )
+                    if( (entry.get_status() == wpkgar::wpkgar_repository::package_item_t::not_installed)
+                        &&( entry.get_name() == name )
+                      )
                     {
                         pkg_install.add_package( entry.get_info().get_uri().full_path() );
-                        break;
+                        return;
                     }
-                }
+                });
             }
         }
     }
