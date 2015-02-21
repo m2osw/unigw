@@ -3012,7 +3012,29 @@ void init_installer
     {
         for(int i(0); i < max; ++i)
         {
-            pkg_install.add_package(cl.get_string(option, i));
+            const auto name( cl.get_string( option, i ) );
+            const wpkg_filename::uri_filename package( name );
+            if( package.extension() == "deb")
+            {
+                pkg_install.add_package( name );
+            }
+            else
+            {
+                wpkgar::wpkgar_repository repository(&manager);
+                for( auto entry : repository.upgrade_list() )
+                {
+                    if( entry.get_status() != wpkgar::wpkgar_repository::package_item_t::not_installed )
+                    {
+                        continue;
+                    }
+
+                    if( entry.get_name() == name )
+                    {
+                        pkg_install.add_package( entry.get_info().get_uri().full_path() );
+                        break;
+                    }
+                }
+            }
         }
     }
     else
