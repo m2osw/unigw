@@ -3235,7 +3235,7 @@ bool wpkgar_install::check_implicit_for_upgrade(wpkgar_package_list_t& tree, con
  * you are missing, as their details have been freed and the list
  * now points to garbage (if you're lucky...)
  */
-void wpkgar_install::find_dependencies(wpkgar_package_list_t& tree, const wpkgar_package_list_t::size_type idx, wkgar_dependency_list_t& missing)
+void wpkgar_install::find_dependencies(wpkgar_package_list_t& tree, const wpkgar_package_list_t::size_type idx, wpkgar_dependency_list_t& missing)
 {
     const wpkg_filename::uri_filename filename(tree[idx].get_filename());
 
@@ -3368,7 +3368,7 @@ void wpkgar_install::find_dependencies(wpkgar_package_list_t& tree, const wpkgar
 }
 
 
-bool wpkgar_install::verify_tree(wpkgar_package_list_t& tree, wkgar_dependency_list_t& missing)
+bool wpkgar_install::verify_tree(wpkgar_package_list_t& tree, wpkgar_dependency_list_t& missing)
 {
     // if reconfiguring we have a good tree (i.e. the existing installation
     // tree is supposed to be proper)
@@ -3378,7 +3378,7 @@ bool wpkgar_install::verify_tree(wpkgar_package_list_t& tree, wkgar_dependency_l
     }
 
     // save so we know whether any dependencies are missing
-    wkgar_dependency_list_t::size_type missing_count(missing.size());
+    wpkgar_dependency_list_t::size_type missing_count(missing.size());
 
     // verifying means checking that all dependencies are satisfied
     // also, in this case "available" dependencies that are required
@@ -3774,7 +3774,7 @@ void wpkgar_install::validate_dependencies()
     // it for the next step and if it fails, we're done...
     if(!f_install_includes_choices)
     {
-        wkgar_dependency_list_t missing;
+        wpkgar_dependency_list_t missing;
         if(!verify_tree(f_packages, missing))
         {
             // dependencies are missing
@@ -3811,7 +3811,7 @@ void wpkgar_install::validate_dependencies()
             break;
         }
 
-        wkgar_dependency_list_t missing;
+        wpkgar_dependency_list_t missing;
         bool verified(verify_tree(tree, missing));
 
         if((wpkg_output::get_output_debug_flags() & wpkg_output::debug_flags::debug_depends_graph) != 0)

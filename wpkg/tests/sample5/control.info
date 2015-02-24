@@ -1,10 +1,12 @@
-Sub-Packages: runtime*, doc, src
 Package: sample5
+Sub-Packages: runtime*, doc, src, library
 Package/doc: sample5-documentation
 Version: 2.450.12.4
-Architecture/runtime: win64-amd64
+Architecture/runtime: linux-amd64
 Architecture/doc: all
 Architecture/src: source
+Architecture/library: linux-amd64
+Depends/runtime: sample5-library (>= 2.450.12.4)
 Description: This is a sample to test wpkg
   This sample is used to test wpkg and make sure that things happen in
   the right order (such as the preinst and postinst, etc.)

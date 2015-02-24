@@ -43,6 +43,7 @@
 #include    "bzlib.h"
 #include    "libtld/tld.h"
 #include    "controlled_vars/controlled_vars_version.h"
+#include    <assert.h>
 #include    <errno.h>
 #include    <signal.h>
 #include    <algorithm>
@@ -52,6 +53,7 @@
 #   include    <unistd.h>
 #endif
 #include    <iostream>
+#include    <sstream>
 
 #ifdef _MSC_VER
 // "unknown pragma"
@@ -3010,6 +3012,7 @@ void init_installer
     // add the list of package names
     if(package_name.empty())
     {
+        wpkgar::wpkgar_repository repository(&manager);
         for(int i(0); i < max; ++i)
         {
             const std::string& name( cl.get_string( option, i ) );
@@ -3020,7 +3023,6 @@ void init_installer
             }
             else
             {
-                wpkgar::wpkgar_repository repository(&manager);
                 const auto& list( repository.upgrade_list() );
                 std::for_each( list.begin(), list.end(), [&]( wpkgar::wpkgar_repository::package_item_t entry )
                 {
@@ -3028,7 +3030,8 @@ void init_installer
                         &&( entry.get_name() == name )
                       )
                     {
-                        pkg_install.add_package( entry.get_info().get_uri().full_path() );
+                        const std::string full_path( entry.get_info().get_uri().full_path() );
+                        pkg_install.add_package( full_path );
                         return;
                     }
                 });
@@ -3107,8 +3110,63 @@ void install(command_line& cl, const wpkg_filename::uri_filename package_name = 
     pkg_install.set_installing();
 
     wpkgar::wpkgar_lock lock_wpkg(&manager, "Installing");
-    if(pkg_install.validate() && !cl.dry_run())
+
+    if( pkg_install.validate() && !cl.dry_run())
     {
+        {
+            wpkgar::wpkgar_install::install_info_list_t install_list = pkg_install.get_install_list();
+            std::stringstream explicit_packages;
+            std::stringstream implicit_packages;
+            std::for_each( install_list.begin(), install_list.end(),
+                           [&](const wpkgar::wpkgar_install::install_info_t& info )
+            {
+                switch( info.get_install_type() )
+                {
+                case wpkgar::wpkgar_install::install_info_t::install_type_explicit:
+                    if( !explicit_packages.str().empty() )
+                    {
+                        explicit_packages << ", ";
+                    }
+                    explicit_packages << info.get_name();
+                    break;
+                case wpkgar::wpkgar_install::install_info_t::install_type_implicit:
+                    if( !implicit_packages.str().empty() )
+                    {
+                        implicit_packages << ", ";
+                    }
+                    implicit_packages << info.get_name();
+                    break;
+                default:
+                    assert(0);
+                }
+            }
+            );
+
+            if( !implicit_packages.str().empty() )
+            {
+                std::stringstream ss;
+                ss  << "the following new packages are required dependencies, and will be installed indirectly: "
+                    << implicit_packages.str();
+                wpkg_output::log(ss.str().c_str())
+                    .level(wpkg_output::level_info)
+                    .module(wpkg_output::module_validate_installation)
+                    .package("wpkg")
+                    .action("upgrade-initialization");
+            }
+
+            if( !explicit_packages.str().empty() )
+            {
+                std::stringstream ss;
+                ss  << "the following new packages will be installed directly: "
+                    << explicit_packages.str();
+                wpkg_output::log(ss.str().c_str())
+                    .level(wpkg_output::level_info)
+                    .module(wpkg_output::module_validate_installation)
+                    .package("wpkg")
+                    .action("upgrade-initialization");
+            }
+        }
+
         if(manager.is_self() && !cl.opt().is_defined("running-copy"))
         {
             // in this case we drop the lock; our copy will re-create a lock as required

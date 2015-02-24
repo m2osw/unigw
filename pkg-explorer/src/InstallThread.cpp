@@ -116,11 +116,13 @@ void InstallThread::run()
     {
 		if( f_mode == ThreadValidateOnly || f_mode == ThreadFullInstall )
 		{
-			if( !Validate() )
-			{
-				return;
-			}
-		}
+            if( !Validate() )
+            {
+                // Stop here if we are in full install mode
+                //
+                return;
+            }
+        }
 		if( f_mode == ThreadInstallOnly || f_mode == ThreadFullInstall )
 		{
 			if( Preconfigure() )

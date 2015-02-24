@@ -210,7 +210,7 @@ private:
     typedef std::vector<package_item_t *>                   wpkgar_package_ptrs_t;
     typedef wpkgar_package_list_t::size_type                wpkgar_package_index_t;
     typedef std::vector<wpkgar_package_index_t>             wpkgar_package_idxs_t;
-    typedef std::vector<const wpkg_dependencies::dependencies::dependency_t *>   wkgar_dependency_list_t;
+    typedef std::vector<const wpkg_dependencies::dependencies::dependency_t *>   wpkgar_dependency_list_t;
     typedef std::map<std::string, bool>                     wpkgar_package_listed_t;
     typedef std::vector<std::string>                        wpkgar_list_of_strings_t;
 
@@ -268,8 +268,8 @@ private:
     validation_return_t validate_installed_dependencies();
     void find_best_dependency(const std::string& package_name, const wpkg_dependencies::dependencies::dependency_t& d);
     bool check_implicit_for_upgrade(wpkgar_package_list_t& tree, const wpkgar_package_list_t::size_type idx);
-    void find_dependencies(wpkgar_package_list_t& tree, const wpkgar_package_list_t::size_type idx, wkgar_dependency_list_t& missing);
-    bool verify_tree(wpkgar_package_list_t& tree, wkgar_dependency_list_t& missing);
+    void find_dependencies(wpkgar_package_list_t& tree, const wpkgar_package_list_t::size_type idx, wpkgar_dependency_list_t& missing);
+    bool verify_tree(wpkgar_package_list_t& tree, wpkgar_dependency_list_t& missing);
     bool trees_are_practically_identical(const wpkgar_package_list_t& left, const wpkgar_package_list_t& right) const;
     int compare_trees(const wpkgar_package_list_t& left, const wpkgar_package_list_t& right) const;
     void output_tree(int count, const wpkgar_package_list_t& tree, const std::string& sub_title);
