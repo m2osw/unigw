@@ -1,3 +1,9 @@
+wpkg (0.9.6.1~trusty) trusty; urgency=high
+
+  * Nightly build.
+
+ -- Build Server <build@m2osw.com>  Wed, 25 Feb 2015 04:34:49 -0800
+
 wpkg (0.9.6) trusty; urgency=high
 
   * Bumping to version 0.9.6. Adding ability to install from repository
