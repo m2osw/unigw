@@ -47,7 +47,6 @@ private:
     QSharedPointer<QThread>                f_thread;
     Mode                                   f_mode;
 
-    void SetInstallerSources();
     void StartThread();
 
 private slots:

@@ -784,9 +784,48 @@ void wpkgar_install::add_package(const std::string& package)
     }
     else
     {
-        // this is an explicit package
-        package_item_t package_item(f_manager, pck);
-        f_packages.push_back(package_item);
+        if( pck.extension() == "deb")
+        {
+            // this is an explicit package
+            package_item_t package_item( f_manager, pck );
+            f_packages.push_back(package_item);
+        }
+        else
+        {
+            wpkgar_repository repository( f_manager );
+
+            wpkg_filename::uri_filename sources_list( f_manager->get_database_path() );
+            sources_list = sources_list.append_child( "core/sources.list" );
+            if( sources_list.exists() )
+            {
+                memfile::memory_file sources_file;
+                sources_file.read_file( sources_list );
+
+                wpkgar_repository::source_vector_t	sources;
+                repository.read_sources( sources_file, sources );
+
+                std::for_each( sources.begin(), sources.end(),
+                               [&]( const wpkgar_repository::source& src )
+                    {
+                        f_manager->add_repository( src.get_uri() );
+                    }
+                );
+            }
+
+            const auto& list( repository.upgrade_list() );
+            std::for_each( list.begin(), list.end(), [&]( wpkgar_repository::package_item_t entry )
+            {
+                if( (entry.get_status() == wpkgar_repository::package_item_t::not_installed)
+                    &&( entry.get_name() == package )
+                  )
+                {
+                    const std::string full_path( entry.get_info().get_uri().full_path() );
+                    package_item_t package_item( f_manager, full_path );
+                    f_packages.push_back(package_item);
+                    //return;
+                }
+            });
+        }
     }
 }
 

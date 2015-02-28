@@ -3012,30 +3012,10 @@ void init_installer
     // add the list of package names
     if(package_name.empty())
     {
-        wpkgar::wpkgar_repository repository(&manager);
         for(int i(0); i < max; ++i)
         {
             const std::string& name( cl.get_string( option, i ) );
-            const wpkg_filename::uri_filename package( name );
-            if( package.extension() == "deb")
-            {
-                pkg_install.add_package( name );
-            }
-            else
-            {
-                const auto& list( repository.upgrade_list() );
-                std::for_each( list.begin(), list.end(), [&]( wpkgar::wpkgar_repository::package_item_t entry )
-                {
-                    if( (entry.get_status() == wpkgar::wpkgar_repository::package_item_t::not_installed)
-                        &&( entry.get_name() == name )
-                      )
-                    {
-                        const std::string full_path( entry.get_info().get_uri().full_path() );
-                        pkg_install.add_package( full_path );
-                        return;
-                    }
-                });
-            }
+            pkg_install.add_package( name );
         }
     }
     else

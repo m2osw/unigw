@@ -94,18 +94,15 @@ InstallDialog::InstallDialog(
 	{
         if( list[i].get_status() == itemStatus )
 		{
-			const memfile::memory_file::file_info& info(list[i].get_info());
-			const wpkg_filename::uri_filename filename(info.get_uri());
-
             // Yes, I know this isn't exception safe, but these items shouldn't throw at all.
 			//
 			QList<QStandardItem*> itemList;
             QStandardItem* install_item = new QStandardItem;
 			install_item->setCheckable( true );
             install_item->setCheckState( checkState );
-            install_item->setData( filename.full_path().c_str() );
+            install_item->setData( list[i].get_name().c_str() );
 			itemList << install_item;
-			itemList << new QStandardItem( QIcon(":/icons/file"), list[i].get_name().c_str() );
+            itemList << new QStandardItem( QIcon(":/icons/file"), list[i].get_name().c_str() );
 			itemList << new QStandardItem( list[i].get_version().c_str() );
 			f_model.appendRow( itemList );
 
@@ -185,25 +182,10 @@ void InstallDialog::on_f_buttonBox_clicked(QAbstractButton *button)
 }
 
 
-void InstallDialog::SetInstallerSources()
-{
-    Q_ASSERT(f_installer.data());
-    const QStringList repoList( RepoUtils::ReadSourcesList( f_manager.data(), true /*uri_only*/ ) );
-
-    std::for_each( repoList.begin(), repoList.end(),
-        [&]( const QString& repo )
-        {
-            f_manager->add_repository( repo.toStdString() );
-        }
-    );
-}
-
-
 void InstallDialog::StartThread()
 {
     wpkg_output::get_output()->reset_error_count();
     f_installer = QSharedPointer<wpkgar_install>( new wpkgar_install(f_manager.data()) );
-    SetInstallerSources();
 
     // always force the chown/chmod because under Unix that doesn't work well otherwise
 	f_installer->set_parameter( wpkgar_install::wpkgar_install_force_file_info, true );
