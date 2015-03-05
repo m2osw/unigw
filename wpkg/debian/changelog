@@ -1,3 +1,9 @@
+wpkg (0.9.8.1~trusty) trusty; urgency=high
+
+  * Nightly build.
+
+ -- Build Server <build@m2osw.com>  Thu, 05 Mar 2015 04:23:12 -0800
+
 wpkg (0.9.8) trusty; urgency=high
 
   * Removed "tags" exception so we can build a boost 1.53 package.
