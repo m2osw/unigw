@@ -196,8 +196,13 @@ wpkgar_build::wpkgar_build(wpkgar_manager *manager, const std::string& build_dir
     f_exceptions.push_back("*.bak");
     f_exceptions.push_back("*~");
     f_exceptions.push_back("*.swp");
-    f_exceptions.push_back("TAGS");
-    f_exceptions.push_back("tags");
+
+    // Wed Mar  4 18:49:37 PST 2015 RDB:
+    // I'm removing these from the exception list. This makes it impossible to build a package
+    // for boost 1.53, which has a subdirectory under the include folders called "bimap/tags".
+    //
+    //f_exceptions.push_back("TAGS");
+    //f_exceptions.push_back("tags");
 
     // The following causes a problem with boost which has a sub-directory
     // named "core"; many other systems have such too...

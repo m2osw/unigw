@@ -1,3 +1,9 @@
+wpkg (0.9.8) trusty; urgency=high
+
+  * Removed "tags" exception so we can build a boost 1.53 package.
+
+ -- R. Douglas Barbieri <doug@dooglio.net>  Wed, 04 Mar 2015 18:50:37 -0800
+
 wpkg (0.9.7.5~trusty) trusty; urgency=high
 
   * Nightly build.
