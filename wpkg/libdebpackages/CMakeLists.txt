@@ -46,7 +46,7 @@ if( MSVC )
     # disable warnings about dll linkage concerns but we do not have any inlines (warning 4251)
     set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251" )
 endif()
-if( MSVC OR MINGW32 OR MSYS )
+if( MSVC OR MO_MINGW32 OR MO_MINGW64 OR MSYS )
     set ( EXTRA_LIBRARIES wsock32 ws2_32 mpr ole32 uuid )
 endif()
 
@@ -114,7 +114,7 @@ StaticCompile()
 
 if( MSVC )
     set_target_properties( ${PROJECT_NAME} PROPERTIES
-        LINK_FLAGS ${WIN_MACHINE_FLAGS}
+        LINK_FLAGS "${WIN_MACHINE_FLAGS}"
         FOLDER ${DEBPACKAGES_FOLDER}
     )
 endif()
@@ -176,7 +176,7 @@ add_library( ${PROJECT_NAME} SHARED
     ${LIBDEBPACKAGES_SOURCE_FILES}
 )
 
-if( MSVC OR MINGW32 OR MSYS )
+if( MSVC )
     set_target_properties( ${PROJECT_NAME} PROPERTIES
         COMPILE_FLAGS -DDEBIAN_PACKAGE_DLL
         LINK_FLAGS ${WIN_MACHINE_FLAGS}
@@ -219,7 +219,9 @@ install(
 set_property( GLOBAL APPEND PROPERTY ALL_LIBRARY_TARGETS debpackages debpackages_static )
 
 add_custom_target( debpackages_target DEPENDS debpackages_static debpackages )
-set_property( TARGET debpackages_target PROPERTY FOLDER ${DEBPACKAGES_FOLDER} )
+if( MSVC )
+    set_property( TARGET debpackages_target PROPERTY FOLDER ${DEBPACKAGES_FOLDER} )
+endif()
 
 
 # vim: ts=4 sw=4 et

@@ -316,7 +316,7 @@ target_link_libraries( ${PROJECT_NAME}
     wpkg_tld_static
 )
 
-if( MINGW32 OR MSYS )
+if( MO_MINGW32 OR MO_MINGW64 OR MSYS )
     # The -static-... flags do not seem to have an effect at this point
     # (I also tried with just -static and the C & C++ libraries are still added!)
     set_target_properties( ${PROJECT_NAME} PROPERTIES

@@ -7257,7 +7257,7 @@ int wmain(int argc, wchar_t *wargv[])
 }
 #endif
 
-#ifdef MO_MINGW32
+#if defined(MO_MINGW32) || defined(MO_MINGW64)
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmdShow)
 {
     int argc;

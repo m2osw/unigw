@@ -91,7 +91,7 @@ if( MSVC )
         LINK_FLAGS ${WIN_MACHINE_FLAGS}
         FOLDER ${TLD_FOLDER}
     )
-elseif( NOT MO_CYGWIN AND NOT MO_MINGW32 )
+elseif( NOT MO_CYGWIN AND NOT MO_MINGW32 AND NOT MO_MINGW64 )
     # We need the -fPIC to use this library as extension of PHP, etc.
     set_target_properties(${PROJECT_NAME} PROPERTIES
             COMPILE_FLAGS -fPIC

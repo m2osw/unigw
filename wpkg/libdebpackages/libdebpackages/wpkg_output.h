@@ -235,7 +235,7 @@ public:
     log& arg(const unsigned int v);
     log& arg(const signed long v);
     log& arg(const unsigned long v);
-#if defined(MO_WINDOWS) && defined(_WIN64) && !defined(MO_MINGW32)
+#if defined(MO_WINDOWS) && defined(_WIN64)
     log& arg(const size_t v);
 #endif
     log& arg(const float v);
