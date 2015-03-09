@@ -1901,7 +1901,7 @@ bool wpkgar_build::run_cmake(const std::string& package_name, const wpkg_filenam
     cmd += "cmake ";
     if(!f_cmake_generator.empty())
     {
-        cmd += "-G " + wpkg_util::make_safe_console_string(f_cmake_generator);
+        cmd += "-G " + wpkg_util::make_safe_console_string(f_cmake_generator) + " ";
     }
     cmd += wpkg_util::make_safe_console_string(sourcedir.full_path());
 
