@@ -1602,7 +1602,7 @@ log& log::arg(const unsigned long v)
 }
 
 
-#if defined(MO_WINDOWS) && defined(_WIN64) //&& !defined(MO_MINGW32)
+#if defined(MO_WINDOWS) && defined(_WIN64)
 /** \brief Replace an argument with the size_t value.
  *
  * This function replaces an argument in the format string with the
