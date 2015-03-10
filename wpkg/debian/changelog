@@ -2,6 +2,8 @@ wpkg (0.9.9) trusty; urgency=high
 
   * Applied fix with -G command line option of cmake, missing space
     (by Yevgeny Krasovsky)
+  * Applied fix to build command line so the --output-repository-dir
+    option is properly taken in account (by Mathieu SCHROETER)
 
  -- Alexis Wilke <alexis@m2osw.com>  Mon, 09 Mar 2015 04:23:06 -0700
 

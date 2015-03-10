@@ -2820,10 +2820,23 @@ void wpkgar_build::build_repository()
                     cmd += f_manager->get_database_path().full_path();
                     cmd += " --build ";
                     cmd += sources[i]->f_filename.full_path();
+                    cmd += " --output-repository-dir ";
+                    bool add_to_repository_list(false);
+                    if(f_output_repository_dir.empty())
+                    {
+                        cmd += f_build_directory.full_path();
+                    }
+                    else
+                    {
+                        cmd += f_output_repository_dir.full_path();
+                        add_to_repository_list = f_output_repository_dir.exists();
+                    }
                     cmd += " --repository ";
                     cmd += f_build_directory.full_path();
-                    cmd += " --output-repository-dir ";
-                    cmd += f_build_directory.full_path();
+                    if(add_to_repository_list)
+                    {
+                        cmd += " " + f_output_repository_dir.full_path();
+                    }
                     cmd += " --create-index index.tar.gz";
                     cmd += " --force-file-info";
                     cmd += " --run-unit-tests";
