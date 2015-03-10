@@ -31,7 +31,7 @@ if test ! -z "$1"
 then
 	if test "$1" = "--help" -o "$1" = "-h"
 	then
-		echo "coverage: Usage coverage [--help] [unittests seed]"
+		echo "coverage: Usage coverage [--help] [unit-tests-seed]"
 		exit 1;
 	fi
 	seed="--seed $1"
