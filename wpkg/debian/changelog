@@ -76,9 +76,9 @@ wpkg (0.9.7.1~trusty) trusty; urgency=high
 wpkg (0.9.7) trusty; urgency=high
 
   * Now no longer You no longer have to supply the "--repository" argument
-	when installing from internal repositories (contents of core/sources.list).
-	Once you've added a repository to your sources list, --install will
-	automatically look for the package plus any dependencies and install them.
+    when installing from internal repositories (contents of core/sources.list).
+    Once you've added a repository to your sources list, --install will
+    automatically look for the package plus any dependencies and install them.
 
  -- R. Douglas Barbieri <doug@dooglio.net>  Fri, 27 Feb 2015 23:57:35 -0800
 
@@ -91,7 +91,7 @@ wpkg (0.9.6.1~trusty) trusty; urgency=high
 wpkg (0.9.6) trusty; urgency=high
 
   * Bumping to version 0.9.6. Adding ability to install from repository
-	package names from command line.
+    package names from command line.
 
  -- R. Douglas Barbieri <doug@dooglio.net>  Tue, 24 Feb 2015 16:48:09 -0800
 
