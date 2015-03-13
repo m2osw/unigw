@@ -1851,7 +1851,11 @@ bool wpkgar_build::validate_source(source_validation& validate_status, wpkg_cont
  */
 void wpkgar_build::prepare_cmd(std::string& cmd, const wpkg_filename::uri_filename& dir)
 {
+#if defined(MO_WINDOWS)
+    cmd = "cd /d ";
+#else
     cmd = "cd ";
+#endif
     cmd += wpkg_util::make_safe_console_string(dir.full_path());
 #if defined(MO_WINDOWS)
     cmd += " && set PATH=";
@@ -2004,7 +2008,11 @@ void wpkgar_build::build_source()
     prepare_cmd(cmd, build_tmpdir);
     if((wpkg_output::get_output_debug_flags() & wpkg_output::debug_flags::debug_progress) != 0)
     {
+#if defined(MO_WINDOWS)
+        cmd += "set VERBOSE=1 && ";
+#else
         cmd += "VERBOSE=1 ";
+#endif
     }
     cmd += wpkg_util::make_safe_console_string(f_make_tool);
     cmd += " package_source";
@@ -2299,7 +2307,11 @@ void wpkgar_build::build_project()
     prepare_cmd(make_all_cmd, build_tmpdir);
     if((wpkg_output::get_output_debug_flags() & wpkg_output::debug_flags::debug_progress) != 0)
     {
+#if defined(MO_WINDOWS)
+        make_all_cmd += "set VERBOSE=1 && ";
+#else
         make_all_cmd += "VERBOSE=1 ";
+#endif
     }
     make_all_cmd += wpkg_util::make_safe_console_string(f_make_tool);
 
@@ -2349,7 +2361,11 @@ void wpkgar_build::run_project_unit_tests()
     prepare_cmd(run_tests_cmd, build_tmpdir);
     if((wpkg_output::get_output_debug_flags() & wpkg_output::debug_flags::debug_progress) != 0)
     {
+#if defined(MO_WINDOWS)
+        run_tests_cmd += "set VERBOSE=1 && ";
+#else
         run_tests_cmd += "VERBOSE=1 ";
+#endif
     }
     run_tests_cmd += wpkg_util::make_safe_console_string(f_make_tool);
     run_tests_cmd += " run_unit_tests";
@@ -2433,7 +2449,12 @@ void wpkgar_build::build_project_packages()
         created_packages[sub_name] = true;
 
         // run cmake
-        std::string cmake_cmd("cd " + build_tmpdir.full_path() + " && cmake");
+#if defined(MO_WINDOWS)
+        std::string cmake_cmd("cd /d ");
+#else
+        std::string cmake_cmd("cd ");
+#endif
+        cmake_cmd += build_tmpdir.full_path() + " && cmake";
         wpkg_filename::uri_filename install_dir(install_tmpdir.append_child(sub_name).append_safe_child(f_install_prefix));
         cmake_cmd += " -DCMAKE_INSTALL_PREFIX=" + install_dir.full_path();
         cmake_cmd += " -DCMAKE_INSTALL_COMPONENT=" + sub_name;

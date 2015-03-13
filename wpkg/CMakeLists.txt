@@ -133,7 +133,7 @@ elseif( MSVC )
     set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS" )
 elseif( MINGW32 OR MSYS )
     set( WPKG_PROCESSOR i386 )
-    set( WPKG_OS mingw32 )
+    set( WPKG_OS mswindows )
     # WIN_MACHINE_FLAGS cannot be empty and since cmake adds -fPIC under
     # our feet, that makes no difference at this point...
     set( WIN_MACHINE_FLAGS "-fPIC" )
@@ -143,7 +143,7 @@ elseif( MINGW32 OR MSYS )
     set( MO_MINGW32 TRUE )
 elseif( MINGW )
     set( WPKG_PROCESSOR amd64 )
-    set( WPKG_OS mingw64 )
+    set( WPKG_OS mswindows )
     # WIN_MACHINE_FLAGS cannot be empty and since cmake adds -fPIC under
     # our feet, that makes no difference at this point...
     set( WIN_MACHINE_FLAGS "-fPIC" )
