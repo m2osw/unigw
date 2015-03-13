@@ -678,7 +678,7 @@ bool os_dir::read(wpkg_filename::uri_filename& filename)
         }
         else
         {
-            int r(_wfindnext(f_impl->f_dir, &f_impl->f_dirent));
+            int const r(_wfindnext(f_impl->f_dir, &f_impl->f_dirent));
             if(r != 0)
             {
                 if(errno == ENOENT)
@@ -3932,7 +3932,7 @@ uri_filename uri_filename::get_cwd()
     wpkg_filename::uri_filename::os_filename_t cwd("...undefined folder...");
     wpkg_filename::uri_filename::os_char_t buf[32 * 1024]; // limit is 32Kb under MS-Windows
 #if defined(MO_MINGW32) || defined(MO_MINGW64)
-    if(GetCurrentDirectoryW(sizeof(buf) / sizeof(buf[0]), buf) == 0)
+    if(GetCurrentDirectoryW(sizeof(buf) / sizeof(buf[0]), buf) != 0)
 #else
     if(::getcwd(buf, sizeof(buf) / sizeof(buf[0])) != NULL)
 #endif
