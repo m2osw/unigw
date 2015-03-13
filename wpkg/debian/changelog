@@ -10,6 +10,8 @@ wpkg (0.9.9) trusty; urgency=high
     (by Yevgeny Krasovsky)
   * Applied fix to build command line so the --output-repository-dir
     option is properly taken in account (by Mathieu SCHROETER)
+  * Applied patch by Mathieu SCHROETER to fix the test of GetCurrentDirectoryW
+    return value which is not zero on success.
 
  -- Alexis Wilke <alexis@m2osw.com>  Mon, 09 Mar 2015 04:23:06 -0700
 
