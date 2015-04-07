@@ -21,6 +21,9 @@
 #    Alexis Wilke   alexis@m2osw.com
 #
 
+echo "Please look at the dev/build script instead."
+exit 1;
+
 set -e
 
 HELP=false

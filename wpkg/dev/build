@@ -133,7 +133,7 @@ make wpkg_package
 cp WPKG/packages/*.deb $OUTPUTDIR
 
 # Finally copy our current README file
-cp $SRC/README.txt $OUTPUTDIR
+cp $SRC/README.md $OUTPUTDIR
 
 
 # vim: ts=4 sw=4 et

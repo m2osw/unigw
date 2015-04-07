@@ -4,6 +4,7 @@
 ### To run the Unit Tests under a Unix system use the following command:
 ### (assuming you created your cmake directory under BUILD)
 ###
+###   # Unix console
 ###   BUILD/tests/unittests/unittest --tmp tmp/sb --wpkg BUILD/tools/wpkg
 ###
 ### Under MS-Windows I run them from cygwin because the history works properly
@@ -16,7 +17,7 @@
 ###   REM Win32 console
 ###   BUILD\tests\unittests\Release\unittest.exe --tmp tmp/sb --wpkg BUILD\tools\Release\wpkg
 ###
-###   REM Cygwin console
+###   # Cygwin console
 ###   BUILD/tests/unittests/Release/unittest.exe --tmp tmp/sb --wpkg BUILD\\tools\\Release\\wpkg
 ###
 

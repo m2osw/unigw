@@ -1,8 +1,9 @@
-wpkg (0.9.9.1~trusty) trusty; urgency=high
+wpkg (0.9.10) trusty; urgency=high
 
-  * Nightly build.
+  * Applied fix to make sure the --install-prefix gets propagated by the
+    --build command (by Mathieu Schroeter)
 
- -- Build Server <build@m2osw.com>  Tue, 10 Mar 2015 04:24:09 -0700
+ -- Alexis Wilke <alexis@m2osw.com>  Mon, 09 Mar 2015 04:23:06 -0700
 
 wpkg (0.9.9) trusty; urgency=high
 
