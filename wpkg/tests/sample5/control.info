@@ -1,7 +1,7 @@
 Package: sample5
 Sub-Packages: runtime*, doc, src, library
 Package/doc: sample5-documentation
-Version: 2.450.12.4
+Version: 2.450.12.5
 Architecture/runtime: linux-amd64
 Architecture/doc: all
 Architecture/src: source

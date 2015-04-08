@@ -3,10 +3,10 @@ Package/runtime: wpkg
 Package/development: wpkg-dev
 Package/documentation: wpkg-doc
 Priority: optional
-Priority/runtime: required
+Priority/runtime: optional
 Architecture: $(architecture())
 Architecture/documentation: all
-Version: 0.9.7
+Version: 0.9.9
 Maintainer: Alexis Wilke <alexis@m2osw.com>
 Homepage: http://windowspackager.org/
 DESCRIPTION=Multi-platform packager.

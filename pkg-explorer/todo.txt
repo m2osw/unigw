@@ -5,6 +5,7 @@ pkg-installer:
 	* Add an advanced mode where the user is allowed to specify the architecture
 	  for the platform he desires (or just default to the detected arch).
 	* Prompt for a list of repository sources to add, and the root folder.
+	* ? Allow extraction of rep-entries from environment vars.
 	* Init the database, and set up the sources.list.
 	* ? Not sure if I want to just front-end wpkg, or link against libdebpackages.
 	* Accept command line args commands:

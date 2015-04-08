@@ -2,6 +2,8 @@ Sub-Packages: runtime*
 Package/runtime: pkg-explorer
 Priority: optional
 Architecture: $(architecture())
+Version: 0.3.3
+Maintainer: R. Douglas Barbieri <doug@dooglio.net>
 Homepage: http://windowspackager.org/
 Description: Multi-platform packager.
  Package Explorer allows you to manage installation targets via an advanced
