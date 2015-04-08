@@ -1,62 +1,15 @@
-wpkg (0.9.9.10~trusty) trusty; urgency=high
+wpkg (0.9.10.1~trusty) trusty; urgency=high
 
   * Nightly build.
 
- -- Build Server <build@m2osw.com>  Fri, 27 Mar 2015 04:21:55 -0700
+ -- Build Server <build@m2osw.com>  Wed, 08 Apr 2015 03:46:30 -0700
 
-wpkg (0.9.9.9~trusty) trusty; urgency=high
+wpkg (0.9.10) trusty; urgency=high
 
-  * Nightly build.
+  * Applied fix to make sure the --install-prefix gets propagated by the
+    --build command (by Mathieu Schroeter)
 
- -- Build Server <build@m2osw.com>  Thu, 26 Mar 2015 04:25:11 -0700
-
-wpkg (0.9.9.8~trusty) trusty; urgency=high
-
-  * Nightly build.
-
- -- Build Server <build@m2osw.com>  Tue, 24 Mar 2015 04:28:05 -0700
-
-wpkg (0.9.9.7~trusty) trusty; urgency=high
-
-  * Nightly build.
-
- -- Build Server <build@m2osw.com>  Mon, 23 Mar 2015 04:26:15 -0700
-
-wpkg (0.9.9.6~trusty) trusty; urgency=high
-
-  * Nightly build.
-
- -- Build Server <build@m2osw.com>  Sun, 22 Mar 2015 04:24:02 -0700
-
-wpkg (0.9.9.5~trusty) trusty; urgency=high
-
-  * Nightly build.
-
- -- Build Server <build@m2osw.com>  Sat, 21 Mar 2015 04:25:23 -0700
-
-wpkg (0.9.9.4~trusty) trusty; urgency=high
-
-  * Nightly build.
-
- -- Build Server <build@m2osw.com>  Fri, 20 Mar 2015 04:25:52 -0700
-
-wpkg (0.9.9.3~trusty) trusty; urgency=high
-
-  * Nightly build.
-
- -- Build Server <build@m2osw.com>  Thu, 19 Mar 2015 09:31:15 -0700
-
-wpkg (0.9.9.2~trusty) trusty; urgency=high
-
-  * Nightly build.
-
- -- Build Server <build@m2osw.com>  Thu, 19 Mar 2015 08:31:01 -0700
-
-wpkg (0.9.9.1~trusty) trusty; urgency=high
-
-  * Nightly build.
-
- -- Build Server <build@m2osw.com>  Tue, 10 Mar 2015 04:24:09 -0700
+ -- Alexis Wilke <alexis@m2osw.com>  Mon, 09 Mar 2015 04:23:06 -0700
 
 wpkg (0.9.9) trusty; urgency=high
 

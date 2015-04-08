@@ -2841,6 +2841,11 @@ void wpkgar_build::build_repository()
                     cmd += f_manager->get_database_path().full_path();
                     cmd += " --build ";
                     cmd += sources[i]->f_filename.full_path();
+                    if(!f_install_prefix.empty())
+                    {
+                        cmd += " --install-prefix ";
+                        cmd += wpkg_util::make_safe_console_string(f_install_prefix.original_filename());
+                    }
                     cmd += " --output-repository-dir ";
                     bool add_to_repository_list(false);
                     if(f_output_repository_dir.empty())

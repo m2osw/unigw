@@ -4183,6 +4183,14 @@ void build(command_line& cl, wpkg_filename::uri_filename& package_name, const st
                 }
                 need_lock = true;
             }
+            else if(filename.is_dir())
+            {
+                // if compiling a source repository
+                if(cl.opt().is_defined("install-prefix"))
+                {
+                    pkg_build->set_install_prefix(cl.opt().get_string("install-prefix"));
+                }
+            }
         }
     }
 

@@ -1,6 +1,9 @@
 #!/bin/sh
 # Script used to create a dist directory that I can in turn use to build
-# the pkg-explorer tool.
+# the pkg-explorer tool. -- this has not been maintain for a while...
+
+echo "Please look at the dev/build script instead."
+exit 1;
 
 set -e
 
