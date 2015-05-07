@@ -2,7 +2,7 @@ Source: pkgexplorer
 Priority: extra
 Maintainer: R. Douglas Barbieri <doug@dooglio.net>
 Build-Depends: debhelper, cmake, libqt4-dev (>= 4.8.4), libqtwebkit-dev (>= 2.3.2-0ubuntu7),
-               libdebpackages-dev (>= 0.9.10.17~trusty), wpkg (>= 0.9.10.17~trusty)
+               libdebpackages-dev (>= 0.9.10.18~trusty), wpkg (>= 0.9.10.18~trusty)
 Standards-Version: 3.9.4
 Section: admin
 Homepage: http://www.windowspackager.org/
