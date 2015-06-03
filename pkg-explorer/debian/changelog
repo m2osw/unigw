@@ -1,3 +1,9 @@
+pkgexplorer (0.3.2.73~trusty) trusty; urgency=high
+
+  * Nightly build.
+
+ -- Build Server <build@m2osw.com>  Wed, 03 Jun 2015 03:47:26 -0700
+
 pkgexplorer (0.3.2.72~trusty) trusty; urgency=high
 
   * Nightly build.
