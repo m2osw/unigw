@@ -256,7 +256,7 @@ int memory_file::block_manager::read(char *buffer, int offset, int bufsize) cons
         int pos(offset & (BLOCK_MANAGER_BUFFER_SIZE - 1));
         int page(offset >> BLOCK_MANAGER_BUFFER_BITS);
         const int sz(std::min(bufsize, BLOCK_MANAGER_BUFFER_SIZE - pos));
-        char* to_buff = f_buffers[page] + pos;
+        const char* to_buff = f_buffers[page] + pos;
         std::copy( to_buff, to_buff + sz, buffer );
         buffer += sz;
         // copy full pages at once unless size left is less than a page
@@ -270,7 +270,7 @@ int memory_file::block_manager::read(char *buffer, int offset, int bufsize) cons
         // copy a bit, what's left afterward
         if(size_left > 0) {
             // page is not incremented yet
-            char *left_buff = f_buffers[page + 1];
+            const char *left_buff = f_buffers[page + 1];
             std::copy( left_buff, left_buff + size_left, buffer );
         }
     }
@@ -307,8 +307,7 @@ int memory_file::block_manager::write(const char *buffer, const int offset, cons
         int pos(f_size & (BLOCK_MANAGER_BUFFER_SIZE - 1));
         int page(f_size >> BLOCK_MANAGER_BUFFER_BITS);
         int sz(std::min(offset - f_size, BLOCK_MANAGER_BUFFER_SIZE - pos));
-        char* to_fill = f_buffers[page] + pos;
-        std::fill_n( to_fill, sz, 0 );
+        std::fill_n( f_buffers[page] + pos, sz, 0 );
         f_size += sz;
         while(offset > f_size) {
             ++page;
