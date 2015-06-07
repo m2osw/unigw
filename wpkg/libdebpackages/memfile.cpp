@@ -256,22 +256,27 @@ int memory_file::block_manager::read(char *buffer, int offset, int bufsize) cons
         int pos(offset & (BLOCK_MANAGER_BUFFER_SIZE - 1));
         int page(offset >> BLOCK_MANAGER_BUFFER_BITS);
         const int sz(std::min(bufsize, BLOCK_MANAGER_BUFFER_SIZE - pos));
-        const char* to_buff = f_buffers[page] + pos;
-        std::copy( to_buff, to_buff + sz, buffer );
+        {
+            auto& src_buff( f_buffers[page].begin() + pos );
+            std::copy( src_buff, src_buff + sz, buffer );
+        }
         buffer += sz;
         // copy full pages at once unless size left is less than a page
         int size_left(bufsize - sz);
-        while(size_left >= BLOCK_MANAGER_BUFFER_SIZE) {
+        while(size_left >= BLOCK_MANAGER_BUFFER_SIZE)
+        {
             ++page;
-            std::copy( f_buffers[page], f_buffers[page] + BLOCK_MANAGER_BUFFER_SIZE, buffer );
+            auto& src_buff( f_buffers[page].begin() );
+            std::copy( src_buff, src_buff + BLOCK_MANAGER_BUFFER_SIZE, buffer );
             buffer += BLOCK_MANAGER_BUFFER_SIZE;
             size_left -= BLOCK_MANAGER_BUFFER_SIZE;
         }
         // copy a bit, what's left afterward
-        if(size_left > 0) {
+        if(size_left > 0)
+        {
             // page is not incremented yet
-            const char *left_buff = f_buffers[page + 1];
-            std::copy( left_buff, left_buff + size_left, buffer );
+            auto& src_buff = f_buffers[page + 1].begin();
+            std::copy( src_buff, src_buff + size_left, buffer );
         }
     }
     return bufsize;
@@ -279,7 +284,8 @@ int memory_file::block_manager::read(char *buffer, int offset, int bufsize) cons
 
 int memory_file::block_manager::write(const char *buffer, const int offset, const int bufsize)
 {
-    if(offset < 0) {
+    if(offset < 0)
+    {
         throw memfile_exception_parameter("offset is out of bounds");
     }
 
@@ -290,14 +296,15 @@ int memory_file::block_manager::write(const char *buffer, const int offset, cons
     // I think we should have a command line flag so you can impose a limit
     // although there should be no reason other than package optimization
     // (i.e. make sure you don't include the "wrong" thing in your packages)
-    if(total > 1024 * 1024 * 1024) {
+    if(total > 1024 * 1024 * 1024)
+    {
         throw memfile_exception_parameter("memory file size too large (over 1Gb?!)");
     }
 
     // allocate blocks to satisfy the total size
     while(total > f_available_size)
     {
-        f_buffers.push_back(new char[BLOCK_MANAGER_BUFFER_SIZE]);
+        f_buffers.push_back( buffer_t( BLOCK_MANAGER_BUFFER_SIZE, 0 ) );
         f_available_size += BLOCK_MANAGER_BUFFER_SIZE;
     }
 
@@ -307,38 +314,41 @@ int memory_file::block_manager::write(const char *buffer, const int offset, cons
         int pos(f_size & (BLOCK_MANAGER_BUFFER_SIZE - 1));
         int page(f_size >> BLOCK_MANAGER_BUFFER_BITS);
         int sz(std::min(offset - f_size, BLOCK_MANAGER_BUFFER_SIZE - pos));
-        std::fill_n( f_buffers[page] + pos, sz, 0 );
+        auto& buff_pos( f_buffers[page].begin() + pos );
+        std::fill( buff_pos, buff_pos + sz, 0 );
         f_size += sz;
-        while(offset > f_size) {
+        while(offset > f_size)
+        {
             ++page;
             sz = std::min(offset - f_size, BLOCK_MANAGER_BUFFER_SIZE);
-            std::fill_n( f_buffers[page], sz, 0 );
+            auto& page_iter( f_buffers[page].begin() );
+            std::fill( page_iter, page_iter + sz, 0 );  // Does this need to happen since we now clear the full buffer above in the constructor?
             f_size += sz;
         }
     }
 
     // now copy buffer to our blocks
-    if(bufsize > 0) {
+    if(bufsize > 0)
+    {
         // copy up to the end of the current block
         const int pos(offset & (BLOCK_MANAGER_BUFFER_SIZE - 1));
         int page(offset >> BLOCK_MANAGER_BUFFER_BITS);
         const int sz(std::min(BLOCK_MANAGER_BUFFER_SIZE - pos, bufsize));
         int buffer_size(bufsize);
-        std::copy( buffer, buffer + sz, f_buffers[page] );
+        std::copy( buffer, buffer + sz, f_buffers[page].begin() );
         buffer += sz;
         buffer_size -= sz;
         // copy entire blocks if possible
         while(buffer_size >= BLOCK_MANAGER_BUFFER_SIZE)
         {
-            ++page;
-            std::copy( buffer, buffer + BLOCK_MANAGER_BUFFER_SIZE, f_buffers[page] );
-            buffer += BLOCK_MANAGER_BUFFER_SIZE;
+            std::copy( buffer, buffer + BLOCK_MANAGER_BUFFER_SIZE, f_buffers[++page].begin() );
+            buffer      += BLOCK_MANAGER_BUFFER_SIZE;
             buffer_size -= BLOCK_MANAGER_BUFFER_SIZE;
         }
         // copy the remainder if any
         if(buffer_size > 0)
         {
-            std::copy( buffer, buffer + buffer_size, f_buffers[page+1] );
+            std::copy( buffer, buffer + buffer_size, f_buffers[page+1].begin() );
         }
     }
 
@@ -347,6 +357,7 @@ int memory_file::block_manager::write(const char *buffer, const int offset, cons
     return bufsize;
 }
 
+#if 0
 int memory_file::block_manager::compare(const block_manager& rhs) const
 {
     int r;
@@ -371,6 +382,7 @@ int memory_file::block_manager::compare(const block_manager& rhs) const
     }
     return f_size < rhs.f_size ? -1 : 1;
 }
+#endif
 
 memory_file::file_format_t memory_file::block_manager::data_to_format(int offset, int /*bufsize*/ ) const
 {
@@ -1784,10 +1796,12 @@ void memory_file::copy(memory_file& destination) const
     }
 }
 
+#if 0
 int memory_file::compare(const memory_file& rhs) const
 {
     return f_buffer.compare(rhs.f_buffer);
 }
+#endif
 
 bool memory_file::is_compressed() const
 {
