@@ -98,8 +98,6 @@ const int                               memory_file::file_info_return_errors; //
 const int                               memory_file::file_info_permissions_error; // init in class
 const int                               memory_file::file_info_owner_error; // init in class
 #endif
-memory_file::block_manager::buffer_t    memory_file::block_manager::g_free_buffers; // auto-init to empty
-controlled_vars::zint32_t               memory_file::block_manager::g_total_allocated; // max. memory allocated for blocks (init to zero)
 
 // make sure that the number of bits is at least 10
 CONTROLLED_VARS_STATIC_ASSERT(memory_file::block_manager::BLOCK_MANAGER_BUFFER_BITS >= 10);
@@ -233,19 +231,10 @@ memory_file::block_manager::block_manager()
 
 memory_file::block_manager::~block_manager()
 {
-    // release all the buffers this manager allocated
-    g_free_buffers.insert(g_free_buffers.end(), f_buffers.begin(), f_buffers.end());
-}
-
-int memory_file::block_manager::max_allocated()
-{
-    return g_total_allocated;
 }
 
 void memory_file::block_manager::clear()
 {
-    // release all the buffers
-    g_free_buffers.insert(g_free_buffers.end(), f_buffers.begin(), f_buffers.end());
     f_buffers.clear();
     f_size = 0;
     f_available_size = 0;
@@ -261,25 +250,28 @@ int memory_file::block_manager::read(char *buffer, int offset, int bufsize) cons
     {
         bufsize = f_size - offset;
     }
-    if(bufsize > 0) {
+    if(bufsize > 0)
+    {
         // copy bytes between offset and next block boundary
         int pos(offset & (BLOCK_MANAGER_BUFFER_SIZE - 1));
         int page(offset >> BLOCK_MANAGER_BUFFER_BITS);
-        int sz(std::min(bufsize, BLOCK_MANAGER_BUFFER_SIZE - pos));
-        memcpy(buffer, f_buffers[page] + pos, sz);
+        const int sz(std::min(bufsize, BLOCK_MANAGER_BUFFER_SIZE - pos));
+        char* to_buff = f_buffers[page] + pos;
+        std::copy( to_buff, to_buff + sz, buffer );
         buffer += sz;
         // copy full pages at once unless size left is less than a page
         int size_left(bufsize - sz);
         while(size_left >= BLOCK_MANAGER_BUFFER_SIZE) {
             ++page;
-            memcpy(buffer, f_buffers[page], BLOCK_MANAGER_BUFFER_SIZE);
+            std::copy( f_buffers[page], f_buffers[page] + BLOCK_MANAGER_BUFFER_SIZE, buffer );
             buffer += BLOCK_MANAGER_BUFFER_SIZE;
             size_left -= BLOCK_MANAGER_BUFFER_SIZE;
         }
         // copy a bit, what's left afterward
         if(size_left > 0) {
             // page is not incremented yet
-            memcpy(buffer, f_buffers[page + 1], size_left);
+            char *left_buff = f_buffers[page + 1];
+            std::copy( left_buff, left_buff + size_left, buffer );
         }
     }
     return bufsize;
@@ -303,29 +295,25 @@ int memory_file::block_manager::write(const char *buffer, const int offset, cons
     }
 
     // allocate blocks to satisfy the total size
-    while(total > f_available_size) {
-        if(g_free_buffers.empty()) {
-            f_buffers.push_back(new char[BLOCK_MANAGER_BUFFER_SIZE]);
-            g_total_allocated += BLOCK_MANAGER_BUFFER_SIZE;
-        }
-        else {
-            f_buffers.push_back(g_free_buffers.back());
-            g_free_buffers.pop_back();
-        }
+    while(total > f_available_size)
+    {
+        f_buffers.push_back(new char[BLOCK_MANAGER_BUFFER_SIZE]);
         f_available_size += BLOCK_MANAGER_BUFFER_SIZE;
     }
 
     // if offset is larger than size we want to clear the buffers in between
-    if(offset > f_size) {
+    if(offset > f_size)
+    {
         int pos(f_size & (BLOCK_MANAGER_BUFFER_SIZE - 1));
         int page(f_size >> BLOCK_MANAGER_BUFFER_BITS);
         int sz(std::min(offset - f_size, BLOCK_MANAGER_BUFFER_SIZE - pos));
-        memset(f_buffers[page] + pos, 0, sz);
+        char* to_fill = f_buffers[page] + pos;
+        std::fill_n( to_fill, sz, 0 );
         f_size += sz;
         while(offset > f_size) {
             ++page;
             sz = std::min(offset - f_size, BLOCK_MANAGER_BUFFER_SIZE);
-            memset(f_buffers[page], 0, sz);
+            std::fill_n( f_buffers[page], sz, 0 );
             f_size += sz;
         }
     }
@@ -337,19 +325,21 @@ int memory_file::block_manager::write(const char *buffer, const int offset, cons
         int page(offset >> BLOCK_MANAGER_BUFFER_BITS);
         const int sz(std::min(BLOCK_MANAGER_BUFFER_SIZE - pos, bufsize));
         int buffer_size(bufsize);
-        memcpy(f_buffers[page] + pos, buffer, sz);
+        std::copy( buffer, buffer + sz, f_buffers[page] );
         buffer += sz;
         buffer_size -= sz;
         // copy entire blocks if possible
-        while(buffer_size >= BLOCK_MANAGER_BUFFER_SIZE) {
+        while(buffer_size >= BLOCK_MANAGER_BUFFER_SIZE)
+        {
             ++page;
-            memcpy(f_buffers[page], buffer, BLOCK_MANAGER_BUFFER_SIZE);
+            std::copy( buffer, buffer + BLOCK_MANAGER_BUFFER_SIZE, f_buffers[page] );
             buffer += BLOCK_MANAGER_BUFFER_SIZE;
             buffer_size -= BLOCK_MANAGER_BUFFER_SIZE;
         }
         // copy the remainder if any
-        if(buffer_size > 0) {
-            memcpy(f_buffers[page + 1], buffer, buffer_size);
+        if(buffer_size > 0)
+        {
+            std::copy( buffer, buffer + buffer_size, f_buffers[page+1] );
         }
     }
 
@@ -432,7 +422,7 @@ class gz_lib
 public:
     gz_lib()
     {
-        memset(&f_zstream, 0, sizeof(f_zstream));
+        memset( &f_zstream, 0, sizeof(f_zstream) );
     }
 
     void check_error(int zerr)
@@ -472,7 +462,7 @@ public:
 #if (__GNUC__ >= 4) && (__GNUC_MINOR__ >= 6)
 #pragma GCC diagnostic pop
 #endif
-        memset(&f_zheader, 0, sizeof(f_zheader));
+        memset(&f_zheader, 0, sizeof(f_zheader) );
         f_zheader.time = static_cast<int>(time(NULL));
         // what value are valid for os? it is undefined in the header...
         // search for RFC 1952 for a list
@@ -610,7 +600,7 @@ class bz2_lib
 public:
     bz2_lib()
     {
-        memset(&f_bzstream, 0, sizeof(f_bzstream));
+        memset(&f_bzstream, 0, sizeof(f_bzstream) );
     }
 
     void check_error(int bzerr)
@@ -1931,7 +1921,7 @@ void memory_file::end_archive()
         // tarballs must end with at least 2 empty (all NULLs) blocks
         // then it has to be a multiple of 20 blocks (10Kb)
         char buf[512];
-        memset(buf, 0, sizeof(buf));
+        std::fill_n(buf, sizeof(buf), 0);
         f_buffer.write(buf, f_buffer.size(), sizeof(buf));
         f_buffer.write(buf, f_buffer.size(), sizeof(buf));
         while(f_buffer.size() % 10240 != 0) {
@@ -2965,9 +2955,10 @@ void memory_file::dir_next_wpkg(file_info& info, memory_file *data) const
     info.set_dev_major(header->f_dev_major);
     info.set_dev_minor(header->f_dev_minor);
     md5::raw_md5sum raw;
-    memcpy(raw.f_sum, header->f_md5sum, md5::raw_md5sum::MD5SUM_RAW_BUFSIZ);
+    std::copy( header->f_md5sum, header->f_md5sum + md5::raw_md5sum::MD5SUM_RAW_BUFSIZ, raw.f_sum );
     info.set_raw_md5sum(raw);
-    info.set_original_compression(static_cast<wpkgar::wpkgar_block_t::wpkgar_compression_t>(header->f_original_compression));
+    info.set_original_compression(
+        static_cast<wpkgar::wpkgar_block_t::wpkgar_compression_t>( static_cast<uint8_t>(header->f_original_compression) ) );
 
     info.set_filename(reinterpret_cast<const char *>(header->f_name), 300);
     info.set_link(reinterpret_cast<const char *>(header->f_link), 300);
@@ -3313,7 +3304,7 @@ bool memory_file::dir_next_meta(file_info& info) const
         }
         char d[5];
         struct tm t;
-        memset(&t, 0, sizeof(t));
+        memset( &t, 0, sizeof(t) );
         if(l - date != 8)
         {
             if(l - date != 15)
@@ -3518,8 +3509,8 @@ void memory_file::append_ar(const file_info& info, const memory_file& data)
     }
 
     // create the ar header and then write it to the file
-    memset(buf, ' ', sizeof(buf));
-    memcpy(buf, info.get_filename().c_str(), info.get_filename().size()); // char ar_name[16]
+    std::fill_n(buf, sizeof(buf), ' ' );
+    std::copy( info.get_filename().begin(), info.get_filename().end(), buf ); // char ar_name[16]
     // dpkg does NOT terminate filenames with '/' so we don't either
     //buf[info.get_filename().length()] = '/'; // end filename with '/'
     file_info::int_to_str(buf + 16, static_cast<int>(info.get_mtime()), 12, 10, ' '); // char ar_date[12]
@@ -3853,10 +3844,11 @@ void memory_file::append_wpkg(const file_info& info, const memory_file& data)
         throw memfile_exception_parameter("the symbolic link is too long to fit in a wpkg archive file");
     }
 
-    memset(&header, 0, sizeof(header));
+    // No need for this, because this happenes in the constructor...
+    //memset(&header, 0, sizeof(header) );
 
     header.f_magic = wpkgar::WPKGAR_MAGIC;
-    memcpy(header.f_version, wpkgar::WPKGAR_VERSION_1_1, sizeof(header.f_version));
+    std::copy( wpkgar::WPKGAR_VERSION_1_1, wpkgar::WPKGAR_VERSION_1_1 + sizeof(header.f_version), header.f_version );
 
     switch(info.get_file_type())
     {
@@ -3878,11 +3870,11 @@ void memory_file::append_wpkg(const file_info& info, const memory_file& data)
         {
             md5::raw_md5sum sum;
             data.raw_md5sum(sum);
-            memcpy(header.f_md5sum, sum.f_sum, sizeof(header.f_md5sum));
+            std::copy( sum.f_sum, sum.f_sum + sizeof(header.f_md5sum), header.f_md5sum );
         }
         else
         {
-            memcpy(header.f_md5sum, info.get_raw_md5sum().f_sum, sizeof(header.f_md5sum));
+            std::copy( info.get_raw_md5sum().f_sum, info.get_raw_md5sum().f_sum + sizeof(header.f_md5sum), header.f_md5sum );
         }
         break;
 
@@ -3962,7 +3954,7 @@ void memory_file::append_wpkg(const file_info& info, const memory_file& data)
             // creating the pad with a dynamic size may not work with
             // all compilers, so create the largest
             char pad[sizeof(wpkgar::wpkgar_block_t)];
-            memset(pad, 0, length);
+            std::fill_n(pad, length, 0);
             write(pad, f_buffer.size(), length);
         }
     }
@@ -3975,7 +3967,7 @@ void memory_file::append_wpkg(const file_info& info, const memory_file& data)
             // creating the pad with a dynamic size may not work with
             // all compilers, so create the largest
             char pad[sizeof(wpkgar::wpkgar_block_t)];
-            memset(pad, 0, length);
+            std::fill_n(pad, length, 0);
             write(pad, f_buffer.size(), length);
         }
     }

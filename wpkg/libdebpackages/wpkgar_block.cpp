@@ -69,8 +69,30 @@ const uint8_t   WPKGAR_VERSION_1_1[4] = { '1', '.', '1', '\0' }; // exactly 4 by
 CONTROLLED_VARS_STATIC_ASSERT(sizeof(wpkgar_block_t) == 1024);
 
 wpkgar_block_t::wpkgar_block_t()
+    //f_magic(0)
+    //f_version[4]
+    //f_type(0)
+    //f_original_compression(0)
+    //f_use(0)
+    //f_status(0)
+    //f_uid(0)
+    //f_gid(0)
+    //f_mode(0)
+    //f_size(0)
+    //f_mtime(0)
+    //f_dev_major(0)
+    //f_dev_minor(0)
+    //f_name[300]
+    //f_link[300]
+    //f_user[32]
+    //f_group[32]
+    //f_md5sum[16]
+    //f_name_size(0)
+    //f_link_size(0)
+    //f_reserved[...]
+    //f_checksum(0)
 {
-    memset(&f_magic, 0, sizeof(wpkgar_block_t));
+    // Auto-init
 }
 
 }
