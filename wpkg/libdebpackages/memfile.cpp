@@ -3523,14 +3523,15 @@ void memory_file::append_ar(const file_info& info, const memory_file& data)
 
     // create the ar header and then write it to the file
     std::fill_n(buf, sizeof(buf), ' ' );
-    std::copy( info.get_filename().begin(), info.get_filename().end(), buf ); // char ar_name[16]
+    auto file_iter( info.get_filename() );
+    std::copy( file_iter.begin(), file_iter.end(), buf ); // char ar_name[16]
     // dpkg does NOT terminate filenames with '/' so we don't either
     //buf[info.get_filename().length()] = '/'; // end filename with '/'
-    file_info::int_to_str(buf + 16, static_cast<int>(info.get_mtime()), 12, 10, ' '); // char ar_date[12]
-    file_info::int_to_str(buf + 16 + 12, info.get_uid(), 6, 10, ' '); // char ar_uid[6]
-    file_info::int_to_str(buf + 16 + 12 + 6, info.get_gid(), 6, 10, ' '); // char ar_gid[6]
-    file_info::int_to_str(buf + 16 + 12 + 6 + 6, info.get_mode(), 8, 8, ' '); // char ar_mode[8]
-    file_info::int_to_str(buf + 16 + 12 + 6 + 6 + 8, info.get_size(), 10, 10, ' '); // char ar_size[8]
+    file_info::int_to_str(buf + 16                 , static_cast<int>(info.get_mtime()), 12, 10, ' '); // char ar_date[12]
+    file_info::int_to_str(buf + 16 + 12            , info.get_uid()                    , 6 , 10, ' '); // char ar_uid[6]
+    file_info::int_to_str(buf + 16 + 12 + 6        , info.get_gid()                    , 6 , 10, ' '); // char ar_gid[6]
+    file_info::int_to_str(buf + 16 + 12 + 6 + 6    , info.get_mode()                   , 8 , 8 , ' '); // char ar_mode[8]
+    file_info::int_to_str(buf + 16 + 12 + 6 + 6 + 8, info.get_size()                   , 10, 10, ' '); // char ar_size[8]
     buf[58] = '`'; // char ar_fmag[2]
     buf[59] = '\n';
     write(buf, f_buffer.size(), sizeof(buf));
