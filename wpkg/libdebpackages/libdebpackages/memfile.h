@@ -244,20 +244,20 @@ public:
         ~block_manager();
 
         void clear();
-        int size() const { return f_size; }
+        int size() const { return f_buffers.size(); }
         int read(char *buffer, int offset, int size) const;
         int write(const char *buffer, int offset, int size);
-        //int compare(const block_manager& rhs) const;
+        bool compare(const block_manager& rhs) const;
+        bool is_text() const;
 
         file_format_t data_to_format(int offset, int size) const;
 
     private:
         typedef std::vector<char>           buffer_t;
-        typedef std::vector<buffer_t>       buffer_list_t;
 
-        controlled_vars::zint32_t           f_size;
-        controlled_vars::zint32_t           f_available_size;
-        buffer_list_t                       f_buffers;
+        //controlled_vars::zint32_t           f_size;
+        //controlled_vars::zint32_t           f_available_size;
+        buffer_t                            f_buffers;
     };
 
     static const int file_info_throw = 0x00;
@@ -283,7 +283,7 @@ public:
     void read_file(const wpkg_filename::uri_filename& filename, file_info *info = NULL);
     void write_file(const wpkg_filename::uri_filename& filename, bool create_folders = false, bool force = false) const;
     void copy(memory_file& destination) const;
-    //int compare(const memory_file& rhs) const;
+    bool compare(const memory_file& rhs) const;
 
     // compression handling (gz or bz2)
     bool is_compressed() const;

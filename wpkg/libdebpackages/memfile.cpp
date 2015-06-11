@@ -236,153 +236,79 @@ memory_file::block_manager::~block_manager()
 void memory_file::block_manager::clear()
 {
     f_buffers.clear();
-    f_size = 0;
-    f_available_size = 0;
+    //f_size = 0;
+    //f_available_size = 0;
 }
 
 int memory_file::block_manager::read(char *buffer, int offset, int bufsize) const
 {
-    if(offset < 0 || offset > f_size)
+    const int the_size( static_cast<int>(f_buffers.size()) );
+    if(offset < 0 || offset > the_size )
     {
         throw memfile_exception_parameter("offset is out of bounds");
     }
-    if(offset + bufsize > f_size)
+    //
+    if(offset + bufsize > the_size )
     {
-        bufsize = f_size - offset;
+        bufsize = the_size - offset;
     }
+    //
     if(bufsize > 0)
     {
-        // copy bytes between offset and next block boundary
-        int pos(offset & (BLOCK_MANAGER_BUFFER_SIZE - 1));
-        int page(offset >> BLOCK_MANAGER_BUFFER_BITS);
-        const int sz(std::min(bufsize, BLOCK_MANAGER_BUFFER_SIZE - pos));
-        {
-            auto& src_buff( f_buffers[page].begin() + pos );
-            std::copy( src_buff, src_buff + sz, buffer );
-        }
-        buffer += sz;
-        // copy full pages at once unless size left is less than a page
-        int size_left(bufsize - sz);
-        while(size_left >= BLOCK_MANAGER_BUFFER_SIZE)
-        {
-            ++page;
-            auto& src_buff( f_buffers[page].begin() );
-            std::copy( src_buff, src_buff + BLOCK_MANAGER_BUFFER_SIZE, buffer );
-            buffer += BLOCK_MANAGER_BUFFER_SIZE;
-            size_left -= BLOCK_MANAGER_BUFFER_SIZE;
-        }
-        // copy a bit, what's left afterward
-        if(size_left > 0)
-        {
-            // page is not incremented yet
-            auto& src_buff = f_buffers[page + 1].begin();
-            std::copy( src_buff, src_buff + size_left, buffer );
-        }
+        const auto& iter( f_buffers.begin() + offset );
+        std::copy( iter, iter + bufsize, buffer );
     }
     return bufsize;
 }
 
 int memory_file::block_manager::write(const char *buffer, const int offset, const int bufsize)
 {
-    if(offset < 0)
+    if( offset < 0 )
     {
         throw memfile_exception_parameter("offset is out of bounds");
     }
 
     // compute total size
-    int total(offset + bufsize);
+    //const int total(offset + bufsize);
 
-    // Increased the maximum size to 1Gb instead of 128Mb
-    // I think we should have a command line flag so you can impose a limit
-    // although there should be no reason other than package optimization
-    // (i.e. make sure you don't include the "wrong" thing in your packages)
-    if(total > 1024 * 1024 * 1024)
+    // if offset is larger than size we want to expand the buffer size, then zero out the new bytes
+    //
+    int the_size( static_cast<int>(f_buffers.size()) );
+    if( offset > the_size )
     {
-        throw memfile_exception_parameter("memory file size too large (over 1Gb?!)");
+        f_buffers.resize( offset );
+        std::fill_n( f_buffers.begin() + the_size, offset, 0 );
     }
 
-    // allocate blocks to satisfy the total size
-    while(total > f_available_size)
+    the_size = static_cast<int>(f_buffers.size());
+    if( bufsize + offset > the_size )
     {
-        f_buffers.push_back( buffer_t( BLOCK_MANAGER_BUFFER_SIZE, 0 ) );
-        f_available_size += BLOCK_MANAGER_BUFFER_SIZE;
-    }
-
-    // if offset is larger than size we want to clear the buffers in between
-    if(offset > f_size)
-    {
-        int pos(f_size & (BLOCK_MANAGER_BUFFER_SIZE - 1));
-        int page(f_size >> BLOCK_MANAGER_BUFFER_BITS);
-        int sz(std::min(offset - f_size, BLOCK_MANAGER_BUFFER_SIZE - pos));
-        auto& buff_pos( f_buffers[page].begin() + pos );
-        std::fill( buff_pos, buff_pos + sz, 0 );
-        f_size += sz;
-        while(offset > f_size)
-        {
-            ++page;
-            sz = std::min(offset - f_size, BLOCK_MANAGER_BUFFER_SIZE);
-            auto& page_iter( f_buffers[page].begin() );
-            std::fill( page_iter, page_iter + sz, 0 );  // Does this need to happen since we now clear the full buffer above in the constructor?
-            f_size += sz;
-        }
+        f_buffers.resize( bufsize + offset );
+        std::fill_n( f_buffers.begin() + the_size, bufsize, 0 );
     }
 
     // now copy buffer to our blocks
-    if(bufsize > 0)
+    if( bufsize > 0 )
     {
-        // copy up to the end of the current block
-        const int pos(offset & (BLOCK_MANAGER_BUFFER_SIZE - 1));
-        int page(offset >> BLOCK_MANAGER_BUFFER_BITS);
-        const int sz(std::min(BLOCK_MANAGER_BUFFER_SIZE - pos, bufsize));
-        int buffer_size(bufsize);
-        std::copy( buffer, buffer + sz, f_buffers[page].begin() );
-        buffer += sz;
-        buffer_size -= sz;
-        // copy entire blocks if possible
-        while(buffer_size >= BLOCK_MANAGER_BUFFER_SIZE)
-        {
-            std::copy( buffer, buffer + BLOCK_MANAGER_BUFFER_SIZE, f_buffers[++page].begin() );
-            buffer      += BLOCK_MANAGER_BUFFER_SIZE;
-            buffer_size -= BLOCK_MANAGER_BUFFER_SIZE;
-        }
-        // copy the remainder if any
-        if(buffer_size > 0)
-        {
-            std::copy( buffer, buffer + buffer_size, f_buffers[page+1].begin() );
-        }
+        std::copy( buffer, buffer + bufsize, f_buffers.begin() + offset );
     }
-
-    f_size = std::max(static_cast<int>(f_size), total);
 
     return bufsize;
 }
 
-#if 0
-int memory_file::block_manager::compare(const block_manager& rhs) const
+
+bool memory_file::block_manager::compare(const block_manager& rhs) const
 {
-    int r;
-    int32_t sz(std::min(f_size, rhs.f_size));
-    int page(0);
-    for(; sz >= BLOCK_MANAGER_BUFFER_SIZE; sz -= BLOCK_MANAGER_BUFFER_SIZE, ++page)
+    if( f_buffers.size() != rhs.f_buffers.size() )
     {
-        r = memcmp(f_buffers[page], rhs.f_buffers[page], BLOCK_MANAGER_BUFFER_SIZE);
-        if(r != 0)
-        {
-            return r;
-        }
+        // Partial buffer compares not allowed
+        //
+        return false;
     }
-    r = memcmp(f_buffers[page], rhs.f_buffers[page], sz);
-    if(r != 0)
-    {
-        return r;
-    }
-    if(f_size == rhs.f_size)
-    {
-        return 0;
-    }
-    return f_size < rhs.f_size ? -1 : 1;
+
+    return f_buffers == rhs.f_buffers;
 }
-#endif
+
 
 memory_file::file_format_t memory_file::block_manager::data_to_format(int offset, int /*bufsize*/ ) const
 {
@@ -392,6 +318,23 @@ memory_file::file_format_t memory_file::block_manager::data_to_format(int offset
 }
 
 
+
+bool memory_file::block_manager::is_text() const
+{
+    auto iter = std::find_if( f_buffers.begin(), f_buffers.end(), []( char ch )
+    {
+        unsigned char c(static_cast<unsigned char>(ch));
+        if((c < ' ' || c > 126)
+                && (c < 0xA0 /*|| c > 0xFF -- always false warning */)
+                && c != '\n' && c != '\r' && c != '\t' && c != '\f')
+        {
+            return false;
+        }
+        return true;
+    });
+
+    return iter != f_buffers.end();
+}
 
 
 
@@ -1108,31 +1051,7 @@ bool memory_file::is_text() const
         throw memfile_exception_undefined("this memory file is still undefined, whether it is a text file cannot be determined");
     }
 
-    // TODO: add a test to see whether the file starts with a BOM
-    //       and if so verify the file as the corresponding Unicode
-    //       encoding instead (i.e. UTF-8, UCS-2, UCS-4)
-    int offset(0);
-    while(offset < f_buffer.size())
-    {
-        // TODO: to avoid the read() altogether, move this function inside the
-        //       f_buffer implementation so it can directly access the
-        //       data without copying it
-        int sz(std::min(f_buffer.size() - offset, block_manager::BLOCK_MANAGER_BUFFER_SIZE));
-        char buf[block_manager::BLOCK_MANAGER_BUFFER_SIZE];
-        f_buffer.read(buf, offset, sz);
-        offset += sz;
-
-        for(int i(0); i < sz; ++i) {
-            unsigned char c(static_cast<unsigned char>(buf[i]));
-            if((c < ' ' || c > 126)
-            && (c < 0xA0 /*|| c > 0xFF -- always false warning */)
-            && c != '\n' && c != '\r' && c != '\t' && c != '\f') {
-                return false;
-            }
-        }
-    }
-
-    return true;
+    return f_buffer.is_text();
 }
 
 memory_file::file_format_t memory_file::data_to_format(const char *data, int bufsize)
@@ -1796,8 +1715,8 @@ void memory_file::copy(memory_file& destination) const
     }
 }
 
-#if 0
-int memory_file::compare(const memory_file& rhs) const
+#if 1
+bool memory_file::compare(const memory_file& rhs) const
 {
     return f_buffer.compare(rhs.f_buffer);
 }
@@ -3003,8 +2922,10 @@ void memory_file::dir_next_wpkg(file_info& info, memory_file *data) const
         }
     }
 
-    if(data != NULL) {
-        switch(header->f_type) {
+    if(data != NULL)
+    {
+        switch(header->f_type)
+        {
         case wpkgar::wpkgar_block_t::WPKGAR_TYPE_REGULAR:
         case wpkgar::wpkgar_block_t::WPKGAR_TYPE_CONTINUOUS:
             // user requested for the file to be loaded
@@ -3015,6 +2936,15 @@ void memory_file::dir_next_wpkg(file_info& info, memory_file *data) const
             data->read_file(f_package_path.append_child(info.get_filename()));
             break;
 
+        case wpkgar::wpkgar_block_t::WPKGAR_TYPE_HARD_LINK         :
+        case wpkgar::wpkgar_block_t::WPKGAR_TYPE_SYMBOLIC_LINK     :
+        case wpkgar::wpkgar_block_t::WPKGAR_TYPE_CHARACTER_SPECIAL :
+        case wpkgar::wpkgar_block_t::WPKGAR_TYPE_BLOCK_SPECIAL     :
+        case wpkgar::wpkgar_block_t::WPKGAR_TYPE_DIRECTORY         :
+        case wpkgar::wpkgar_block_t::WPKGAR_TYPE_FIFO              :
+        case wpkgar::wpkgar_block_t::WPKGAR_TYPE_PACKAGE           :
+            // Do nothing
+            break;
         }
     }
 }
@@ -3921,13 +3851,13 @@ void memory_file::append_wpkg(const file_info& info, const memory_file& data)
 
     }
 
-    header.f_original_compression = static_cast<uint8_t>(info.get_original_compression());
-    header.f_use = wpkgar::wpkgar_block_t::WPKGAR_USAGE_UNKNOWN;
-    header.f_status = wpkgar::wpkgar_block_t::WPKGAR_STATUS_UNKNOWN;
-
-    header.f_uid = info.get_uid();
-    header.f_gid = info.get_gid();
-    header.f_mode = info.get_mode();
+    header.f_original_compression = info.get_original_compression();
+    header.f_use                  = wpkgar::wpkgar_block_t::WPKGAR_USAGE_UNKNOWN;
+    header.f_status               = wpkgar::wpkgar_block_t::WPKGAR_STATUS_UNKNOWN;
+    //
+    header.f_uid                  = info.get_uid();
+    header.f_gid                  = info.get_gid();
+    header.f_mode                 = info.get_mode();
     if(data.f_created || data.f_loaded)
     {
         header.f_size = data.size();
