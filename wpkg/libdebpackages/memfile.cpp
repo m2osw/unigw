@@ -321,7 +321,7 @@ memory_file::file_format_t memory_file::block_manager::data_to_format(int offset
 
 bool memory_file::block_manager::is_text() const
 {
-    auto iter = std::find_if( f_buffers.begin(), f_buffers.end(), []( char ch )
+    auto iter = std::find_if( f_buffers.begin(), f_buffers.end(), []( char ch ) -> bool
     {
         unsigned char c(static_cast<unsigned char>(ch));
         if((c < ' ' || c > 126)
