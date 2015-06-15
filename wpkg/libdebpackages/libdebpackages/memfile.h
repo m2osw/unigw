@@ -247,7 +247,7 @@ public:
         int size() const { return f_size; }
         int read(char *buffer, int offset, int size) const;
         int write(const char *buffer, int offset, int size);
-        //int compare(const block_manager& rhs) const;
+        int compare(const block_manager& rhs) const;
 
         file_format_t data_to_format(int offset, int size) const;
 
@@ -283,7 +283,7 @@ public:
     void read_file(const wpkg_filename::uri_filename& filename, file_info *info = NULL);
     void write_file(const wpkg_filename::uri_filename& filename, bool create_folders = false, bool force = false) const;
     void copy(memory_file& destination) const;
-    //int compare(const memory_file& rhs) const;
+    int compare(const memory_file& rhs) const;
 
     // compression handling (gz or bz2)
     bool is_compressed() const;
