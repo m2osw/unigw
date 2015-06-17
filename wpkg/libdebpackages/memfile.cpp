@@ -314,7 +314,7 @@ int memory_file::block_manager::write(const char *buffer, const int offset, cons
         int pos(f_size & (BLOCK_MANAGER_BUFFER_SIZE - 1));
         int page(f_size >> BLOCK_MANAGER_BUFFER_BITS);
         int sz(std::min(offset - f_size, BLOCK_MANAGER_BUFFER_SIZE - pos));
-        auto& buff_pos( f_buffers[page].begin() + pos );
+        const auto& buff_pos( f_buffers[page].begin() + pos );
         std::fill( buff_pos, buff_pos + sz, 0 );
         f_size += sz;
         while(offset > f_size)

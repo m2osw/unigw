@@ -101,10 +101,10 @@ struct DEBIAN_PACKAGE_EXPORT wpkgar_block_t
 
     controlled_vars::zuint32_t    f_magic;        // 'WPKG' (GKPW if endian is inverted)
     controlled_vars::zuchar_t     f_version[4];   // '1.0\0' or '1.1\0' (not endian affected)
-    controlled_vars::zuchar_t     f_type;         // wpkgar_type_t
-    controlled_vars::zuchar_t     f_original_compression; // for files we store uncompressed (control.tar & data.tar)
-    controlled_vars::zuchar_t     f_use;          // wpkgar_usage_t
-    controlled_vars::zuchar_t     f_status;       // wpkgar_status_t
+    uint8_t                       f_type;         // wpkgar_type_t
+    uint8_t                       f_original_compression; // for files we store uncompressed (control.tar & data.tar)
+    uint8_t                       f_use;          // wpkgar_usage_t
+    uint8_t                       f_status;       // wpkgar_status_t
     controlled_vars::zuint32_t    f_uid;          // user identifier (if f_user undefined)
     controlled_vars::zuint32_t    f_gid;          // group identifier (if f_group undefined)
     controlled_vars::zuint32_t    f_mode;         // "rwxrwxrwx" mode, may include s & t as well
