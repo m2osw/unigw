@@ -244,7 +244,7 @@ public:
         ~block_manager();
 
         void clear();
-        int size() const { return f_buffers.size(); }
+        int size() const { return f_size; }
         int read(char *buffer, int offset, int size) const;
         int write(const char *buffer, int offset, int size);
         int compare(const block_manager& rhs) const;
@@ -253,10 +253,11 @@ public:
 
     private:
         typedef std::vector<char>           buffer_t;
+        typedef std::vector<buffer_t>       buffer_list_t;
 
-        //controlled_vars::zint32_t           f_size;
-        //controlled_vars::zint32_t           f_available_size;
-        buffer_t                            f_buffers;
+        controlled_vars::zint32_t           f_size;
+        controlled_vars::zint32_t           f_available_size;
+        buffer_list_t                       f_buffers;
     };
 
     static const int file_info_throw = 0x00;
