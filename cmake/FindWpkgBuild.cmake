@@ -168,7 +168,7 @@ function( ConfigureMakeProject )
 		COMMAND ${BUILD_CMD} package
 			1>> ${BUILD_DIR}/${ARG_PROJECT_NAME}_make.log
 			2>> ${BUILD_DIR}/${ARG_PROJECT_NAME}_make.err
-		DEPENDS ${ARG_PROJECT_NAME}-make
+		DEPENDS ${ARG_PROJECT_NAME}-install
 		WORKING_DIRECTORY ${BUILD_DIR}
 		COMMENT "Packaging ${ARG_PROJECT_NAME}"
 		)
@@ -237,7 +237,7 @@ function( ConfigureMakeProject )
 
 	add_custom_target(
 		${ARG_PROJECT_NAME}
-		DEPENDS ${ARG_PROJECT_NAME}-install ${ARG_PROJECT_NAME}-package
+		DEPENDS ${ARG_PROJECT_NAME}-package
 		)
 	set_property( TARGET ${ARG_PROJECT_NAME} PROPERTY FOLDER ${ARG_PROJECT_NAME} )
 
