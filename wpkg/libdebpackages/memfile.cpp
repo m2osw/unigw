@@ -337,7 +337,7 @@ int memory_file::block_manager::write(const char *buffer, const int offset, cons
         int page(offset >> BLOCK_MANAGER_BUFFER_BITS);
         const int sz(std::min(BLOCK_MANAGER_BUFFER_SIZE - pos, bufsize));
         int buffer_size(bufsize);
-        std::copy( buffer, buffer + sz, f_buffers[page].begin() );
+        std::copy( buffer, buffer + sz, f_buffers[page].begin() + pos );
         buffer += sz;
         buffer_size -= sz;
         // copy entire blocks if possible
