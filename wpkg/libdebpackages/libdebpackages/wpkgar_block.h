@@ -39,6 +39,7 @@
 #define WPKGAR_BLOCK_H
 
 #include    "debian_export.h"
+#include    "controlled_vars/controlled_vars_auto_init.h"
 
 #include    <stdint.h>
 
@@ -98,33 +99,33 @@ struct DEBIAN_PACKAGE_EXPORT wpkgar_block_t
 
     wpkgar_block_t();
 
-    uint32_t    f_magic;        // 'WPKG' (GKPW if endian is inverted)
-    uint8_t     f_version[4];   // '1.0\0' or '1.1\0' (not endian affected)
-    uint8_t     f_type;         // wpkgar_type_t
-    uint8_t     f_original_compression; // for files we store uncompressed (control.tar & data.tar)
-    uint8_t     f_use;          // wpkgar_usage_t
-    uint8_t     f_status;       // wpkgar_status_t
-    uint32_t    f_uid;          // user identifier (if f_user undefined)
-    uint32_t    f_gid;          // group identifier (if f_group undefined)
-    uint32_t    f_mode;         // "rwxrwxrwx" mode, may include s & t as well
-    uint32_t    f_size;         // size of the file in the source package
-    uint32_t    f_mtime;        // last modification time in the source package
-    uint32_t    f_dev_major;    // if type is character or block special or 0
-    uint32_t    f_dev_minor;    // if type is character or block special or 0
-    uint8_t     f_name[300];    // filename including path
-    uint8_t     f_link[300];    // hard/symbolic link destination
-    uint8_t     f_user[32];     // user name when available
-    uint8_t     f_group[32];    // group name when available
-    uint8_t     f_md5sum[16];   // the original file md5sum (raw)
-    uint16_t    f_name_size;    // extended filename if not zero (up to 64Kb - 1) (since version 1.1)
-    uint16_t    f_link_size;    // extended symbolic link if not zero (up to 64Kb - 1) (since version 1.1)
+    controlled_vars::zuint32_t    f_magic;        // 'WPKG' (GKPW if endian is inverted)
+    controlled_vars::zuchar_t     f_version[4];   // '1.0\0' or '1.1\0' (not endian affected)
+    uint8_t                       f_type;         // wpkgar_type_t
+    uint8_t                       f_original_compression; // for files we store uncompressed (control.tar & data.tar)
+    uint8_t                       f_use;          // wpkgar_usage_t
+    uint8_t                       f_status;       // wpkgar_status_t
+    controlled_vars::zuint32_t    f_uid;          // user identifier (if f_user undefined)
+    controlled_vars::zuint32_t    f_gid;          // group identifier (if f_group undefined)
+    controlled_vars::zuint32_t    f_mode;         // "rwxrwxrwx" mode, may include s & t as well
+    controlled_vars::zuint32_t    f_size;         // size of the file in the source package
+    controlled_vars::zuint32_t    f_mtime;        // last modification time in the source package
+    controlled_vars::zuint32_t    f_dev_major;    // if type is character or block special or 0
+    controlled_vars::zuint32_t    f_dev_minor;    // if type is character or block special or 0
+    controlled_vars::zuchar_t     f_name[300];    // filename including path
+    controlled_vars::zuchar_t     f_link[300];    // hard/symbolic link destination
+    controlled_vars::zuchar_t     f_user[32];     // user name when available
+    controlled_vars::zuchar_t     f_group[32];    // group name when available
+    controlled_vars::zuchar_t     f_md5sum[16];   // the original file md5sum (raw)
+    controlled_vars::zuint16_t    f_name_size;    // extended filename if not zero (up to 64Kb - 1) (since version 1.1)
+    controlled_vars::zuint16_t    f_link_size;    // extended symbolic link if not zero (up to 64Kb - 1) (since version 1.1)
 
     // space left blank so the structure is exactly 1Kb (1024 bytes)
     // we'll use that space as we see fit
     // if the number of reserved bytes becomes null or negative then
     // the compiler will complain
-    uint8_t     f_reserved[1024 - (4 + 4 + 1 + 1 + 1 + 1 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 300 + 300 + 32 + 32 + 16 + 2 + 2 + 4)];
-    uint32_t    f_checksum;     // sum of all the header as uint8_t with f_checksum = 0 at the time
+    controlled_vars::zuchar_t     f_reserved[1024 - (4 + 4 + 1 + 1 + 1 + 1 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 300 + 300 + 32 + 32 + 16 + 2 + 2 + 4)];
+    controlled_vars::zuint32_t    f_checksum;     // sum of all the header as uint8_t with f_checksum = 0 at the time
 };
 
 }       // namespace wpkgar
