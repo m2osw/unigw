@@ -257,34 +257,4 @@ endif()
 
 add_subdirectory( package )
 
-
-##
-## Packaging
-##
-set(CPACK_PACKAGE_NAME "wpkg")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Multi-platform packager")
-set(CPACK_PACKAGE_VENDOR "Made to Order Software Corporation")
-set(CPACK_PACKAGE_CONTACT "contact@m2osw.com")
-set(CPACK_RESOURCE_FILE_LICENSE "${wpkg_project_SOURCE_DIR}/COPYING")
-set(CPACK_GENERATOR "TGZ" "DEB")
-set(CPACK_SOURCE_GENERATOR "TGZ")
-## At this point we don't include our contrib folder archives since
-## they are available as is already (i.e. zlib and bz2, zip is unused)
-set(CPACK_SOURCE_IGNORE_FILES "/CVS/;/\\\\.svn/;/work-files/;\\\\.swp;\\\\.deb;.*~;cscope.*;/tmp/;a.txt;/BUILD/;/Build/;/build/;libtld-.*\\\\.tar\\\\.gz;zip_.*\\\\.tar\\\\.gz;bzip2-.*\\\\.tar\\\\.gz;zlib-.*\\\\.tar\\\\.bz2;xz-.*\\\\.tar\\\\.gz;changelog.html")
-set(CPACK_PACKAGE_VERSION "${WPKG_VERSION_MAJOR}.${WPKG_VERSION_MINOR}.${WPKG_VERSION_PATCH}")
-set(CPACK_PACKAGE_VERSION_MAJOR "${WPKG_VERSION_MAJOR}")
-set(CPACK_PACKAGE_VERSION_MINOR "${WPKG_VERSION_MINOR}")
-set(CPACK_PACKAGE_VERSION_PATCH "${WPKG_VERSION_PATCH}")
-set(CPACK_SOURCE_PACKAGE_FILE_NAME "wpkg_${WPKG_VERSION_MAJOR}.${WPKG_VERSION_MINOR}.${WPKG_VERSION_PATCH}")
-set(CPACK_COMPONENTS_ALL development runtime documentation)
-set(CPACK_DEB_COMPONENT_INSTALL ON)
-
-## Debian/Ubuntu specific settings
-##
-set(CPACK_DEBIAN_PACKAGE_SECTION "admin")
-set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://sourceforge.net/projects/unigw/")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Made to Order Software Corporation <contact@m2osw.com>")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.13), libstdc++6 (>= 4.6.1-9ubuntu3), libgcc1 (>= 1:4.6.1)")
-include(CPack)
-
 # vim: ts=4 sw=4 et

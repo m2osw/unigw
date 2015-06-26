@@ -57,6 +57,8 @@ foreach( _comp ${COMPONENT_LIST} )
         )
     add_custom_target( ${_comp}
             COMMAND wpkg_static
+                --verbose
+                --compressor gzip
                 --output-dir "${WPKG_ROOT}/packages"
                 --build      "${WPKG_ROOT}/${_comp}"
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
@@ -68,9 +70,7 @@ foreach( _comp ${COMPONENT_LIST} )
     endif()
 endforeach()
 
-add_custom_target( wpkg_package DEPENDS ${COMPONENT_LIST} )
-if( MSVC )
-    set_property( TARGET wpkg_package PROPERTY FOLDER ${PACKAGE_FOLDER} )
-endif()
+add_custom_target( package DEPENDS ${COMPONENT_LIST} )
+set_property( TARGET package PROPERTY FOLDER ${PACKAGE_FOLDER} )
 
 # vim: ts=4 sw=4 et
