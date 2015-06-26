@@ -243,8 +243,6 @@ public:
         block_manager();
         ~block_manager();
 
-        static int max_allocated(); // block_manager doesn't free anything
-
         void clear();
         int size() const { return f_size; }
         int read(char *buffer, int offset, int size) const;
@@ -255,9 +253,6 @@ public:
 
     private:
         typedef std::vector<char *>         buffer_t;
-
-        static buffer_t                     g_free_buffers;
-        static controlled_vars::zint32_t    g_total_allocated;
 
         controlled_vars::zint32_t           f_size;
         controlled_vars::zint32_t           f_available_size;

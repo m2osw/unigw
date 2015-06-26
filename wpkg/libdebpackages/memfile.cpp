@@ -98,8 +98,6 @@ const int                               memory_file::file_info_return_errors; //
 const int                               memory_file::file_info_permissions_error; // init in class
 const int                               memory_file::file_info_owner_error; // init in class
 #endif
-memory_file::block_manager::buffer_t    memory_file::block_manager::g_free_buffers; // auto-init to empty
-controlled_vars::zint32_t               memory_file::block_manager::g_total_allocated; // max. memory allocated for blocks (init to zero)
 
 // make sure that the number of bits is at least 10
 CONTROLLED_VARS_STATIC_ASSERT(memory_file::block_manager::BLOCK_MANAGER_BUFFER_BITS >= 10);
@@ -233,19 +231,17 @@ memory_file::block_manager::block_manager()
 
 memory_file::block_manager::~block_manager()
 {
-    // release all the buffers this manager allocated
-    g_free_buffers.insert(g_free_buffers.end(), f_buffers.begin(), f_buffers.end());
-}
-
-int memory_file::block_manager::max_allocated()
-{
-    return g_total_allocated;
+    clear();
 }
 
 void memory_file::block_manager::clear()
 {
     // release all the buffers
-    g_free_buffers.insert(g_free_buffers.end(), f_buffers.begin(), f_buffers.end());
+    std::for_each( f_buffers.begin(), f_buffers.end(), []( const char* buf )
+    {
+        delete buf;
+    });
+
     f_buffers.clear();
     f_size = 0;
     f_available_size = 0;
@@ -303,15 +299,9 @@ int memory_file::block_manager::write(const char *buffer, const int offset, cons
     }
 
     // allocate blocks to satisfy the total size
-    while(total > f_available_size) {
-        if(g_free_buffers.empty()) {
-            f_buffers.push_back(new char[BLOCK_MANAGER_BUFFER_SIZE]);
-            g_total_allocated += BLOCK_MANAGER_BUFFER_SIZE;
-        }
-        else {
-            f_buffers.push_back(g_free_buffers.back());
-            g_free_buffers.pop_back();
-        }
+    while(total > f_available_size)
+    {
+        f_buffers.push_back(new char[BLOCK_MANAGER_BUFFER_SIZE]);
         f_available_size += BLOCK_MANAGER_BUFFER_SIZE;
     }
 

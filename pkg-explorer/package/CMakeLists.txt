@@ -71,7 +71,7 @@ add_custom_target( ${COMPONENT}
 set_property( TARGET ${COMPONENT}_install PROPERTY FOLDER ${PACKAGE_FOLDER} )
 set_property( TARGET ${COMPONENT} PROPERTY FOLDER ${PACKAGE_FOLDER} )
 
-add_custom_target( wpkg_package DEPENDS runtime )
-set_property( TARGET wpkg_package PROPERTY FOLDER ${PACKAGE_FOLDER} )
+add_custom_target( package DEPENDS runtime )
+set_property( TARGET package PROPERTY FOLDER ${PACKAGE_FOLDER} )
 
 # vim: ts=4 sw=4 et
