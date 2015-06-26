@@ -244,11 +244,7 @@ public:
         ~block_manager();
 
         void clear();
-<<<<<<< HEAD
-        int size() const { return static_cast<int>(f_buffers.size()); }
-=======
         int size() const { return f_size; }
->>>>>>> 50aacd877feb1a41c16f4a467c73ec8aa3d04ec2
         int read(char *buffer, int offset, int size) const;
         int write(const char *buffer, int offset, int size);
         int compare(const block_manager& rhs) const;
