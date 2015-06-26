@@ -397,28 +397,6 @@ memory_file::file_format_t memory_file::block_manager::data_to_format(int offset
 
 
 
-<<<<<<< HEAD
-bool memory_file::block_manager::is_text() const
-{
-    auto iter = std::find_if( f_buffers.begin(), f_buffers.end(), []( char ch ) -> bool
-    {
-        unsigned char c(static_cast<unsigned char>(ch));
-        if((c < ' ' || c > 126)
-                && (c < 0xA0 /*|| c > 0xFF -- always false warning */)
-                && c != '\n' && c != '\r' && c != '\t' && c != '\f')
-        {
-            return false;
-        }
-        return true;
-    });
-
-    return iter != f_buffers.end();
-}
-
-=======
->>>>>>> 50aacd877feb1a41c16f4a467c73ec8aa3d04ec2
-
-
 namespace
 {
 
