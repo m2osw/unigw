@@ -137,29 +137,9 @@ function( ConfigureMakeProject )
 		if( NOT (${CMAKE_MAKE_PROGRAM} STREQUAL "nmake") AND NOT (${CMAKE_MAKE_PROGRAM} STREQUAL "jom") )
 			message( FATAL_ERROR "Please use nmake/jom at this level. This won't work right trying to use devenv." )
 		endif()
-
-		# TODO: nice try, but this is broken for now. It seems that when I try to kick off a build
-		# from devenv or msbuild (or even buildconsole via incredibuild), it fails to work. It just opens
-		# up a devenv session instead of actually building.
-		#
-		#if( ${MSVC_VERSION} VERSION_LESS "1600" )
-		#	message( FATAL_ERROR "Your version of Visual Studio is too old. I need at least VS 2010." )
-		#endif()
-
-		#find_program( INCREDIBUILD_COMMAND "BuildConsole.exe" )
-
-		#if( ${INCREDIBUILD_COMMAND} STREQUAL "INCREDIBUILD_COMMAND-NOTFOUND" )
-		#	set( BUILD_CMD ${CMAKE_VS_MSBUILD_COMMAND} )
-		#else()
-		#	set( BUILD_CMD ${INCREDIBUILD_COMMAND} )
-		#endif()
-
-		#list( APPEND BUILD_CMD ${ARG_PROJECT_NAME}_project.sln )
-		#set( INSTALL_CMD ${CMAKE_VS_MSBUILD_COMMAND} "INSTALL.vcxproj" )
 	endif()
 
-	set( BUILD_CMD ${CMAKE_BUILD_TOOL} )
-	set( INSTALL_CMD ${CMAKE_BUILD_TOOL} install )
+	set( BUILD_CMD   ${CMAKE_BUILD_TOOL} )
 
 	add_custom_target(
 		${ARG_PROJECT_NAME}-make
@@ -174,7 +154,7 @@ function( ConfigureMakeProject )
 
 	add_custom_target(
 		${ARG_PROJECT_NAME}-install
-		COMMAND ${BUILD_CMD}
+		COMMAND ${BUILD_CMD} install
 			1>> ${BUILD_DIR}/${ARG_PROJECT_NAME}_make.log
 			2>> ${BUILD_DIR}/${ARG_PROJECT_NAME}_make.err
 		DEPENDS ${ARG_PROJECT_NAME}-make
@@ -183,7 +163,18 @@ function( ConfigureMakeProject )
 		)
 	set_property( TARGET ${ARG_PROJECT_NAME}-install PROPERTY FOLDER ${ARG_PROJECT_NAME} )
 
-	if( NOT MSVC )
+	add_custom_target(
+		${ARG_PROJECT_NAME}-package
+		COMMAND ${BUILD_CMD} package
+			1>> ${BUILD_DIR}/${ARG_PROJECT_NAME}_make.log
+			2>> ${BUILD_DIR}/${ARG_PROJECT_NAME}_make.err
+		DEPENDS ${ARG_PROJECT_NAME}-make
+		WORKING_DIRECTORY ${BUILD_DIR}
+		COMMENT "Packaging ${ARG_PROJECT_NAME}"
+		)
+	set_property( TARGET ${ARG_PROJECT_NAME}-package PROPERTY FOLDER ${ARG_PROJECT_NAME} )
+
+	if( UNIX )
 		# RDB: Thu Jun 26 13:45:46 PDT 2014
 		# Adding "debuild" target.
 		#
@@ -246,7 +237,7 @@ function( ConfigureMakeProject )
 
 	add_custom_target(
 		${ARG_PROJECT_NAME}
-		DEPENDS ${ARG_PROJECT_NAME}-install
+		DEPENDS ${ARG_PROJECT_NAME}-install ${ARG_PROJECT_NAME}-package
 		)
 	set_property( TARGET ${ARG_PROJECT_NAME} PROPERTY FOLDER ${ARG_PROJECT_NAME} )
 
