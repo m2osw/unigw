@@ -252,11 +252,12 @@ public:
         file_format_t data_to_format(int offset, int size) const;
 
     private:
-        typedef std::vector<char *>         buffer_t;
+        typedef std::vector<char>           buffer_t;
+        typedef std::vector<buffer_t>       buffer_list_t;
 
         controlled_vars::zint32_t           f_size;
         controlled_vars::zint32_t           f_available_size;
-        buffer_t                            f_buffers;
+        buffer_list_t                       f_buffers;
     };
 
     static const int file_info_throw = 0x00;
