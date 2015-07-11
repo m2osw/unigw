@@ -53,10 +53,8 @@ InstallDialog::InstallDialog(
     f_treeView->setModel( static_cast<QAbstractItemModel*>(&f_model) );
     f_treeView->setSelectionModel( &f_selectModel );
     f_treeView->header()->setResizeMode( QHeaderView::ResizeToContents );
-    //
+
     QString column_1;
-    wpkgar_repository::package_item_t::package_item_status_t itemStatus = wpkgar_repository::package_item_t::not_installed;
-    Qt::CheckState checkState = Qt::Unchecked;
     switch( f_mode )
     {
         case InstallMode:
@@ -69,8 +67,6 @@ InstallDialog::InstallDialog(
             break;
         case UpgradeMode:
             column_1 = tr("Upgrade");
-            itemStatus = wpkgar_repository::package_item_t::need_upgrade;
-            checkState = Qt::Checked;
             f_label->setText( tr(
                                   "The following packages are available to be upgraded from the package sources. "
                                   "Uncheck those packages you do not wish to upgrade, and then click on the \"Apply\" button to "
@@ -85,35 +81,64 @@ InstallDialog::InstallDialog(
     column_labels << column_1 << tr("Package Name") << tr("Version");
     f_model.setHorizontalHeaderLabels( column_labels );
 
-    // Load up tree with packages that can be installed/upgraded
-	//
-	wpkgar_repository repository( f_manager.data() );
-    const wpkgar_repository::wpkgar_package_list_t& list( repository.upgrade_list() );
-    size_t _max(list.size());
-    for( size_t i = 0; i < _max; ++i )
-	{
-        if( list[i].get_status() == itemStatus )
-		{
-            // Yes, I know this isn't exception safe, but these items shouldn't throw at all.
-			//
-			QList<QStandardItem*> itemList;
-            QStandardItem* install_item = new QStandardItem;
-			install_item->setCheckable( true );
-            install_item->setCheckState( checkState );
-            install_item->setData( list[i].get_name().c_str() );
-			itemList << install_item;
-            itemList << new QStandardItem( QIcon(":/icons/file"), list[i].get_name().c_str() );
-			itemList << new QStandardItem( list[i].get_version().c_str() );
-			f_model.appendRow( itemList );
+    PopulateTree();
 
-            applyBtn->setEnabled( f_mode == UpgradeMode );
-        }
-	}
+    f_searchBox->setFocus( Qt::OtherFocusReason );
 }
 
 
 InstallDialog::~InstallDialog()
 {
+}
+
+
+void InstallDialog::PopulateTree( const QString& filterText )
+{
+    f_model.removeRows( 0, f_model.rowCount() );
+
+    wpkgar_repository::package_item_t::package_item_status_t itemStatus = wpkgar_repository::package_item_t::not_installed;
+    Qt::CheckState checkState = Qt::Unchecked;
+    if( f_mode == UpgradeMode )
+    {
+        itemStatus = wpkgar_repository::package_item_t::need_upgrade;
+        checkState = Qt::Checked;
+    };
+
+    // Load up tree with packages that can be installed/upgraded
+    //
+    wpkgar_repository repository( f_manager.data() );
+    const wpkgar_repository::wpkgar_package_list_t& list( repository.upgrade_list() );
+    size_t _max(list.size());
+    for( size_t i = 0; i < _max; ++i )
+    {
+        if( list[i].get_status() == itemStatus )
+        {
+            // Yes, I know this isn't exception safe, but these items shouldn't throw at all.
+            //
+            const QString name( list[i].get_name().c_str() );
+            bool add_item(true);
+            //
+            if( !filterText.isEmpty() )
+            {
+                add_item = name.left( filterText.size() ) == filterText;
+            }
+            //
+            if( add_item )
+            {
+                QList<QStandardItem*> itemList;
+                QStandardItem* install_item = new QStandardItem;
+                install_item->setCheckable( true );
+                install_item->setCheckState( checkState );
+                install_item->setData( name );
+                itemList << install_item;
+                itemList << new QStandardItem( QIcon(":/icons/file"), name );
+                itemList << new QStandardItem( list[i].get_version().c_str() );
+                f_model.appendRow( itemList );
+
+                f_buttonBox->button( QDialogButtonBox::Apply )->setEnabled( f_mode == UpgradeMode );
+            }
+        }
+    }
 }
 
 
@@ -350,6 +375,12 @@ void InstallDialog::OnInstallComplete()
     {
         accept();
     }
+}
+
+
+void InstallDialog::on_f_searchBox_textEdited(const QString &arg1)
+{
+    PopulateTree( arg1 );
 }
 
 

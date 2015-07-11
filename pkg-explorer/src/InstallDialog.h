@@ -48,6 +48,7 @@ private:
     Mode                                   f_mode;
 
     void StartThread();
+    void PopulateTree( const QString& filterText = QString() );
 
 private slots:
     void OnItemChanged( QStandardItem* );
@@ -55,6 +56,7 @@ private slots:
     void on_f_buttonBox_clicked(QAbstractButton *button);
     void OnValidateComplete();
     void OnInstallComplete();
+    void on_f_searchBox_textEdited(const QString &arg1);
 };
 
 
