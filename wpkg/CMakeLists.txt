@@ -155,6 +155,7 @@ else()
     message( FATAL_ERROR "Platform not supported!" )
 endif()
 set( WPKG_ARCHITECTURE "${WPKG_OS}-${WPKG_PROCESSOR}" )
+set( WPKG_ROOT "${CMAKE_SOURCE_DIR}/../dist" CACHE PATH "Root of wpkg installation." )
 
 if( DEFINED ENV{CONTROLLED_VARS_DEBUG} )
     add_definitions( -DCONTROLLED_VARS_DEBUG )

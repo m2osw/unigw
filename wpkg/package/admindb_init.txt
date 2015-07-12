@@ -1,0 +1,3 @@
+Architecture: @WPKG_ARCHITECTURE@
+Description: Local database for wpkg installations.
+Maintainer: Build System <builds@m2osw.com>

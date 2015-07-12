@@ -36,18 +36,27 @@
 
 ## This project builds the wpkg packages based on component.
 
-set( WPKG_ROOT "${CMAKE_BINARY_DIR}/WPKG" )
+set( LOCAL_WPKG_ROOT "${CMAKE_BINARY_DIR}/WPKG" )
 set( COMPONENT_LIST development runtime documentation )
 if( UNIX )
     set( INSTALL_PREFIX "/usr" )
 else()
     set( INSTALL_PREFIX "" )
 endif()
+
+if( NOT EXISTS "${WPKG_ROOT}" )
+    file( MAKE_DIRECTORY "${WPKG_ROOT}" )
+endif()
+
+configure_file( admindb_init.txt "${LOCAL_WPKG_ROOT}/admindb_init.txt" @ONLY )
+configure_file( control.info.in "${LOCAL_WPKG_ROOT}/control.info" @ONLY )
+
+unset( COMP_TARGETS )
 foreach( _comp ${COMPONENT_LIST} )
-    configure_file( control.${_comp}.in "${WPKG_ROOT}/${_comp}/WPKG/control" @ONLY )
+    #configure_file( control.${_comp}.in "${LOCAL_WPKG_ROOT}/${_comp}/WPKG/control" @ONLY )
     add_custom_target( ${_comp}_install
             COMMAND ${CMAKE_COMMAND}
-                        -DCMAKE_INSTALL_PREFIX="${WPKG_ROOT}/${_comp}${INSTALL_PREFIX}"
+                        -DCMAKE_INSTALL_PREFIX="${LOCAL_WPKG_ROOT}/${_comp}${INSTALL_PREFIX}"
                         -DCMAKE_INSTALL_COMPONENT=${_comp}
                         -DCMAKE_INSTALL_DO_STRIP=1
                         -DBUILD_TYPE=$(Configuration)
@@ -55,22 +64,57 @@ foreach( _comp ${COMPONENT_LIST} )
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
             DEPENDS package_prereqs
         )
-    add_custom_target( ${_comp}
-            COMMAND wpkg_static
-                --verbose
-                --compressor gzip
-                --output-dir "${WPKG_ROOT}/packages"
-                --build      "${WPKG_ROOT}/${_comp}"
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-            DEPENDS ${_comp}_install
-        )
+    list( APPEND COMP_TARGETS ${_comp}_install )
     if( MSVC )
         set_property( TARGET ${_comp}_install PROPERTY FOLDER ${PACKAGE_FOLDER} )
         set_property( TARGET ${_comp} PROPERTY FOLDER ${PACKAGE_FOLDER} )
     endif()
 endforeach()
 
-add_custom_target( package DEPENDS ${COMPONENT_LIST} )
+set( WPKG_CONTROL_FILE "${WPKG_ROOT}/var/lib/wpkg/core/control"      )
+set( WPKG_SOURCES_FILE "${WPKG_ROOT}/var/lib/wpkg/core/sources.list" )
+
+add_custom_command(
+        OUTPUT "${WPKG_CONTROL_FILE}"
+        COMMAND wpkg_static
+            --verbose
+            --root "${WPKG_ROOT}"
+            --create-admindir ${LOCAL_WPKG_ROOT}/admindb_init.txt
+    )
+
+add_custom_command(
+        OUTPUT "${WPKG_SOURCES_FILE}"
+        COMMAND wpkg_static
+            --verbose
+            --root "${WPKG_ROOT}"
+            --add-sources "wpkg file://${WPKG_ROOT}/packages/ ."
+        DEPENDS "${WPKG_CONTROL_FILE}"
+    )
+
+add_custom_target( package
+        COMMAND wpkg_static
+            --verbose
+            --compressor gzip
+            --output-dir "${WPKG_ROOT}/packages"
+            --build      "${LOCAL_WPKG_ROOT}/control.info" "${LOCAL_WPKG_ROOT}"
+        COMMAND wpkg_static
+            --verbose
+            --create-index "${WPKG_ROOT}/packages/index.tar.gz"
+            --repository "${WPKG_ROOT}/packages"
+        COMMAND wpkg_static
+            --verbose
+            --root    "${WPKG_ROOT}"
+            --update
+        COMMAND wpkg_static
+            --verbose
+            --root    "${WPKG_ROOT}"
+            --install wpkg wpkg-dev wpkg-doc
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        DEPENDS
+            ${COMP_TARGETS}
+            "${WPKG_SOURCES_FILE}"
+    )
+
 set_property( TARGET package PROPERTY FOLDER ${PACKAGE_FOLDER} )
 
 # vim: ts=4 sw=4 et
