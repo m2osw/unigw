@@ -658,6 +658,14 @@ const advgetopt::getopt::option wpkg_options[] =
         advgetopt::getopt::required_argument
     },
     {
+        '\0',
+        0,
+        "force-reinstall",
+        NULL,
+        "if package is already installed, force a re-installation of a package; useful for packages in a source list",
+        advgetopt::getopt::no_argument
+    },
+    {
         'i',
         0,
         "install",
@@ -3015,7 +3023,7 @@ void init_installer
         for(int i(0); i < max; ++i)
         {
             const std::string& name( cl.get_string( option, i ) );
-            pkg_install.add_package( name );
+            pkg_install.add_package( name, cl.opt().is_defined( "force-reinstall" ) );
         }
     }
     else

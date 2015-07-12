@@ -113,7 +113,7 @@ public:
     void set_reconfiguring();
     void set_unpacking();
     void add_field_validation(const std::string& expression);
-    void add_package(const std::string& package);
+    void add_package( const std::string& package, const bool force_reinstall = false );
     const std::string& get_package_name( const int idx ) const;
     int count() const;
 

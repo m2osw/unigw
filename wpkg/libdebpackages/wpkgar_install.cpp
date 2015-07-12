@@ -764,7 +764,7 @@ void wpkgar_install::add_field_validation(const std::string& expression)
 }
 
 
-void wpkgar_install::add_package(const std::string& package)
+void wpkgar_install::add_package( const std::string& package, const bool force_reinstall )
 {
     const wpkg_filename::uri_filename pck(package);
     wpkgar_package_list_t::const_iterator item(find_package_item(pck));
@@ -815,14 +815,24 @@ void wpkgar_install::add_package(const std::string& package)
             const auto& list( repository.upgrade_list() );
             std::for_each( list.begin(), list.end(), [&]( wpkgar_repository::package_item_t entry )
             {
-                if( (entry.get_status() == wpkgar_repository::package_item_t::not_installed)
-                    &&( entry.get_name() == package )
-                  )
+                if( entry.get_name() == package )
                 {
-                    const std::string full_path( entry.get_info().get_uri().full_path() );
-                    package_item_t package_item( f_manager, full_path );
-                    f_packages.push_back(package_item);
-                    //return;
+                    bool install_it = false;
+                    if( force_reinstall )
+                    {
+                        install_it = true;
+                    }
+                    else if( entry.get_status() == wpkgar_repository::package_item_t::not_installed )
+                    {
+                        install_it = true;
+                    }
+
+                    if( install_it )
+                    {
+                        const std::string full_path( entry.get_info().get_uri().full_path() );
+                        package_item_t package_item( f_manager, full_path );
+                        f_packages.push_back(package_item);
+                    }
                 }
             });
         }

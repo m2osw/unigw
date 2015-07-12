@@ -108,6 +108,7 @@ add_custom_target( package
         COMMAND wpkg_static
             --verbose
             --root    "${WPKG_ROOT}"
+            --force-reinstall
             --install wpkg wpkg-dev wpkg-doc
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         DEPENDS
