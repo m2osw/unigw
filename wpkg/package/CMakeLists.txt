@@ -67,7 +67,7 @@ foreach( _comp ${COMPONENT_LIST} )
     list( APPEND COMP_TARGETS ${_comp}_install )
     if( MSVC )
         set_property( TARGET ${_comp}_install PROPERTY FOLDER ${PACKAGE_FOLDER} )
-        set_property( TARGET ${_comp} PROPERTY FOLDER ${PACKAGE_FOLDER} )
+        set_property( TARGET ${_comp}_install PROPERTY FOLDER ${PACKAGE_FOLDER} )
     endif()
 endforeach()
 
