@@ -62,7 +62,7 @@ else()
     unset( DBGNAME )
     set( SUBPACKAGES "runtime*, development, documentation, headers" )
     set( COMPONENT_LIST runtime development documentation headers )
-    set( INSTALL_PACKAGES wpkg wpkg-dev wpkg-doc )
+    set( INSTALL_PACKAGES wpkg wpkg-dev wpkg-doc wpkg-hdrs-dev )
     set( PRIORITY required )
 endif()
 

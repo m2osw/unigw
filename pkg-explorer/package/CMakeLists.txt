@@ -51,7 +51,7 @@ else()
     unset( DBGNAME )
     set( SUBPACKAGES "runtime*, documentation" )
     set( COMPONENT_LIST runtime documentation )
-    set( INSTALL_PACKAGES wpkg-gui )
+    set( INSTALL_PACKAGES wpkg-gui wpkggui-doc )
 endif()
 
 configure_file( control.info.in "${LOCAL_WPKG_ROOT}/control.info" @ONLY )
