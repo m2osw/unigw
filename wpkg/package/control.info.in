@@ -4,7 +4,7 @@ Package/development: wpkg@DBGNAME@-dev
 Package/documentation: wpkg-doc
 Package/headers: wpkg-hdrs-dev
 Priority: optional
-Priority/runtime: required
+Priority/runtime: @PRIORITY@
 Architecture: $(architecture())
 Architecture/documentation: all
 Architecture/headers: all
