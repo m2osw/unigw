@@ -1,12 +1,12 @@
 Sub-Packages: @SUBPACKAGES@
 Package/runtime: wpkg-gui@DBGNAME@
-Package/documentation: wpkg-gui-doc
+Package/documentation: wpkggui-doc
 Version: ${wpkg:Version}
 Section: admin
 Priority: optional
 Architecture: $(architecture())
 Architecture/documentation: all
-Depends/runtime: wpkg@DBGNAME@ (>= 0.9.0), wpkg-gui-doc (>= ${wpkg:Version})
+Depends/runtime: wpkg@DBGNAME@ (>= 0.9.0), wpkggui-doc (>= ${wpkg:Version})
 Source-Depends: wpkg@DBGNAME@-dev (>= 0.9.0)
 Homepage: https://sourceforge.net/projects/unigw/
 Maintainer: Made to Order Software Corporation <contact@m2osw.com>

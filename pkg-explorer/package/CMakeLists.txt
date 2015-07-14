@@ -37,11 +37,6 @@
 ## This project builds the wpkg packages based on component.
 
 set( LOCAL_WPKG_ROOT "${CMAKE_BINARY_DIR}/WPKG" )
-if( UNIX )
-    set( INSTALL_PREFIX "/usr" )
-else()
-    set( INSTALL_PREFIX "" )
-endif()
 
 if( NOT EXISTS "${WPKG_ROOT}" )
     message( FATAL_ERROR "WPKG_ROOT=${WPKG_ROOT} not found!" )
@@ -56,7 +51,7 @@ else()
     unset( DBGNAME )
     set( SUBPACKAGES "runtime*, documentation" )
     set( COMPONENT_LIST runtime documentation )
-    set( INSTALL_PACKAGES wpkg-gui wpkg-gui-doc )
+    set( INSTALL_PACKAGES wpkg-gui )
 endif()
 
 configure_file( control.info.in "${LOCAL_WPKG_ROOT}/control.info" @ONLY )
