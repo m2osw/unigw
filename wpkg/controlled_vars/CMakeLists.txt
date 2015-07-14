@@ -38,7 +38,7 @@
 install(
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     DESTINATION include/wpkg
-    COMPONENT development
+    COMPONENT headers
     FILES_MATCHING PATTERN "*.h"
     PATTERN .svn EXCLUDE
 )

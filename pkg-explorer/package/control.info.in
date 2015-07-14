@@ -1,0 +1,20 @@
+Sub-Packages: @SUBPACKAGES@
+Package/runtime: wpkg-gui@DBGNAME@
+Package/documentation: wpkg-gui-doc
+Version: ${wpkg:Version}
+Section: admin
+Priority: optional
+Architecture: $(architecture())
+Architecture/documentation: all
+Depends/runtime: wpkg (>= 0.9.0), wpkg-gui-doc (>= ${wpkg:Version})
+Source-Depends: wpkg-dev (>= 0.9.0)
+Homepage: https://sourceforge.net/projects/unigw/
+Maintainer: Made to Order Software Corporation <contact@m2osw.com>
+DESCRIPTION=GUI Multi-platform packager.
+ pkg-explorer is a GUI wrapper around libdebpackages, the heart of wpkg.
+ This application allows you to install and maintain packages targetted at specific platforms (Linux, Windows and Mac),
+ and their dependencies. This is the main binary package.
+Description: ${V:DESCRIPTION}
+ This is the runtime package.
+Description/documentation: ${V:DESCRIPTION}
+ This is the documentation package. TODO.

@@ -123,7 +123,7 @@ install(
 install(
     DIRECTORY ${PROJECT_SOURCE_DIR}/libutf8
     DESTINATION include/wpkg
-    COMPONENT development
+    COMPONENT headers
     FILES_MATCHING PATTERN *.h
     PATTERN .svn EXCLUDE
 )

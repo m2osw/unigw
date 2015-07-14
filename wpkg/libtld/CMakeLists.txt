@@ -112,14 +112,14 @@ install(
 install(
     DIRECTORY ${PROJECT_SOURCE_DIR}/include/libtld
     DESTINATION include/wpkg
-    COMPONENT development
+    COMPONENT headers
     FILES_MATCHING PATTERN *.h
     PATTERN .svn EXCLUDE
 )
 install(
     FILES ${PROJECT_BINARY_DIR}/libtld/tld.h
     DESTINATION include/wpkg/libtld
-    COMPONENT development
+    COMPONENT headers
 )
 
 set_property( GLOBAL APPEND PROPERTY ALL_LIBRARY_TARGETS wpkg_tld wpkg_tld_static )

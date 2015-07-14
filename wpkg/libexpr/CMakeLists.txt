@@ -138,7 +138,7 @@ install(
 install(
     DIRECTORY ${PROJECT_SOURCE_DIR}/libexpr
     DESTINATION include/wpkg
-    COMPONENT development
+    COMPONENT headers
     FILES_MATCHING PATTERN *.h
     PATTERN .svn EXCLUDE
 )
@@ -182,7 +182,7 @@ install(
     COMPONENT documentation
 )
 
-set_property( GLOBAL APPEND PROPERTY ALL_LIBRARY_TARGETS expr expr_static )
+set_property( GLOBAL APPEND PROPERTY ALL_LIBRARY_TARGETS c_expr expr expr_static )
 
 add_custom_target( expr_target DEPENDS expr_static expr c_expr )
 set_property( TARGET expr_target PROPERTY FOLDER ${EXPR_FOLDER} )

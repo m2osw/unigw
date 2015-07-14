@@ -179,7 +179,7 @@ if( NOT MO_DARWIN )
 	install( FILES ${CMAKE_CURRENT_SOURCE_DIR}/icons/logo.png
 		DESTINATION share/icons/
 		RENAME pkg-explorer.png
-		COMPONENT runtime
+		COMPONENT documentation
 		)
 endif()
 
@@ -191,7 +191,7 @@ if( MO_LINUX )
 		)
 	install( FILES ${PROJECT_BINARY_DIR}/pkg-explorer.desktop
 		DESTINATION share/applications
-		COMPONENT runtime
+		COMPONENT documentation
 		)
 endif()
 
@@ -252,7 +252,7 @@ set_target_properties( ${PROJECT_NAME} PROPERTIES
 
 install( TARGETS ${PROJECT_NAME}
 		RUNTIME DESTINATION bin
-		COMPONENT runtime
+        COMPONENT runtime
 		)
 
 

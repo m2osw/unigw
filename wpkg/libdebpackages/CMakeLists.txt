@@ -206,14 +206,14 @@ install(
 install(
     DIRECTORY ${PROJECT_SOURCE_DIR}/libdebpackages
     DESTINATION include/wpkg
-    COMPONENT development
+    COMPONENT headers
     FILES_MATCHING PATTERN *.h
     PATTERN .svn EXCLUDE
 )
 install(
     FILES ${PROJECT_BINARY_DIR}/libdebpackages/debian_packages.h
     DESTINATION include/wpkg/libdebpackages
-    COMPONENT development
+    COMPONENT headers
 )
 
 set_property( GLOBAL APPEND PROPERTY ALL_LIBRARY_TARGETS debpackages debpackages_static )

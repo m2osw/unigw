@@ -92,7 +92,7 @@ install(
 install(
     FILES ${ZLIB_PUBLIC_HDRS}
     DESTINATION include/wpkg
-    COMPONENT development
+    COMPONENT headers
 )
 
 set_property( GLOBAL APPEND PROPERTY ALL_LIBRARY_TARGETS wpkg_z wpkg_z_static )

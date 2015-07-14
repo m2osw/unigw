@@ -81,7 +81,7 @@ install(
 install(
     FILES ${BZIP2_INCLUDE_FILES}
     DESTINATION include/wpkg
-    COMPONENT development
+    COMPONENT headers
 )
 
 set_property( GLOBAL APPEND PROPERTY ALL_LIBRARY_TARGETS wpkg_bz2 wpkg_bz2_static )

@@ -125,25 +125,29 @@ include( ${QT_USE_FILE} )
 add_definitions( ${QT_DEFINITIONS} )
 set( CMAKE_AUTOMOC TRUE )
 
-set( DIST_PATH "$ENV{DIST_PATH}" CACHE PATH "Distribution path to find dependencies from WPKG." ) 
+set( ENV_ROOT_PATH "$ENV{WPKG_ROOT}" )
+if( NOT ENV_ROOT_PATH )
+    set( ENV_ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../dist" )
+endif()
+set( WPKG_ROOT "${ENV_ROOT_PATH}" CACHE PATH "Root of wpkg installation." )
 
-find_library( DEBPACKAGES_LIBRARY   debpackages   PATH "${DIST_PATH}/lib" )
-find_library( EXPR_LIBRARY          expr          PATH "${DIST_PATH}/lib" )
-find_library( UTF8_LIBRARY          utf8          PATH "${DIST_PATH}/lib" )
-find_library( BZ2_LIBRARY           wpkg_bz2      PATH "${DIST_PATH}/lib" )
-find_library( TLD_LIBRARY           wpkg_tld      PATH "${DIST_PATH}/lib" )
-find_library( ZLIB_LIBRARY          wpkg_z        PATH "${DIST_PATH}/lib" )
+find_library( DEBPACKAGES_LIBRARY   debpackages   PATH "${WPKG_ROOT}/lib" )
+find_library( EXPR_LIBRARY          expr          PATH "${WPKG_ROOT}/lib" )
+find_library( UTF8_LIBRARY          utf8          PATH "${WPKG_ROOT}/lib" )
+find_library( BZ2_LIBRARY           wpkg_bz2      PATH "${WPKG_ROOT}/lib" )
+find_library( TLD_LIBRARY           wpkg_tld      PATH "${WPKG_ROOT}/lib" )
+find_library( ZLIB_LIBRARY          wpkg_z        PATH "${WPKG_ROOT}/lib" )
 #
-find_library( DEBPACKAGES_D_LIBRARY debpackages_d PATH "${DIST_PATH}/lib" )
-find_library( EXPR_D_LIBRARY        expr_d        PATH "${DIST_PATH}/lib" )
-find_library( UTF8_D_LIBRARY        utf8_d        PATH "${DIST_PATH}/lib" )
-find_library( BZ2_D_LIBRARY         wpkg_bz2_d    PATH "${DIST_PATH}/lib" )
-find_library( TLD_D_LIBRARY         wpkg_tld_d    PATH "${DIST_PATH}/lib" )
-find_library( ZLIB_D_LIBRARY        wpkg_z_d      PATH "${DIST_PATH}/lib" )
+find_library( DEBPACKAGES_D_LIBRARY debpackages_d PATH "${WPKG_ROOT}/lib" )
+find_library( EXPR_D_LIBRARY        expr_d        PATH "${WPKG_ROOT}/lib" )
+find_library( UTF8_D_LIBRARY        utf8_d        PATH "${WPKG_ROOT}/lib" )
+find_library( BZ2_D_LIBRARY         wpkg_bz2_d    PATH "${WPKG_ROOT}/lib" )
+find_library( TLD_D_LIBRARY         wpkg_tld_d    PATH "${WPKG_ROOT}/lib" )
+find_library( ZLIB_D_LIBRARY        wpkg_z_d      PATH "${WPKG_ROOT}/lib" )
 #
-find_program( WPKG                  wpkg          PATH "${DIST_PATH}/bin" )
+find_program( WPKG                  wpkg          PATH "${WPKG_ROOT}/bin" )
 #
-find_file( WPKGAR_H_INCLUDE wpkgar.h PATHS ${DIST_PATH}/include/wpkg/libdebpackages /usr/include/wpkg/libdebpackages /usr/local/include/wpkg/libdebpackages )
+find_file( WPKGAR_H_INCLUDE wpkgar.h PATHS ${WPKG_ROOT}/include/wpkg/libdebpackages /usr/include/wpkg/libdebpackages /usr/local/include/wpkg/libdebpackages )
 if( NOT WPKGAR_H_INCLUDE )
 	message( FATAL_ERROR "You must specify the location of the wpkgar.h file!" )
 endif()
@@ -172,21 +176,6 @@ function( CopyBinaries Release_DLL Debug_DLL )
 			)
 	endif()
 endfunction()
-#
-function( InstallBinaries Release_DLL Debug_DLL Component )
-	install(
-		FILES "${Release_DLL}"
-		DESTINATION bin
-		CONFIGURATIONS Release
-        COMPONENT ${Component}
-		)
-	install(
-		FILES "${Debug_DLL}"
-		DESTINATION bin
-		CONFIGURATIONS Debug
-        COMPONENT ${Component}
-		)
-endfunction()
 
 if( MO_WINDOWS )
 	set( EXTRA_LIBRARIES wsock32 ws2_32 mpr )
@@ -197,7 +186,6 @@ if( MO_WINDOWS )
 		set( Release_DLL "${QT_BINARY_DIR}/${_lib}4.dll"  )
 		set( Debug_DLL   "${QT_BINARY_DIR}/${_lib}d4.dll" )
 		CopyBinaries( ${Release_DLL} ${Debug_DLL} )
-        InstallBinaries( ${Release_DLL} ${Debug_DLL} "runtime" )
 	endforeach()
 
 	if( BUILD_WPKG )
@@ -210,10 +198,9 @@ if( MO_WINDOWS )
 			wpkg_z
 			)
 		foreach( _lib ${DEBPACKAGES_LIBS} )
-			set( Release_DLL "${DIST_PATH}/bin/${_lib}.dll"   )
-			set( Debug_DLL   "${DIST_PATH}/bin/${_lib}_d.dll" )
+			set( Release_DLL "${WPKG_ROOT}/bin/${_lib}.dll"   )
+			set( Debug_DLL   "${WPKG_ROOT}/bin/${_lib}_d.dll" )
 			CopyBinaries( ${Release_DLL} ${Debug_DLL} "runtime" )
-			InstallBinaries( ${Release_DLL} ${Debug_DLL} "runtime" )
 		endforeach()
 	endif()
 endif()
@@ -237,7 +224,7 @@ if( MO_DARWIN )
 			${CMAKE_SOURCE_DIR}/documentation/copyright
 			${CMAKE_SOURCE_DIR}/documentation/index.html
 		DESTINATION .
-		COMPONENT runtime
+		COMPONENT documentation
 		)
 else()
 	set( CHANGELOG_OUTPUT ${PROJECT_BINARY_DIR}/changelog.Debian.gz )
@@ -256,11 +243,11 @@ else()
 			${CMAKE_SOURCE_DIR}/documentation/index.html
 			${CHANGELOG_OUTPUT}
 		DESTINATION share/doc/pkg-explorer
-		COMPONENT runtime
+		COMPONENT documentation
 		)
 endif()
 
-add_custom_target( package_prereqs DEPENDS changelog_generation pkg-explorer )
+add_custom_target( package_prereqs DEPENDS changelog_generation pkg-explorer pkg-installer )
 set_property( TARGET package_prereqs PROPERTY FOLDER package )
 add_subdirectory( package )
 

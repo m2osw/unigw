@@ -155,7 +155,12 @@ else()
     message( FATAL_ERROR "Platform not supported!" )
 endif()
 set( WPKG_ARCHITECTURE "${WPKG_OS}-${WPKG_PROCESSOR}" )
-set( WPKG_ROOT "${CMAKE_SOURCE_DIR}/../dist" CACHE PATH "Root of wpkg installation." )
+
+set( ENV_ROOT_PATH "$ENV{WPKG_ROOT}" )
+if( NOT ENV_ROOT_PATH )
+    set( ENV_ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../dist" )
+endif()
+set( WPKG_ROOT "${ENV_ROOT_PATH}" CACHE PATH "Root of wpkg installation." )
 
 if( DEFINED ENV{CONTROLLED_VARS_DEBUG} )
     add_definitions( -DCONTROLLED_VARS_DEBUG )
@@ -199,18 +204,18 @@ add_subdirectory( libutf8            )
 add_subdirectory( libexpr            )
 add_subdirectory( libdebpackages     )
 
-## Make sure we have "_d" for debug binaries
-get_property( LIBRARY_TARGETS GLOBAL PROPERTY ALL_LIBRARY_TARGETS )
-foreach( TGT ${LIBRARY_TARGETS} )
-    set_property( TARGET ${TGT} PROPERTY OUTPUT_NAME_DEBUG ${TGT}_d )
-endforeach()
-
 ## Tools and others
 add_subdirectory( tools )
 if( NOT MO_MINGW32 AND NOT MO_MINGW64 )
     add_subdirectory( tests/unittests )
 endif()
 add_subdirectory( documentation )
+
+## Make sure we have "_d" for debug binaries
+get_property( LIBRARY_TARGETS GLOBAL PROPERTY ALL_LIBRARY_TARGETS )
+foreach( TGT ${LIBRARY_TARGETS} )
+    set_property( TARGET ${TGT} PROPERTY OUTPUT_NAME_DEBUG ${TGT}_d )
+endforeach()
 
 install(
     DIRECTORY "${CMAKE_SOURCE_DIR}/documentation/."

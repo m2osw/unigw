@@ -1,12 +1,15 @@
-Sub-Packages: runtime*, development, documentation
-Package/runtime: wpkg
-Package/development: wpkg-dev
+Sub-Packages: @SUBPACKAGES@
+Package/runtime: wpkg@DBGNAME@
+Package/development: wpkg@DBGNAME@-dev
 Package/documentation: wpkg-doc
+Package/headers: wpkg-hdrs-dev
 Priority: optional
 Priority/runtime: required
 Architecture: $(architecture())
 Architecture/documentation: all
+Architecture/headers: all
 Version: ${wpkg:Version}
+Depends/development: wpkg@DBGNAME@ (>= ${wpkg:version}), wpkg-hdrs-dev (>= ${wpkg:version})
 Maintainer: Alexis Wilke <alexis@m2osw.com>
 Homepage: http://windowspackager.org/
 DESCRIPTION=Multi-platform packager.
@@ -18,3 +21,5 @@ Description/development: ${V:DESCRIPTION}
  This is the development package.
 Description/documentation: ${V:DESCRIPTION}
  This is the documentation package.
+Description/headers: ${V:DESCRIPTION}
+ This is the headers-only development packages (no binaries).

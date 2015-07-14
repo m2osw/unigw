@@ -36,8 +36,12 @@
 
 ## This project builds the wpkg packages based on component.
 
+if( MSVC AND NOT (${CMAKE_MAKE_PROGRAM} STREQUAL "nmake") AND NOT (${CMAKE_MAKE_PROGRAM} STREQUAL "jom") )
+    message( STATUS "Not building packages due to devenv." )
+    return()
+endif()
+
 set( LOCAL_WPKG_ROOT "${CMAKE_BINARY_DIR}/WPKG" )
-set( COMPONENT_LIST development runtime documentation )
 if( UNIX )
     set( INSTALL_PREFIX "/usr" )
 else()
@@ -48,17 +52,28 @@ if( NOT EXISTS "${WPKG_ROOT}" )
     file( MAKE_DIRECTORY "${WPKG_ROOT}" )
 endif()
 
+if( ${CMAKE_BUILD_TYPE} STREQUAL "Debug" )
+    set( DBGNAME "-dbg" )
+    set( SUBPACKAGES "runtime*, development" )
+    set( COMPONENT_LIST development runtime )
+    set( INSTALL_PACKAGES wpkg${DBGNAME} wpkg${DBGNAME}-dev )
+else()
+    unset( DBGNAME )
+    set( SUBPACKAGES "runtime*, development, documentation, headers" )
+    set( COMPONENT_LIST runtime development documentation headers )
+    set( INSTALL_PACKAGES wpkg wpkg-dev wpkg-doc wpkg-hdrs-dev )
+endif()
+
 configure_file( admindb_init.txt "${LOCAL_WPKG_ROOT}/admindb_init.txt" @ONLY )
 configure_file( control.info.in "${LOCAL_WPKG_ROOT}/control.info" @ONLY )
 
 unset( COMP_TARGETS )
 foreach( _comp ${COMPONENT_LIST} )
-    #configure_file( control.${_comp}.in "${LOCAL_WPKG_ROOT}/${_comp}/WPKG/control" @ONLY )
     add_custom_target( ${_comp}_install
             COMMAND ${CMAKE_COMMAND}
                         -DCMAKE_INSTALL_PREFIX="${LOCAL_WPKG_ROOT}/${_comp}${INSTALL_PREFIX}"
                         -DCMAKE_INSTALL_COMPONENT=${_comp}
-                        -DCMAKE_INSTALL_DO_STRIP=1
+                        #-DCMAKE_INSTALL_DO_STRIP=1
                         -DBUILD_TYPE=$(Configuration)
                         -P ${CMAKE_BINARY_DIR}/cmake_install.cmake
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
@@ -109,7 +124,7 @@ add_custom_target( package
             --verbose
             --root    "${WPKG_ROOT}"
             --force-reinstall
-            --install wpkg wpkg-dev wpkg-doc
+            --install ${INSTALL_PACKAGES}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         DEPENDS
             ${COMP_TARGETS}

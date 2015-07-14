@@ -335,6 +335,17 @@ install(
     COMPONENT runtime
 )
 
+set_property( GLOBAL APPEND PROPERTY ALL_LIBRARY_TARGETS
+    dirsize
+    debversion
+    dar
+    deb2graph
+    deb2html
+    rc-version
+    wpkg
+    wpkg_static
+)
+
 
 #####################################################################
 ##
