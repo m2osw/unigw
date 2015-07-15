@@ -38,22 +38,23 @@ elseif( MO_DARWIN )
 endif()
 
 include_directories( ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR} ${DEBPACKAGES_INCLUDE} )
+link_directories( ${DIST_ROOT}/lib )
 
 set( DEBUG_LIBRARIES
-	debug ${DEBPACKAGES_D_LIBRARY}
-	debug ${EXPR_D_LIBRARY}
-	debug ${TLD_D_LIBRARY}
-	debug ${ZLIB_D_LIBRARY}
-	debug ${BZ2_D_LIBRARY}
-	debug ${UTF8_D_LIBRARY}
+	debug ${LIBPREFIX}debpackages_d
+	debug ${LIBPREFIX}expr_d
+	debug ${LIBPREFIX}utf8_d
+	debug ${LIBPREFIX}wpkg_bz2_d
+	debug ${LIBPREFIX}wpkg_tld_d
+	debug ${LIBPREFIX}wpkg_z_d
 	)
 set( RELEASE_LIBRARIES
-	optimized ${DEBPACKAGES_LIBRARY}
-	optimized ${EXPR_LIBRARY}
-	optimized ${TLD_LIBRARY}
-	optimized ${ZLIB_LIBRARY}
-	optimized ${BZ2_LIBRARY}
-	optimized ${UTF8_LIBRARY}
+	optimized ${LIBPREFIX}debpackages
+	optimized ${LIBPREFIX}expr       
+	optimized ${LIBPREFIX}utf8       
+	optimized ${LIBPREFIX}wpkg_bz2   
+	optimized ${LIBPREFIX}wpkg_tld   
+	optimized ${LIBPREFIX}wpkg_z     
 	)
 
 if( CMAKE_BUILD_TYPE )

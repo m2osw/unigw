@@ -365,7 +365,8 @@ void MainWindow::InitManager()
 
 	// TODO: add the Qt packages we depend on once ready
 	//       (specifically for MS-Windows)
-    f_manager->add_self("pkg-explorer");
+    f_manager->add_self("wpkg-gui");
+    f_manager->add_self("wpkgguiqt4");
 
     wpkg_output::output* out = f_logForm->GetLogOutput();
     Q_ASSERT( out );

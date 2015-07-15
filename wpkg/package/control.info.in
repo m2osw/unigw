@@ -1,15 +1,21 @@
 Sub-Packages: @SUBPACKAGES@
-Package/runtime: wpkg@DBGNAME@
-Package/development: wpkg@DBGNAME@-dev
+Package/runtime: wpkg
+Package/debug: wpkg-dbg
+Package/development: wpkg-dev
+Package/debugdev: wpkg-dbg-dev
 Package/documentation: wpkg-doc
 Package/headers: wpkg-hdrs-dev
+Package/mingw32: wpkgmingw32
 Priority: optional
 Priority/runtime: @PRIORITY@
+Priority/mingw32: @PRIORITY@
 Architecture: $(architecture())
 Architecture/documentation: all
 Architecture/headers: all
 Version: ${wpkg:Version}
-Depends/development: wpkg@DBGNAME@ (>= ${wpkg:version}), wpkg-hdrs-dev (>= ${wpkg:version})
+Depends/development: wpkg (>= ${wpkg:version}), wpkg-hdrs-dev (>= ${wpkg:version})
+Depends/debugdev: wpkg-dbg (>= ${wpkg:version}), wpkg-hdrs-dev (>= ${wpkg:version})
+@PLATFORM_DEPENDS@
 Maintainer: Alexis Wilke <alexis@m2osw.com>
 Homepage: http://windowspackager.org/
 DESCRIPTION=Multi-platform packager.
@@ -23,3 +29,7 @@ Description/documentation: ${V:DESCRIPTION}
  This is the documentation package.
 Description/headers: ${V:DESCRIPTION}
  This is the headers-only development packages (no binaries).
+Description/debugdev: ${V:DESCRIPTION}
+ This is the debug development library package.
+Description/mingw32: ${V:DESCRIPTION}
+ Contains the mingw32 runtime. Required for Win32 MinGW32 builds.

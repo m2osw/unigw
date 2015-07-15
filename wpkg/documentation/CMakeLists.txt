@@ -64,6 +64,10 @@ if( (${RM} MATCHES "RM-NOTFOUND") OR (${MV} MATCHES "MV-NOTFOUND") )
     unset( GENERATE_DOCS )
 endif()
 
+if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
+    unset( GENERATE_DOCS )
+endif()
+
 
 ################################################################################
 # Function AddDoxygenTarget taken from the Snap! environment
@@ -111,6 +115,7 @@ function( AddDoxygenTarget TARGET_NAME VERSION_MAJOR VERSION_MINOR VERSION_PATCH
         endif()
 
         add_custom_command( OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${DOCUMENTATION_OUTPUT}${SUFFIX} ${DOCUMENTATION_OUTPUT}
+        #add_custom_command( OUTPUT ${DOCUMENTATION_OUTPUT}
             COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}.doxy > ${CMAKE_CURRENT_BINARY_DIR}/doxygen.out 2> ${CMAKE_CURRENT_BINARY_DIR}/doxygen.err
             COMMAND echo Compacting as ${DOCUMENTATION_OUTPUT}${SUFFIX}
             COMMAND ${RM} -rf ${DOCUMENTATION_OUTPUT}
@@ -120,8 +125,9 @@ function( AddDoxygenTarget TARGET_NAME VERSION_MAJOR VERSION_MINOR VERSION_PATCH
         )
 
         add_custom_target( ${TARGET_NAME}_Documentation ALL
-            DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${DOCUMENTATION_OUTPUT}${SUFFIX}
+            DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${DOCUMENTATION_OUTPUT}${SUFFIX} ${DOCUMENTATION_OUTPUT}
             COMMENT "Generating API documentation with Doxygen" VERBATIM
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         )
 
         if( MSVC )

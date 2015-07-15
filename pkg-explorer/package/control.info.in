@@ -1,13 +1,14 @@
 Sub-Packages: @SUBPACKAGES@
-Package/runtime: wpkg-gui@DBGNAME@
+Package/runtime: wpkg-gui
 Package/documentation: wpkggui-doc
-Version: ${wpkg:Version}
+Package/qt4: wpkgguiqt4
+Version: @VERSION@
 Section: admin
 Priority: optional
 Architecture: $(architecture())
 Architecture/documentation: all
-Depends/runtime: wpkg@DBGNAME@ (>= 0.9.0), wpkggui-doc (>= ${wpkg:Version})
-Source-Depends: wpkg@DBGNAME@-dev (>= 0.9.0)
+@PLATFORM_DEPENDS@
+Source-Depends: wpkg-dev (>= 0.9.0)
 Homepage: https://sourceforge.net/projects/unigw/
 Maintainer: Made to Order Software Corporation <contact@m2osw.com>
 DESCRIPTION=GUI Multi-platform packager.

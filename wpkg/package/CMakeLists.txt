@@ -41,6 +41,19 @@ if( MSVC AND NOT (${CMAKE_MAKE_PROGRAM} STREQUAL "nmake") AND NOT (${CMAKE_MAKE_
     return()
 endif()
 
+if( MO_MINGW32 )
+    get_filename_component( MINGW32_PATH ${CMAKE_MAKE_PROGRAM} DIRECTORY )
+    file( GLOB MINGW32_DLL_LIST "${MINGW32_PATH}/*.dll" )
+    install(
+        FILES
+            ${MINGW32_DLL_LIST}
+        DESTINATION
+            bin
+        COMPONENT
+            mingw32
+       )
+endif()
+
 set( LOCAL_WPKG_ROOT "${CMAKE_BINARY_DIR}/WPKG" )
 if( UNIX )
     set( INSTALL_PREFIX "/usr" )
@@ -53,17 +66,21 @@ if( NOT EXISTS "${WPKG_ROOT}" )
 endif()
 
 if( ${CMAKE_BUILD_TYPE} STREQUAL "Debug" )
-    set( DBGNAME "-dbg" )
-    set( SUBPACKAGES "runtime*, development" )
+    set( SUBPACKAGES "debug*, debugdev" )
     set( COMPONENT_LIST development runtime )
-    set( INSTALL_PACKAGES wpkg${DBGNAME} wpkg${DBGNAME}-dev )
+    set( INSTALL_PACKAGES wpkg-dbg wpkg-dbg-dev )
     set( PRIORITY optional )
 else()
-    unset( DBGNAME )
     set( SUBPACKAGES "runtime*, development, documentation, headers" )
     set( COMPONENT_LIST runtime development documentation headers )
     set( INSTALL_PACKAGES wpkg wpkg-dev wpkg-doc wpkg-hdrs-dev )
     set( PRIORITY required )
+    if( MO_MINGW32 )
+        set( PLATFORM_DEPENDS "Depends/runtime: wpkgmingw32 (>= \${wpkg:version})" )
+        set( SUBPACKAGES "${SUBPACKAGES}, mingw32" )
+        list( APPEND INSTALL_PACKAGES wpkgmingw32 )
+        list( APPEND COMPONENT_LIST mingw32 )
+    endif()
 endif()
 
 configure_file( admindb_init.txt "${LOCAL_WPKG_ROOT}/admindb_init.txt" @ONLY )

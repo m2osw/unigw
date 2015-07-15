@@ -42,16 +42,37 @@ if( NOT EXISTS "${WPKG_ROOT}" )
     message( FATAL_ERROR "WPKG_ROOT=${WPKG_ROOT} not found!" )
 endif()
 
+if( MO_WINDOWS )
+    unset( QT4_DLL_LIST_RELEASE )
+    foreach( qt_lib ${QT4_REQ_LIBS} )
+        list( APPEND QT4_DLL_LIST_RELEASE ${QT_BINARY_DIR}/${qt_lib}4.dll  )
+    endforeach()
+
+    install(
+        FILES
+            ${QT4_DLL_LIST_RELEASE}
+        DESTINATION
+            bin
+        COMPONENT
+            qt4
+       )
+endif()
+
+
 if( ${CMAKE_BUILD_TYPE} STREQUAL "Debug" )
-    set( DBGNAME "-dbg" )
-    set( SUBPACKAGES "runtime*" )
-    set( COMPONENT_LIST runtime )
-    set( INSTALL_PACKAGES wpkg-gui${DBGNAME} )
-else()
-    unset( DBGNAME )
-    set( SUBPACKAGES "runtime*, documentation" )
-    set( COMPONENT_LIST runtime documentation )
-    set( INSTALL_PACKAGES wpkg-gui wpkggui-doc )
+    message( STATUS "Not building debug packages" )
+    return()
+endif()
+
+set( SUBPACKAGES "runtime*, documentation" )
+set( COMPONENT_LIST runtime documentation )
+set( INSTALL_PACKAGES wpkg-gui wpkggui-doc )
+set( PLATFORM_DEPENDS "Depends/runtime: wpkg (>= 0.9.0), wpkggui-doc (>= ${VERSION})" )
+if( MO_WINDOWS )
+    set( PLATFORM_DEPENDS "${PLATFORM_DEPENDS}, wpkgguiqt4 (>= ${VERSION})" )
+    set( SUBPACKAGES "${SUBPACKAGES}, qt4" )
+    list( APPEND INSTALL_PACKAGES wpkgguiqt4 )
+    list( APPEND COMPONENT_LIST qt4 )
 endif()
 
 configure_file( control.info.in "${LOCAL_WPKG_ROOT}/control.info" @ONLY )

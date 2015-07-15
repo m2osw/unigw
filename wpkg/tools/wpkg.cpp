@@ -2851,7 +2851,9 @@ void init_manager(command_line& cl, wpkgar::wpkgar_manager& manager, const std::
     // shell script or batch file and run that with the right information
     // and the last command line would be used to restart your app.
     manager.add_self("wpkg");
-
+#ifdef MO_MINGW32
+    manager.add_self("wpkg-mingw32");
+#endif
     {
         // if wpkg upgraded itself then it created a copy of itself; these
         // few lines of code check for the existence of that copy and

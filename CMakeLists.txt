@@ -49,11 +49,15 @@ find_package( WpkgBuild REQUIRED )
 ################################################################################
 # WPKG libraries
 #
-ConfigureMakeProject( PROJECT_NAME wpkg BUILD_TYPE Release )
-ConfigureMakeProject( PROJECT_NAME wpkg BUILD_TYPE Debug   DEPENDS wpkg-Release )
+# NOTE: I'm disabling all of the debug packages because they really aren't needed
+# (you can build your own debug version from source), and also because it's a right pain
+# in the keester.
 #
-ConfigureMakeProject( PROJECT_NAME pkg-explorer DEPENDS wpkg-Release BUILD_TYPE Release )
-ConfigureMakeProject( PROJECT_NAME pkg-explorer DEPENDS wpkg-Debug   BUILD_TYPE Debug   )
+ConfigureMakeProject( PROJECT_NAME wpkg BUILD_TYPE Release                      )
+#ConfigureMakeProject( PROJECT_NAME wpkg BUILD_TYPE Debug   DEPENDS wpkg-Release )
+#
+ConfigureMakeProject( PROJECT_NAME pkg-explorer DEPENDS wpkg-Release                    BUILD_TYPE Release )
+#ConfigureMakeProject( PROJECT_NAME pkg-explorer DEPENDS wpkg-Debug pkg-explorer-Release BUILD_TYPE Debug   )
 
 get_property( BUILD_TARGETS GLOBAL PROPERTY BUILD_TARGETS )
 get_property( CLEAN_TARGETS GLOBAL PROPERTY CLEAN_TARGETS )
