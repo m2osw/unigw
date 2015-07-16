@@ -7,7 +7,6 @@ Section: admin
 Priority: optional
 Architecture: $(architecture())
 Architecture/documentation: all
-@PLATFORM_DEPENDS@
 Source-Depends: wpkg-dev (>= 0.9.0)
 Homepage: https://sourceforge.net/projects/unigw/
 Maintainer: Made to Order Software Corporation <contact@m2osw.com>
@@ -19,3 +18,4 @@ Description: ${V:DESCRIPTION}
  This is the runtime package.
 Description/documentation: ${V:DESCRIPTION}
  This is the documentation package. TODO.
+@PLATFORM_DEPENDS@

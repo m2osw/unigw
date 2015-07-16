@@ -41,20 +41,20 @@ include_directories( ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR} ${DEBPACKAGES_I
 link_directories( ${DIST_ROOT}/lib )
 
 set( DEBUG_LIBRARIES
-	debug ${LIBPREFIX}debpackages_d
-	debug ${LIBPREFIX}expr_d
-	debug ${LIBPREFIX}utf8_d
-	debug ${LIBPREFIX}wpkg_bz2_d
-	debug ${LIBPREFIX}wpkg_tld_d
-	debug ${LIBPREFIX}wpkg_z_d
+	debug debpackages_d
+	debug expr_d
+	debug utf8_d
+	debug wpkg_bz2_d
+	debug wpkg_tld_d
+	debug wpkg_z_d
 	)
 set( RELEASE_LIBRARIES
-	optimized ${LIBPREFIX}debpackages
-	optimized ${LIBPREFIX}expr       
-	optimized ${LIBPREFIX}utf8       
-	optimized ${LIBPREFIX}wpkg_bz2   
-	optimized ${LIBPREFIX}wpkg_tld   
-	optimized ${LIBPREFIX}wpkg_z     
+	optimized debpackages
+	optimized expr
+	optimized utf8
+	optimized wpkg_bz2
+	optimized wpkg_tld
+	optimized wpkg_z
 	)
 
 if( CMAKE_BUILD_TYPE )

@@ -15,7 +15,6 @@ Architecture/headers: all
 Version: ${wpkg:Version}
 Depends/development: wpkg (>= ${wpkg:version}), wpkg-hdrs-dev (>= ${wpkg:version})
 Depends/debugdev: wpkg-dbg (>= ${wpkg:version}), wpkg-hdrs-dev (>= ${wpkg:version})
-@PLATFORM_DEPENDS@
 Maintainer: Alexis Wilke <alexis@m2osw.com>
 Homepage: http://windowspackager.org/
 DESCRIPTION=Multi-platform packager.
@@ -33,3 +32,4 @@ Description/debugdev: ${V:DESCRIPTION}
  This is the debug development library package.
 Description/mingw32: ${V:DESCRIPTION}
  Contains the mingw32 runtime. Required for Win32 MinGW32 builds.
+@PLATFORM_DEPENDS@

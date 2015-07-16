@@ -122,10 +122,8 @@ set( WPKG_ROOT "${ENV_ROOT_PATH}" CACHE PATH "Root of wpkg installation." )
 
 if( UNIX )
     set( INSTALL_PREFIX "/usr" )
-	set( LIBPREFIX lib )
 else()
     set( INSTALL_PREFIX "" )
-	unset( LIBPREFIX )
 endif()
 set( DIST_ROOT "${WPKG_ROOT}${INSTALL_PREFIX}" )
 
