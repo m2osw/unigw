@@ -65,7 +65,7 @@ function( ConfigureMakeProject )
 		set( SRC_DIR   ${CMAKE_SOURCE_DIR}/${ARG_PROJECT_NAME} )
 		set( BUILD_DIR ${CMAKE_BINARY_DIR}/${FULL_PROJECT_NAME} )
 	endif()
-	set( WPKG_DIST_DIR "${CMAKE_SOURCE_DIR}/dist" CACHE PATH "Destination installation folder." )
+    set( WPKG_ROOT "${CMAKE_BINARY_DIR}/dist" CACHE PATH "Destination installation folder." )
 	if( ARG_DISTFILE_PATH )
 		set( RM_DIR ${SRC_DIR}   )
 		else()
@@ -100,7 +100,7 @@ function( ConfigureMakeProject )
 		set( CONFIGURE_TARGETS ${BUILD_DIR}/config.log  )
 		add_custom_command(
 			OUTPUT ${CONFIGURE_TARGETS}
-			COMMAND ${ECHO_CMD} ${BUILD_DIR}/configure --prefix=${WPKG_DIST_DIR} ${ARG_CONFIG_ARGS}
+            COMMAND ${ECHO_CMD} ${BUILD_DIR}/configure --prefix=${WPKG_ROOT} ${ARG_CONFIG_ARGS}
 				1> ${BUILD_DIR}/${FULL_PROJECT_NAME}_configure.log
 				2> ${BUILD_DIR}/${FULL_PROJECT_NAME}_configure.err
 			DEPENDS ${FULL_PROJECT_NAME}-depends
@@ -114,10 +114,10 @@ function( ConfigureMakeProject )
 		endif()
 		set( COMMAND_LIST
 			${CMAKE_COMMAND}
-				-DCMAKE_INSTALL_PREFIX:PATH=${WPKG_DIST_DIR}
-				-DCMAKE_MODULE_PATH:PATH=${WPKG_DIST_DIR}/share/cmake-2.8/Modules
+                -DCMAKE_INSTALL_PREFIX:PATH=${WPKG_ROOT}
+                -DCMAKE_MODULE_PATH:PATH=${WPKG_ROOT}/share/cmake-2.8/Modules
 				-DCMAKE_BUILD_TYPE=${ARG_BUILD_TYPE}
-				-DWPKG_ROOT:PATH="${WPKG_DIST_DIR}"
+                -DWPKG_ROOT:PATH="${WPKG_ROOT}"
 				-G "${CMAKE_GENERATOR}"
 				${TOOLCHAIN}
 				${ARG_CONFIG_ARGS}

@@ -48,6 +48,10 @@ if( MO_WINDOWS )
         list( APPEND QT4_DLL_LIST_RELEASE ${QT_BINARY_DIR}/${qt_lib}4.dll  )
     endforeach()
 
+    if( MO_MINGW32 )
+        list( APPEND QT4_DLL_LIST_RELEASE ${QT_BINARY_DIR}/mingwm10.dll  )
+    endif()
+
     install(
         FILES
             ${QT4_DLL_LIST_RELEASE}
@@ -95,8 +99,6 @@ foreach( _comp ${COMPONENT_LIST} )
         set_property( TARGET ${_comp}_install PROPERTY FOLDER ${PACKAGE_FOLDER} )
     endif()
 endforeach()
-
-find_program( WPKG wpkg${CMAKE_EXECUTABLE_SUFFIX} PATHS ${WPKG_ROOT}/bin )
 
 add_custom_target( package
         COMMAND ${WPKG}

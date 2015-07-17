@@ -325,7 +325,7 @@ if( MO_MINGW32 OR MO_MINGW64 OR MSYS )
 elseif( MSVC )
     set_target_properties( ${PROJECT_NAME} PROPERTIES
         FOLDER      ${TOOLS_FOLDER}
-        OUTPUT_NAME wpkg-static
+        OUTPUT_NAME wpkg_static
         )
 endif()
 

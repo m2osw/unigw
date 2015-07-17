@@ -75,6 +75,11 @@ add_custom_target( clean-all
     COMMAND ${CMAKE_COMMAND} ${CMAKE_BINARY_DIR}
     DEPENDS ${CLEAN_TARGETS}
     )
+
+if( MSVC OR MINGW )
+    add_subdirectory( win32 )
+endif()
+
 if( UNIX )
     add_custom_target( debuild
         DEPENDS ${PACKAGE_TARGETS}
