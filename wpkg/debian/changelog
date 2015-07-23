@@ -1,3 +1,12 @@
+wpkg (0.9.11~trusty) trusty; urgency=high
+
+  * Improved package from repository handling in general.
+  * --install fails with exit code 1 if package is not in the repo to be installed.
+  * Added --force-reinstall.
+  * Took out error if package was already installed.
+
+ -- R. Douglas Barbieri <doug@dooglio.net>  Wed, 22 Jul 2015 17:12:48 -0700
+
 wpkg (0.9.10.44~trusty) trusty; urgency=high
 
   * Nightly build.
