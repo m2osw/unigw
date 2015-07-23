@@ -3019,35 +3019,46 @@ void init_installer
         }
     }
 
-    // add the list of package names
-    if(package_name.empty())
+    try
     {
-        for(int i(0); i < max; ++i)
+        // add the list of package names
+        if(package_name.empty())
         {
-            const std::string& name( cl.get_string( option, i ) );
-            pkg_install.add_package( name, cl.opt().is_defined( "force-reinstall" ) );
-        }
+            for(int i(0); i < max; ++i)
+            {
+                const std::string& name( cl.get_string( option, i ) );
+                pkg_install.add_package( name, cl.opt().is_defined( "force-reinstall" ) );
+            }
 
-        if( pkg_install.count() == 0 )
-        {
-            wpkg_output::log("You are attempting to install one or more packages that are already installed. Nothing done! Use '--force-reinstall' to force a reinstallation.")
-                    .level(wpkg_output::level_warning)
-                    .module(wpkg_output::module_configure_package)
-                    .action("install-validation");
-            exit(0);
+            if( pkg_install.count() == 0 )
+            {
+                wpkg_output::log("You are attempting to install one or more packages that are already installed. Nothing done! Use '--force-reinstall' to force a reinstallation.")
+                        .level(wpkg_output::level_warning)
+                        .module(wpkg_output::module_configure_package)
+                        .action("install-validation");
+                exit(0);
+            }
+            //
+            if( pkg_install.count() != max )
+            {
+                wpkg_output::log("One or more packages you specified for installation are already installed. See the '--force-reinstall' option.")
+                        .level(wpkg_output::level_warning)
+                        .module(wpkg_output::module_configure_package)
+                        .action("install-validation");
+            }
         }
-        //
-        if( pkg_install.count() != max )
+        else
         {
-            wpkg_output::log("One or more packages you specified for installation are already installed. See the '--force-reinstall' option.")
-                    .level(wpkg_output::level_warning)
-                    .module(wpkg_output::module_configure_package)
-                    .action("install-validation");
+            pkg_install.add_package(package_name.full_path());
         }
     }
-    else
+    catch( const std::exception& e )
     {
-        pkg_install.add_package(package_name.full_path());
+        wpkg_output::log(e.what())
+                .level(wpkg_output::level_fatal)
+                .module(wpkg_output::module_configure_package)
+                .action("install-validation");
+        exit(1);
     }
 }
 

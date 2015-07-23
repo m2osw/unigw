@@ -804,19 +804,26 @@ void wpkgar_install::add_package( const std::string& package, const bool force_r
                 wpkgar_repository::source_vector_t	sources;
                 repository.read_sources( sources_file, sources );
 
-                std::for_each( sources.begin(), sources.end(),
-                               [&]( const wpkgar_repository::source& src )
-                    {
-                        f_manager->add_repository( src.get_uri() );
-                    }
-                );
+                std::for_each( sources.begin(), sources.end(), [&]( const wpkgar_repository::source& src )
+                {
+                    f_manager->add_repository( src.get_uri() );
+                });
             }
 
+            bool found_package = false;
             const auto& list( repository.upgrade_list() );
             std::for_each( list.begin(), list.end(), [&]( wpkgar_repository::package_item_t entry )
             {
                 if( entry.get_name() == package )
                 {
+                    found_package = true;
+                    if( entry.get_status() == wpkgar_repository::package_item_t::invalid )
+                    {
+                        std::stringstream ss;
+                        ss << "Cannot install package '" << package << "' since it is invalid!";
+                        throw std::runtime_error(ss.str());
+                    }
+
                     bool install_it = false;
                     if( force_reinstall )
                     {
@@ -835,6 +842,13 @@ void wpkgar_install::add_package( const std::string& package, const bool force_r
                     }
                 }
             });
+
+            if( !found_package )
+            {
+                std::stringstream ss;
+                ss << "Cannot install package '" << package << "' because it doesn't exist in the repository!";
+                throw std::runtime_error(ss.str());
+            }
         }
     }
 }
