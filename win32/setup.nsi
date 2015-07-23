@@ -4,7 +4,7 @@
 #
 !define VERSION_MAJOR    "0"
 !define VERSION_MINOR    "9"
-!define VERSION_REVISION "10"
+!define VERSION_REVISION "11"
 
 Name "Windows Packager ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REVISION}"
 XPStyle on

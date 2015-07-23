@@ -30,7 +30,7 @@ option( BUILD_WPKG "Build the wpkg package" ON )
 #
 set( VERSION_MAJOR 0 )
 set( VERSION_MINOR 3 )
-set( VERSION_PATCH 3 )
+set( VERSION_PATCH 4 )
 set( VERSION_DEVEL 0 )
 
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}-${VERSION_DEVEL}" )
