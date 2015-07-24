@@ -188,6 +188,11 @@ public:
 
     void operator () (HANDLE handle)
     {
+		if( handle == INVALID_HANDLE_VALUE )
+		{
+			return;
+		}
+
         CloseHandle(handle);
     }
 };

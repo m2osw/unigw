@@ -3332,7 +3332,9 @@ void wpkgar_install::find_dependencies(wpkgar_package_list_t& tree, const wpkgar
             {
                 f_manager->check_interrupt();
 
-                switch(tree[tree_idx].get_type())
+                auto& tree_item( tree[tree_idx] );
+
+                switch(tree_item.get_type())
                 {
                 case package_item_t::package_type_explicit:
                 case package_item_t::package_type_implicit:
@@ -3342,19 +3344,26 @@ void wpkgar_install::find_dependencies(wpkgar_package_list_t& tree, const wpkgar
                 case package_item_t::package_type_upgrade:
                 case package_item_t::package_type_upgrade_implicit:
                 case package_item_t::package_type_downgrade:
-                    if(d.f_name == tree[tree_idx].get_name())
+                    if(d.f_name == tree_item.get_name())
                     {
+                        // Note: the issue is that when the package and the dependency
+                        // are the same, the operator needs to be less than.
+                        //
+                        // Otherwise, we are doing an absurd compare that could never be true.
+                        //
+                        auto temp_d( d );
+                        temp_d.f_operator = wpkg_dependencies::dependencies::operator_lt;
                         // this is a match, use it if possible!
-                        switch(tree[tree_idx].get_type())
+                        switch(tree_item.get_type())
                         {
                         case package_item_t::package_type_available:
-                            if(match_dependency_version(d, tree[tree_idx]) == 1
+                            if(match_dependency_version(temp_d, tree_item) == 1
                             && check_implicit_for_upgrade(tree, tree_idx))
                             {
                                 // this one becomes implicit!
                                 found = validation_return_success;
 
-                                tree[tree_idx].set_type(package_item_t::package_type_implicit);
+                                tree_item.set_type(package_item_t::package_type_implicit);
                                 find_dependencies(tree, tree_idx, missing);
                             }
                             break;
@@ -3366,7 +3375,7 @@ void wpkgar_install::find_dependencies(wpkgar_package_list_t& tree, const wpkgar
                         case package_item_t::package_type_upgrade:
                         case package_item_t::package_type_upgrade_implicit:
                         case package_item_t::package_type_downgrade:
-                            if(match_dependency_version(d, tree[tree_idx]) == 1)
+                            if(match_dependency_version(temp_d, tree_item) == 1)
                             {
                                 found = validation_return_success;
                             }
@@ -3380,8 +3389,8 @@ void wpkgar_install::find_dependencies(wpkgar_package_list_t& tree, const wpkgar
                     break;
 
                 case package_item_t::package_type_unpacked:
-                    if(d.f_name == tree[tree_idx].get_name()
-                    && match_dependency_version(d, tree[tree_idx]) == 1)
+                    if(d.f_name == tree_item.get_name()
+                    && match_dependency_version(d, tree_item) == 1)
                     {
                         found = validation_return_unpacked;
                         unpacked_idx = tree_idx;
@@ -3424,7 +3433,7 @@ void wpkgar_install::find_dependencies(wpkgar_package_list_t& tree, const wpkgar
 
             if(found == validation_return_missing)
             {
-                missing.push_back(&d);
+                missing.push_back(d);
             }
         }
     }
@@ -3840,8 +3849,28 @@ void wpkgar_install::validate_dependencies()
         wpkgar_dependency_list_t missing;
         if(!verify_tree(f_packages, missing))
         {
+            std::stringstream ss;
+            if( missing.size() > 0 )
+            {
+                // Tell the user which dependencies are missing...
+                //
+                ss << "Missing dependencies: [";
+                std::string comma;
+                std::for_each( missing.begin(), missing.end(), [&ss,&comma]( wpkg_dependencies::dependencies::dependency_t dep )
+                {
+                    ss << comma;
+					ss << dep.f_name << " (" << dep.f_version << ")";
+                    comma = ", ";
+                });
+                ss << "]";
+            }
+            else
+            {
+                ss << "could not create a complete tree, some dependencies are in conflict, or have incompatible versions (see --debug 4)";
+            }
+
             // dependencies are missing
-            wpkg_output::log("could not create a complete tree, some dependencies are missing, or in conflict, or have incompatible versions (see --debug 4)")
+            wpkg_output::log(ss.str())
                 .level(wpkg_output::level_error)
                 .module(wpkg_output::module_validate_installation)
                 .action("install-validation");

@@ -212,10 +212,16 @@ void fstream::close()
 #if defined(MO_WINDOWS)
     if(f_file != INVALID_HANDLE_VALUE)
     {
+#if 0
+        // Do not close the handle here, since it is taken care of in the destructor.
+        // Otherwise, you get dozens of first chance exceptions that make debugging hard.
+        //
+        // TODO: decide the ramifications of ignoring the f_do_not_close flag...
         if(!f_do_not_close)
         {
             CloseHandle(f_file);
         }
+#endif
         f_file = INVALID_HANDLE_VALUE;
     }
 #else
