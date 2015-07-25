@@ -111,6 +111,8 @@ add_library( ${PROJECT_NAME} STATIC
     ${LIBDEBPACKAGES_SOURCE_FILES}
 )
 
+add_dependencies( ${PROJECT_NAME} make_controlled_vars_headers )
+
 StaticCompile()
 
 if( MSVC )
@@ -176,6 +178,8 @@ add_library( ${PROJECT_NAME} SHARED
     ${LIBDEBPACKAGES_INCLUDE_FILES}
     ${LIBDEBPACKAGES_SOURCE_FILES}
 )
+
+add_dependencies( ${PROJECT_NAME} make_controlled_vars_headers )
 
 if( MSVC )
     set_target_properties( ${PROJECT_NAME} PROPERTIES
