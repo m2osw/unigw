@@ -255,7 +255,7 @@ dependencies::dependencies(const std::string& dependency_field)
             // get the version
             // default operator when there is a version
             // TODO: controlled_vars bad enum handling
-            d.f_operator = static_cast<int>(operator_ge);
+            d.f_operator = operator_ge;
             if((*s == '!' && s[1] == '=')
             || (*s == '<' && s[1] == '>'))
             {
@@ -268,13 +268,13 @@ dependencies::dependencies(const std::string& dependency_field)
                 {
                     ++s;
                     // TODO: controlled_vars bad enum handling
-                    d.f_operator = static_cast<int>(operator_lt);
+                    d.f_operator = operator_lt;
                 }
                 else if(*s == '=')
                 {
                     ++s;
                     // TODO: controlled_vars bad enum handling
-                    d.f_operator = static_cast<int>(operator_le);
+                    d.f_operator = operator_le;
                 }
                 else
                 {
@@ -289,14 +289,14 @@ dependencies::dependencies(const std::string& dependency_field)
                 {
                     ++s;
                     // TODO: controlled_vars bad enum handling
-                    d.f_operator = static_cast<int>(operator_gt);
+                    d.f_operator = operator_gt;
                 }
                 else if(*s == '=')
                 {
                     ++s;
                     // TODO: controlled_vars bad enum handling
                     // This is the default when not specified
-                    d.f_operator = static_cast<int>(operator_ge);
+                    d.f_operator = operator_ge;
                 }
                 else
                 {
@@ -308,7 +308,7 @@ dependencies::dependencies(const std::string& dependency_field)
             {
                 ++s;
                 // TODO: controlled_vars bad enum handling
-                d.f_operator = static_cast<int>(operator_eq);
+                d.f_operator = operator_eq;
             }
             // operator is not mandatory (ge by default)
             // skip spaces after operator
@@ -349,7 +349,7 @@ dependencies::dependencies(const std::string& dependency_field)
         else
         {
             // TODO: controlled_vars bad handling of enums
-            d.f_operator = static_cast<int>(operator_any);
+            d.f_operator = operator_any;
             d.f_version = ""; // not specified by default
         }
 

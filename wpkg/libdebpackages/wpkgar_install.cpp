@@ -181,7 +181,7 @@ void wpkgar_install::package_item_t::load(bool ctrl)
             f_architecture = f_fields->get_field(wpkg_control::control_file::field_architecture_factory_t::canonicalized_name());
             f_version = f_fields->get_field(wpkg_control::control_file::field_version_factory_t::canonicalized_name());
             f_original_status = wpkgar_manager::unknown; // temporary packages have an unknown status by default
-            f_loaded = static_cast<int>(load_state_control_file); // FIXME cast
+            f_loaded = load_state_control_file;
         }
         return;
     }
@@ -196,7 +196,7 @@ void wpkgar_install::package_item_t::load(bool ctrl)
             f_version = f_manager->get_field(f_filename, wpkg_control::control_file::field_version_factory_t::canonicalized_name());
         }
         f_original_status = f_manager->package_status(f_filename);
-        f_loaded = static_cast<int>(load_state_full); // FIXME cast
+        f_loaded = load_state_full;
     }
 }
 

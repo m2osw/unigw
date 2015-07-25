@@ -4114,7 +4114,7 @@ uri_filename::os_filename_t::os_filename_t(const std::wstring& filename)
  */
 void uri_filename::os_filename_t::reset(const std::string& filename)
 {
-    f_format = static_cast<int>(filename_format_utf8); // FIXME cast
+    f_format = filename_format_utf8;
     f_utf8_filename = filename;
 }
 
@@ -4129,7 +4129,7 @@ void uri_filename::os_filename_t::reset(const std::string& filename)
  */
 void uri_filename::os_filename_t::reset(const std::wstring& filename)
 {
-    f_format = static_cast<int>(filename_format_utf16); // FIXME cast
+    f_format = filename_format_utf16;
     f_utf16_filename = filename;
 }
 
@@ -4158,7 +4158,7 @@ std::string uri_filename::os_filename_t::get_utf8() const
 
     if(filename_format_utf16 == f_format)
     {
-        f_format = static_cast<int>(filename_format_both); // FIXME cast
+        f_format = filename_format_both;
         f_utf8_filename = libutf8::wcstombs(f_utf16_filename);
     }
 
@@ -4186,7 +4186,7 @@ std::wstring uri_filename::os_filename_t::get_utf16() const
 
     if(filename_format_utf8 == f_format)
     {
-        f_format = static_cast<int>(filename_format_both); // FIXME cast
+        f_format = filename_format_both;
         f_utf16_filename = libutf8::mbstowcs(f_utf8_filename);
     }
 

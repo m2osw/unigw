@@ -30,6 +30,8 @@
 #include    "md5.h"
 #include    "wpkgar_block.h"
 #include    "libdebpackages/wpkg_filename.h"
+#include    "controlled_vars/controlled_vars_auto_enum_init.h"
+#include    "controlled_vars/controlled_vars_limited_auto_enum_init.h"
 
 
 namespace memfile {
@@ -316,7 +318,7 @@ public:
     std::string md5sum() const;
 
 private:
-    typedef controlled_vars::limited_auto_init<file_format_t, file_format_undefined, file_format_other, file_format_undefined>  safe_file_format_t;
+    typedef controlled_vars::limited_auto_enum_init<file_format_t, file_format_undefined, file_format_other, file_format_undefined>  safe_file_format_t;
 
     memory_file(const memory_file&);
     memory_file& operator = (memory_file&);

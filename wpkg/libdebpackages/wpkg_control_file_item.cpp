@@ -389,7 +389,7 @@ void file_list_t::set(const std::string& files)
 
 void file_item::set_format(format_t format)
 {
-    f_format = static_cast<int>(format);
+    f_format = format;
 }
 
 void file_item::set_filename(const std::string& filename)

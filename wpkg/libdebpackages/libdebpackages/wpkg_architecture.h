@@ -31,6 +31,7 @@
 #include    "memfile.h"
 #include    "case_insensitive_string.h"
 #include    "wpkg_output.h"
+#include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
 
 namespace wpkg_architecture

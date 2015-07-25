@@ -55,6 +55,7 @@ if( CPPUNIT_FOUND )
     #add_definitions( ${QT_DEFINITIONS} )
 
     include_directories(
+		"${CMAKE_BINARY_DIR}"
         "${PROJECT_BINARY_DIR}"
         "${PROJECT_BINARY_DIR}/../../libdebpackages"
         "${PROJECT_BINARY_DIR}/../../libtld"

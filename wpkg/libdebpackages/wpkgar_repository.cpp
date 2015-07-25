@@ -169,7 +169,7 @@ bool wpkgar_repository::package_item_t::field_is_defined(const std::string& name
 void wpkgar_repository::package_item_t::check_installed_package(bool exists)
 {
     // user does not have that package installed (default value)
-    f_status = static_cast<int>(not_installed); // FIXME cast
+    f_status = not_installed;
 
     // we loaded the "core" package before creating package items
     const std::string target_architecture = f_manager->get_field("core", "Architecture");
@@ -177,7 +177,7 @@ void wpkgar_repository::package_item_t::check_installed_package(bool exists)
     if(arch != "all" && !wpkg_dependencies::dependencies::match_architectures(arch, target_architecture))
     {
         // that package does not have the right architecture
-        f_status = static_cast<int>(invalid); // FIXME cast
+        f_status = invalid;
         f_cause_for_rejection = "package has an incompatible architecture";
         return;
     }
@@ -195,12 +195,12 @@ void wpkgar_repository::package_item_t::check_installed_package(bool exists)
             if(c == 0)
             {
                 // user has newest version
-                f_status = static_cast<int>(installed); // FIXME cast
+                f_status = installed;
             }
             else if(c < 0)
             {
                 // user should upgrade
-                f_status = static_cast<int>(need_upgrade); // FIXME cast
+                f_status = need_upgrade;
 
                 // if the selection is currently set to "Hold" then the upgrade is blocked instead
                 if(f_manager->field_is_defined(get_name(), wpkg_control::control_file::field_xselection_factory_t::canonicalized_name()))
@@ -208,7 +208,7 @@ void wpkgar_repository::package_item_t::check_installed_package(bool exists)
                     wpkg_control::control_file::field_xselection_t::selection_t selection(wpkg_control::control_file::field_xselection_t::validate_selection(f_manager->get_field(get_name(), wpkg_control::control_file::field_xselection_factory_t::canonicalized_name())));
                     if(selection == wpkg_control::control_file::field_xselection_t::selection_hold)
                     {
-                        f_status = static_cast<int>(blocked_upgrade); // FIXME cast
+                        f_status = blocked_upgrade;
                     }
                 }
             }
@@ -216,7 +216,7 @@ void wpkgar_repository::package_item_t::check_installed_package(bool exists)
             {
                 // user could downgrade; but we ignore the matter here
                 // we actually mark the package as invalid
-                f_status = static_cast<int>(invalid); // FIXME cast
+                f_status = invalid;
                 f_cause_for_rejection = "package has an older version, we do not allow downgrading in auto-upgrade mode";
             }
         }
@@ -340,7 +340,7 @@ void wpkgar_repository::update_entry_t::set_index(int index)
 
 void wpkgar_repository::update_entry_t::set_status(update_entry_status_t status)
 {
-    f_status = static_cast<int>(status);  // FIXME cast
+    f_status = status;
 }
 
 void wpkgar_repository::update_entry_t::set_uri(const std::string& uri)
@@ -407,15 +407,15 @@ void wpkgar_repository::update_entry_t::from_string(const std::string& line)
     // read the status
     if(v[1] == "unknown")
     {
-        f_status = static_cast<int>(status_unknown); // FIXME cast
+        f_status = status_unknown;
     }
     else if(v[1] == "ok")
     {
-        f_status = static_cast<int>(status_ok); // FIXME cast
+        f_status = status_ok;
     }
     else if(v[1] == "failed")
     {
-        f_status = static_cast<int>(status_failed); // FIXME cast
+        f_status = status_failed;
     }
     else
     {

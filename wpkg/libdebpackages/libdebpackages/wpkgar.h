@@ -33,6 +33,7 @@
 #ifndef WPKGAR_H
 #define WPKGAR_H
 #include    "wpkg_control.h"
+#include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
 
 namespace wpkgar

@@ -32,6 +32,7 @@
 #ifndef WPKGAR_INSTALL_H
 #define WPKGAR_INSTALL_H
 #include    "libdebpackages/wpkgar.h"
+#include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
 namespace wpkg_backup
 {
@@ -188,7 +189,7 @@ private:
             load_state_control_file,
             load_state_full
         };
-        typedef controlled_vars::limited_auto_init<loaded_state_t, load_state_not_loaded, load_state_control_file, load_state_not_loaded>  safe_loaded_state_t;
+        typedef controlled_vars::limited_auto_enum_init<loaded_state_t, load_state_not_loaded, load_state_control_file, load_state_not_loaded>  safe_loaded_state_t;
 
         wpkgar_manager *                            f_manager;
         wpkg_filename::uri_filename                 f_filename;
@@ -205,14 +206,14 @@ private:
         controlled_vars::mint32_t                   f_upgrade;
     };
 
-    typedef std::map<parameter_t, int>                                          wpkgar_flags_t;
-    typedef std::vector<package_item_t>                                         wpkgar_package_list_t;
-    typedef std::vector<package_item_t *>                                       wpkgar_package_ptrs_t;
-    typedef wpkgar_package_list_t::size_type                                    wpkgar_package_index_t;
-    typedef std::vector<wpkgar_package_index_t>                                 wpkgar_package_idxs_t;
-    typedef std::vector<const wpkg_dependencies::dependencies::dependency_t>    wpkgar_dependency_list_t;
-    typedef std::map<std::string, bool>                                         wpkgar_package_listed_t;
-    typedef std::vector<std::string>                                            wpkgar_list_of_strings_t;
+    typedef std::map<parameter_t, int>                                    wpkgar_flags_t;
+    typedef std::vector<package_item_t>                                   wpkgar_package_list_t;
+    typedef std::vector<package_item_t *>                                 wpkgar_package_ptrs_t;
+    typedef wpkgar_package_list_t::size_type                              wpkgar_package_index_t;
+    typedef std::vector<wpkgar_package_index_t>                           wpkgar_package_idxs_t;
+    typedef std::vector<wpkg_dependencies::dependencies::dependency_t>    wpkgar_dependency_list_t;
+    typedef std::map<std::string, bool>                                   wpkgar_package_listed_t;
+    typedef std::vector<std::string>                                      wpkgar_list_of_strings_t;
 
     enum validation_return_t
     {

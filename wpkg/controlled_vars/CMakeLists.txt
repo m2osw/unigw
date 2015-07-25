@@ -38,6 +38,10 @@ if(${CMAKE_SYSTEM_NAME}="Darwin")
   set(OS_DARWIN 1)
 endif(${CMAKE_SYSTEM_NAME}="Darwin")
 
+set( CONTROLLED_VARS_MAJOR  1 )
+set( CONTROLLED_VARS_MINOR  4 )
+set( CONTROLLED_VARS_PATCH 16 )
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/controlled_vars_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/controlled_vars_version.h)
 

@@ -44,6 +44,7 @@ set( TOOLS_FOLDER tools )
 project(dirsize)
 
 include_directories(
+	"${CMAKE_BINARY_DIR}"
     "${PROJECT_BINARY_DIR}"
     "${PROJECT_SOURCE_DIR}"
     "${PROJECT_SOURCE_DIR}/.."

@@ -30,6 +30,7 @@
  */
 #include    "debian_export.h"
 #include    "controlled_vars/controlled_vars_auto_init.h"
+#include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
 #include    <stdint.h>
 #include    <map>

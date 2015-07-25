@@ -43,6 +43,7 @@
 #include    "wpkg_field.h"
 #include    "wpkg_dependencies.h"
 #include    "compatibility.h"
+#include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
 
 namespace wpkg_control
@@ -105,7 +106,7 @@ public:
 
         format_choose_best
     };
-    typedef controlled_vars::limited_auto_init<format_t, format_unknown, format_choose_best, format_unknown> limited_format_t;
+    typedef controlled_vars::limited_auto_enum_init<format_t, format_unknown, format_choose_best, format_unknown> limited_format_t;
 
     static const int undefined_uid = -1;
     static const int undefined_gid = -1;
@@ -145,18 +146,18 @@ public:
 private:
     format_t determine_format() const;
 
-    limited_format_t                f_format;
-    std::string                     f_filename;
-    controlled_vars::zuint16_t      f_mode;
-    std::string                     f_user;
-    controlled_vars::zint32_t       f_uid;
-    std::string                     f_group;
-    controlled_vars::zint32_t       f_gid;
-    controlled_vars::zuint32_t      f_size;
-    safe_dev_t                      f_dev_major;
-    safe_dev_t                      f_dev_minor;
-    controlled_vars::ztime_t        f_mtime;
-    std::string                     f_checksum;
+    limited_format_t                   f_format;
+    std::string                        f_filename;
+    controlled_vars::zuint16_t         f_mode;
+    std::string                        f_user;
+    controlled_vars::zint32_t          f_uid;
+    std::string                        f_group;
+    controlled_vars::zint32_t          f_gid;
+    controlled_vars::zuint32_t         f_size;
+    safe_dev_t                         f_dev_major;
+    safe_dev_t                         f_dev_minor;
+    controlled_vars::auto_init<time_t> f_mtime;
+    std::string                        f_checksum;
 };
 
 

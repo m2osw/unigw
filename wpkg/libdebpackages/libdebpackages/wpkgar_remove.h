@@ -28,6 +28,7 @@
 #ifndef WPKGAR_REMOVE_H
 #define WPKGAR_REMOVE_H
 #include    "libdebpackages/wpkgar.h"
+#include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
 namespace wpkgar {
 

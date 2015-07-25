@@ -29,6 +29,9 @@
 #ifndef WPKGAR_BUILD_H
 #define WPKGAR_BUILD_H
 #include    "libdebpackages/wpkgar.h"
+#include    "controlled_vars/controlled_vars_auto_enum_init.h"
+#include    "controlled_vars/controlled_vars_limited_auto_init.h"
+#include    "controlled_vars/controlled_vars_limited_auto_enum_init.h"
 
 namespace wpkgar
 {
@@ -59,7 +62,7 @@ public:
                 SOURCE_VALIDATION_STATUS_INVALID,
                 SOURCE_VALIDATION_STATUS_MISSING
             };
-            typedef controlled_vars::limited_auto_init<status_t, SOURCE_VALIDATION_STATUS_UNKNOWN, SOURCE_VALIDATION_STATUS_MISSING, SOURCE_VALIDATION_STATUS_UNKNOWN>  safe_status_t;
+            typedef controlled_vars::limited_auto_enum_init<status_t, SOURCE_VALIDATION_STATUS_UNKNOWN, SOURCE_VALIDATION_STATUS_MISSING, SOURCE_VALIDATION_STATUS_UNKNOWN>  safe_status_t;
 
                             source_property(); // for std::map<> support
                             source_property(const char *name, const char *help);

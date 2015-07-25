@@ -1092,10 +1092,10 @@ const wpkg_filename::uri_filename& memory_file::get_filename() const
 void memory_file::guess_format_from_data()
 {
     if(!f_created && !f_loaded) {
-        f_format = static_cast<int>(file_format_undefined); // FIXME (cast)
+        f_format = file_format_undefined;
         return;
     }
-    f_format = static_cast<int>(f_buffer.data_to_format(0, f_buffer.size())); // FIXME (cast)
+    f_format = f_buffer.data_to_format(0, f_buffer.size());
 }
 
 memory_file::file_format_t memory_file::get_format() const
@@ -1684,11 +1684,11 @@ void memory_file::read_file(const wpkg_filename::uri_filename& filename, file_in
     if(filename.basename() == "filesmetadata")
     {
         // we cannot really detect the meta format
-        f_format = static_cast<int>(file_format_meta); // FIXME cast
+        f_format = file_format_meta;
     }
     else
     {
-        f_format = static_cast<int>(f_buffer.data_to_format(0, f_buffer.size())); // FIXME cast
+        f_format = f_buffer.data_to_format(0, f_buffer.size());
     }
     if(file_format_wpkg == f_format)
     {
@@ -1895,7 +1895,7 @@ void memory_file::decompress(memory_file& result) const
 void memory_file::reset()
 {
     f_filename.set_filename("");
-    f_format = static_cast<int>(file_format_undefined); // FIXME cast
+    f_format = file_format_undefined;
     f_created = false;
     f_loaded = false;
     f_directory = false;
@@ -1915,7 +1915,7 @@ void memory_file::create(file_format_t format)
     }
 
     reset();
-    f_format = static_cast<int>(format); // FIXME cast
+    f_format = format;
     f_created = true;
 
     if(file_format_ar == f_format)
@@ -2118,7 +2118,7 @@ void memory_file::dir_rewind(const wpkg_filename::uri_filename& path, bool recur
     f_directory = !path.empty();
     if(f_directory)
     {
-        f_format = static_cast<int>(file_format_directory); // FIXME cast
+        f_format = file_format_directory;
         f_recursive = recursive;
         f_dir.reset(new wpkg_filename::os_dir(path));
         f_dir_size = 1;

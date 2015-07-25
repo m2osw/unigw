@@ -37,6 +37,7 @@
  *     version
  */
 #include    "memfile.h"
+#include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
 
 namespace wpkg_changelog

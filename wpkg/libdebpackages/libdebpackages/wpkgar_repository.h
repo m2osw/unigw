@@ -31,6 +31,7 @@
 #ifndef WPKGAR_REPOSITORY_H
 #define WPKGAR_REPOSITORY_H
 #include    "libdebpackages/wpkgar.h"
+#include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
 namespace wpkgar
 {
@@ -115,7 +116,7 @@ public:
 
     private:
         typedef controlled_vars::auto_init<time_t> ztime_t;
-        typedef controlled_vars::limited_auto_init<update_entry_status_t, status_unknown, status_failed, status_unknown> zstatus_t;
+        typedef controlled_vars::limited_auto_enum_init<update_entry_status_t, status_unknown, status_failed, status_unknown> zstatus_t;
 
         controlled_vars::zint32_t       f_index; // local file number, starting at 1, if 0, not initialized yet
         zstatus_t                       f_status;
@@ -150,7 +151,7 @@ public:
         std::string get_cause_for_rejection() const;
 
     private:
-        typedef controlled_vars::limited_auto_init<package_item_status_t, not_installed, invalid, invalid> safe_package_item_status_t;
+        typedef controlled_vars::limited_auto_enum_init<package_item_status_t, not_installed, invalid, invalid> safe_package_item_status_t;
 
         wpkgar_manager *                            f_manager;
         safe_package_item_status_t                  f_status;

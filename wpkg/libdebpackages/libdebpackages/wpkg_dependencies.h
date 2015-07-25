@@ -30,8 +30,8 @@
 #ifndef WPKG_DEPENDENCIES_H
 #define WPKG_DEPENDENCIES_H
 #include    "debian_export.h"
-#include    "controlled_vars/controlled_vars_auto_init.h"
-#include    "controlled_vars/controlled_vars_limited_auto_init.h"
+#include    "controlled_vars/controlled_vars_auto_enum_init.h"
+#include    "controlled_vars/controlled_vars_limited_auto_enum_init.h"
 #include    <stdexcept>
 #include    <vector>
 
@@ -65,7 +65,7 @@ public:
         operator_ge,
         operator_gt
     };
-    typedef controlled_vars::limited_auto_init<dependency_operator_t, operator_any, operator_gt, operator_any> limited_dependency_operator_t;
+    typedef controlled_vars::limited_auto_enum_init<dependency_operator_t, operator_any, operator_gt, operator_any> limited_dependency_operator_t;
     struct DEBIAN_PACKAGE_EXPORT dependency_t
     {
         std::string operator_to_string() const;

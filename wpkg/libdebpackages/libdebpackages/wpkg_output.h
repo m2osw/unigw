@@ -41,6 +41,7 @@
 
 #include    "controlled_vars/controlled_vars_need_init.h"
 #include    "controlled_vars/controlled_vars_ptr_auto_init.h"
+#include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
 #include    <string>
 
@@ -77,7 +78,7 @@ enum level_t
     level_fatal
 };
 
-typedef controlled_vars::auto_init<level_t, level_info> safe_level_t;
+typedef controlled_vars::auto_enum_init<level_t, level_info> safe_level_t;
 
 DEBIAN_PACKAGE_EXPORT const char * level_to_string(const level_t level);
 DEBIAN_PACKAGE_EXPORT int compare_levels(const level_t l1, const level_t l2);
@@ -108,7 +109,7 @@ enum module_t
     module_track
 };
 
-typedef controlled_vars::auto_init<module_t, module_tool> safe_module_t;
+typedef controlled_vars::auto_enum_init<module_t, module_tool> safe_module_t;
 
 DEBIAN_PACKAGE_EXPORT const char *module_to_string(const module_t module);
 

@@ -2631,7 +2631,7 @@ void wpkgar_build::build_repository()
             cannot_build,       // cannot be built (missing dependencies)
             error               // an error occurred while building
         };
-        typedef controlled_vars::limited_auto_init<status_t, source, error, source> safe_status_t;
+        typedef controlled_vars::limited_auto_enum_init<status_t, source, error, source> safe_status_t;
 
         safe_status_t                   f_status;
         wpkg_filename::uri_filename     f_filename;
@@ -2817,7 +2817,7 @@ void wpkgar_build::build_repository()
                                 .package(package_name)
                                 .action("build-validation");
 
-                            sources[i]->f_status = static_cast<int>(source_t::cannot_build);
+                            sources[i]->f_status = source_t::cannot_build;
                             ready = false;
                         }
                         else if(source_t::built != dependency->second->f_status)
@@ -2891,12 +2891,12 @@ void wpkgar_build::build_repository()
                             .package(package_name)
                             .action("build-package");
 
-                        sources[i]->f_status = static_cast<int>(source_t::error);
+                        sources[i]->f_status = source_t::error;
                     }
                     else
                     {
                         repeat = true;
-                        sources[i]->f_status = static_cast<int>(source_t::built);
+                        sources[i]->f_status = source_t::built;
                     }
                 }
             }
@@ -4220,7 +4220,7 @@ const char *wpkgar_build::source_validation::source_property::get_help() const
  */
 void wpkgar_build::source_validation::source_property::set_status(status_t status)
 {
-    f_status = static_cast<int>(status);    // FIXME cast
+    f_status = status;
 }
 
 

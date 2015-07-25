@@ -61,6 +61,7 @@ configure_file(
 list( APPEND LIBDEBPACKAGES_INCLUDE_FILES "${PROJECT_BINARY_DIR}/libdebpackages/debian_packages.h" )
 
 include_directories(
+    "${CMAKE_BINARY_DIR}"
     "${CMAKE_CURRENT_BINARY_DIR}"
     "${CMAKE_CURRENT_BINARY_DIR}/libdebpackages"
     "${wpkg_tld_BINARY_DIR}"

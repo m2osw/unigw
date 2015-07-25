@@ -382,7 +382,7 @@ void message_t::set_level(level_t level)
     {
         throw std::overflow_error("level is out of range in message_t::set_level()");
     }
-    safe_level_t l(static_cast<int>(level));  // FIXME cast
+    safe_level_t l(level);
     f_level = l;
 }
 
@@ -428,7 +428,7 @@ void message_t::set_module(module_t module)
     {
         throw std::overflow_error("module is out of range in message_t::set_module()");
     }
-    safe_module_t m(static_cast<int>(module));    // FIXME cast
+    safe_module_t m(module);
     f_module = m;
 }
 

@@ -35,6 +35,7 @@
 #include    "libdebpackages/wpkg_filename.h"
 #include    "libdebpackages/compatibility.h"
 #include    "controlled_vars/controlled_vars_ptr_auto_init.h"
+#include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
 namespace wpkg_stream
 {

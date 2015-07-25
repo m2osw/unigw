@@ -31,7 +31,8 @@
 #define WPKG_FILENAME_H
 
 #include    "controlled_vars/controlled_vars_auto_init.h"
-#include    "controlled_vars/controlled_vars_limited_auto_init.h"
+#include    "controlled_vars/controlled_vars_auto_enum_init.h"
+#include    "controlled_vars/controlled_vars_limited_auto_enum_init.h"
 #include    "libdebpackages/debian_export.h"
 #include    <map>
 #include    <memory>
@@ -175,7 +176,7 @@ public:
             filename_format_utf16,
             filename_format_both
         };
-        typedef controlled_vars::limited_auto_init<filename_format_t, filename_format_undefined, filename_format_both, filename_format_undefined>  safe_filename_format_t;
+        typedef controlled_vars::limited_auto_enum_init<filename_format_t, filename_format_undefined, filename_format_both, filename_format_undefined>  safe_filename_format_t;
 
         os_filename_t();
         os_filename_t(const std::string& filename);
