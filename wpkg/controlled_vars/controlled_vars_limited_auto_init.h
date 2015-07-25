@@ -70,6 +70,8 @@ public:
 		return static_cast<primary_type_t>(v);
 	}
 	limited_auto_init() { f_value = check(init_value); }
+	limited_auto_init( T v ) { f_value = check(v); }
+#if 0
 	limited_auto_init(bool v) { f_value = check(v); }
 	limited_auto_init(char v) { f_value = check(v); }
 	limited_auto_init(signed char v) { f_value = check(v); }
@@ -100,6 +102,7 @@ public:
 #if 0 //def __APPLE___
 	limited_auto_init(time_t v) { f_value = check(v); }
 #endif
+#endif
 	operator T () const { return f_value; }
 	operator T () { return f_value; }
 	T value() const { return f_value; }
@@ -114,6 +117,8 @@ public:
 	limited_auto_init& operator -- () { if(f_value - 1 < min) throw controlled_vars_error_out_of_bounds("-- would render value out of bounds"); --f_value; return *this; }
 	limited_auto_init operator -- (int) { limited_auto_init<T, min, max> result(*this); if(f_value - 1 < min) throw controlled_vars_error_out_of_bounds("-- would render value out of bounds"); --f_value; return result; }
 	limited_auto_init& operator = (const limited_auto_init& n) { f_value = check(n.f_value); return *this; }
+	limited_auto_init& operator = (T v) { f_value = check(v); return *this; }
+#if 0
 	limited_auto_init& operator = (bool v) { f_value = check(v); return *this; }
 	limited_auto_init& operator = (char v) { f_value = check(v); return *this; }
 	limited_auto_init& operator = (signed char v) { f_value = check(v); return *this; }
@@ -144,7 +149,10 @@ public:
 #if 0 //def __APPLE___
 	limited_auto_init& operator = (time_t v) { f_value = check(v); return *this; }
 #endif
+#endif
 	limited_auto_init& operator *= (const limited_auto_init& n) { f_value = check(f_value * n.f_value); return *this; }
+	limited_auto_init& operator *= (T v) { f_value = check(f_value * v); return *this; }
+#if 0
 	limited_auto_init& operator *= (bool v) { f_value = check(f_value * v); return *this; }
 	limited_auto_init& operator *= (char v) { f_value = check(f_value * v); return *this; }
 	limited_auto_init& operator *= (signed char v) { f_value = check(f_value * v); return *this; }
@@ -175,7 +183,10 @@ public:
 #if 0 //def __APPLE___
 	limited_auto_init& operator *= (time_t v) { f_value = check(f_value * v); return *this; }
 #endif
+#endif
 	limited_auto_init& operator /= (const limited_auto_init& n) { f_value = check(f_value / n.f_value); return *this; }
+	limited_auto_init& operator /= (T v) { f_value = check(f_value / v); return *this; }
+#if 0
 	limited_auto_init& operator /= (bool v) { f_value = check(f_value / v); return *this; }
 	limited_auto_init& operator /= (char v) { f_value = check(f_value / v); return *this; }
 	limited_auto_init& operator /= (signed char v) { f_value = check(f_value / v); return *this; }
@@ -206,7 +217,10 @@ public:
 #if 0 //def __APPLE___
 	limited_auto_init& operator /= (time_t v) { f_value = check(f_value / v); return *this; }
 #endif
+#endif
 	limited_auto_init& operator %= (const limited_auto_init& n) { f_value = check(f_value % n.f_value); return *this; }
+	limited_auto_init& operator %= (T v) { f_value = check(f_value % v); return *this; }
+#if 0
 	limited_auto_init& operator %= (bool v) { f_value = check(f_value % v); return *this; }
 	limited_auto_init& operator %= (char v) { f_value = check(f_value % v); return *this; }
 	limited_auto_init& operator %= (signed char v) { f_value = check(f_value % v); return *this; }
@@ -232,7 +246,10 @@ public:
 #if 0 //def __APPLE___
 	limited_auto_init& operator %= (time_t v) { f_value = check(f_value % v); return *this; }
 #endif
+#endif
 	limited_auto_init& operator += (const limited_auto_init& n) { f_value = check(f_value + n.f_value); return *this; }
+	limited_auto_init& operator += (T v) { f_value = check(f_value + v); return *this; }
+#if 0
 	limited_auto_init& operator += (bool v) { f_value = check(f_value + v); return *this; }
 	limited_auto_init& operator += (char v) { f_value = check(f_value + v); return *this; }
 	limited_auto_init& operator += (signed char v) { f_value = check(f_value + v); return *this; }
@@ -263,7 +280,10 @@ public:
 #if 0 //def __APPLE___
 	limited_auto_init& operator += (time_t v) { f_value = check(f_value + v); return *this; }
 #endif
+#endif
 	limited_auto_init& operator -= (const limited_auto_init& n) { f_value = check(f_value - n.f_value); return *this; }
+	limited_auto_init& operator -= (T v) { f_value = check(f_value - v); return *this; }
+#if 0
 	limited_auto_init& operator -= (bool v) { f_value = check(f_value - v); return *this; }
 	limited_auto_init& operator -= (char v) { f_value = check(f_value - v); return *this; }
 	limited_auto_init& operator -= (signed char v) { f_value = check(f_value - v); return *this; }
@@ -294,7 +314,10 @@ public:
 #if 0 //def __APPLE___
 	limited_auto_init& operator -= (time_t v) { f_value = check(f_value - v); return *this; }
 #endif
+#endif
 	limited_auto_init& operator <<= (const limited_auto_init& n) { f_value = check(f_value << n.f_value); return *this; }
+	limited_auto_init& operator <<= (T v) { f_value = check(f_value << v); return *this; }
+#if 0
 	limited_auto_init& operator <<= (bool v) { f_value = check(f_value << v); return *this; }
 	limited_auto_init& operator <<= (char v) { f_value = check(f_value << v); return *this; }
 	limited_auto_init& operator <<= (signed char v) { f_value = check(f_value << v); return *this; }
@@ -320,7 +343,10 @@ public:
 #if 0 //def __APPLE___
 	limited_auto_init& operator <<= (time_t v) { f_value = check(f_value << v); return *this; }
 #endif
+#endif
 	limited_auto_init& operator >>= (const limited_auto_init& n) { f_value = check(f_value >> n.f_value); return *this; }
+	limited_auto_init& operator >>= (T v) { f_value = check(f_value >> v); return *this; }
+#if 0
 	limited_auto_init& operator >>= (bool v) { f_value = check(f_value >> v); return *this; }
 	limited_auto_init& operator >>= (char v) { f_value = check(f_value >> v); return *this; }
 	limited_auto_init& operator >>= (signed char v) { f_value = check(f_value >> v); return *this; }
@@ -346,7 +372,10 @@ public:
 #if 0 //def __APPLE___
 	limited_auto_init& operator >>= (time_t v) { f_value = check(f_value >> v); return *this; }
 #endif
+#endif
 	limited_auto_init& operator &= (const limited_auto_init& n) { f_value = check(f_value & n.f_value); return *this; }
+	limited_auto_init& operator &= (T v) { f_value = check(f_value & v); return *this; }
+#if 0
 	limited_auto_init& operator &= (bool v) { f_value = check(f_value & v); return *this; }
 	limited_auto_init& operator &= (char v) { f_value = check(f_value & v); return *this; }
 	limited_auto_init& operator &= (signed char v) { f_value = check(f_value & v); return *this; }
@@ -372,7 +401,10 @@ public:
 #if 0 //def __APPLE___
 	limited_auto_init& operator &= (time_t v) { f_value = check(f_value & v); return *this; }
 #endif
+#endif
 	limited_auto_init& operator |= (const limited_auto_init& n) { f_value = check(f_value | n.f_value); return *this; }
+	limited_auto_init& operator |= (T v) { f_value = check(f_value | v); return *this; }
+#if 0
 	limited_auto_init& operator |= (bool v) { f_value = check(f_value | v); return *this; }
 	limited_auto_init& operator |= (char v) { f_value = check(f_value | v); return *this; }
 	limited_auto_init& operator |= (signed char v) { f_value = check(f_value | v); return *this; }
@@ -398,7 +430,10 @@ public:
 #if 0 //def __APPLE___
 	limited_auto_init& operator |= (time_t v) { f_value = check(f_value | v); return *this; }
 #endif
+#endif
 	limited_auto_init& operator ^= (const limited_auto_init& n) { f_value = check(f_value ^ n.f_value); return *this; }
+	limited_auto_init& operator ^= (T v) { f_value = check(f_value ^ v); return *this; }
+#if 0
 	limited_auto_init& operator ^= (bool v) { f_value = check(f_value ^ v); return *this; }
 	limited_auto_init& operator ^= (char v) { f_value = check(f_value ^ v); return *this; }
 	limited_auto_init& operator ^= (signed char v) { f_value = check(f_value ^ v); return *this; }
@@ -424,7 +459,10 @@ public:
 #if 0 //def __APPLE___
 	limited_auto_init& operator ^= (time_t v) { f_value = check(f_value ^ v); return *this; }
 #endif
+#endif
 	T operator * (const limited_auto_init& n) { return f_value * n.f_value; }
+	T operator * (T v) { return f_value * v; }
+#if 0
 	T operator * (bool v) { return f_value * v; }
 	T operator * (char v) { return f_value * v; }
 	T operator * (signed char v) { return f_value * v; }
@@ -455,7 +493,10 @@ public:
 #if 0 //def __APPLE___
 	T operator * (time_t v) { return f_value * v; }
 #endif
+#endif
 	T operator / (const limited_auto_init& n) { return f_value / n.f_value; }
+	T operator / (T v) { return f_value / v; }
+#if 0
 	T operator / (bool v) { return f_value / v; }
 	T operator / (char v) { return f_value / v; }
 	T operator / (signed char v) { return f_value / v; }
@@ -486,7 +527,10 @@ public:
 #if 0 //def __APPLE___
 	T operator / (time_t v) { return f_value / v; }
 #endif
+#endif
 	T operator % (const limited_auto_init& n) { return f_value % n.f_value; }
+	T operator % (T v) { return f_value % v; }
+#if 0
 	T operator % (bool v) { return f_value % v; }
 	T operator % (char v) { return f_value % v; }
 	T operator % (signed char v) { return f_value % v; }
@@ -512,7 +556,10 @@ public:
 #if 0 //def __APPLE___
 	T operator % (time_t v) { return f_value % v; }
 #endif
+#endif
 	T operator + (const limited_auto_init& n) { return f_value + n.f_value; }
+	T operator + (T v) { return f_value + v; }
+#if 0
 	T operator + (bool v) { return f_value + v; }
 	T operator + (char v) { return f_value + v; }
 	T operator + (signed char v) { return f_value + v; }
@@ -543,7 +590,10 @@ public:
 #if 0 //def __APPLE___
 	T operator + (time_t v) { return f_value + v; }
 #endif
+#endif
 	T operator - (const limited_auto_init& n) { return f_value - n.f_value; }
+	T operator - (T v) { return f_value - v; }
+#if 0
 	T operator - (bool v) { return f_value - v; }
 	T operator - (char v) { return f_value - v; }
 	T operator - (signed char v) { return f_value - v; }
@@ -574,7 +624,10 @@ public:
 #if 0 //def __APPLE___
 	T operator - (time_t v) { return f_value - v; }
 #endif
+#endif
 	T operator << (const limited_auto_init& n) { return f_value << n.f_value; }
+	T operator << (T v) { return f_value << v; }
+#if 0
 	T operator << (bool v) { return f_value << v; }
 	T operator << (char v) { return f_value << v; }
 	T operator << (signed char v) { return f_value << v; }
@@ -600,7 +653,10 @@ public:
 #if 0 //def __APPLE___
 	T operator << (time_t v) { return f_value << v; }
 #endif
+#endif
 	T operator >> (const limited_auto_init& n) { return f_value >> n.f_value; }
+	T operator >> (T v) { return f_value >> v; }
+#if 0
 	T operator >> (bool v) { return f_value >> v; }
 	T operator >> (char v) { return f_value >> v; }
 	T operator >> (signed char v) { return f_value >> v; }
@@ -626,7 +682,10 @@ public:
 #if 0 //def __APPLE___
 	T operator >> (time_t v) { return f_value >> v; }
 #endif
+#endif
 	T operator & (const limited_auto_init& n) { return f_value & n.f_value; }
+	T operator & (T v) { return f_value & v; }
+#if 0
 	T operator & (bool v) { return f_value & v; }
 	T operator & (char v) { return f_value & v; }
 	T operator & (signed char v) { return f_value & v; }
@@ -652,7 +711,10 @@ public:
 #if 0 //def __APPLE___
 	T operator & (time_t v) { return f_value & v; }
 #endif
+#endif
 	T operator | (const limited_auto_init& n) { return f_value | n.f_value; }
+	T operator | (T v) { return f_value | v; }
+#if 0
 	T operator | (bool v) { return f_value | v; }
 	T operator | (char v) { return f_value | v; }
 	T operator | (signed char v) { return f_value | v; }
@@ -678,7 +740,10 @@ public:
 #if 0 //def __APPLE___
 	T operator | (time_t v) { return f_value | v; }
 #endif
+#endif
 	T operator ^ (const limited_auto_init& n) { return f_value ^ n.f_value; }
+	T operator ^ (T v) { return f_value ^ v; }
+#if 0
 	T operator ^ (bool v) { return f_value ^ v; }
 	T operator ^ (char v) { return f_value ^ v; }
 	T operator ^ (signed char v) { return f_value ^ v; }
@@ -704,7 +769,10 @@ public:
 #if 0 //def __APPLE___
 	T operator ^ (time_t v) { return f_value ^ v; }
 #endif
+#endif
 	bool operator == (const limited_auto_init& n) { return f_value == n.f_value; }
+	bool operator == (T v) { return f_value == v; }
+#if 0
 	bool operator == (bool v) { return f_value == v; }
 	bool operator == (char v) { return f_value == v; }
 	bool operator == (signed char v) { return f_value == v; }
@@ -735,7 +803,10 @@ public:
 #if 0 //def __APPLE___
 	bool operator == (time_t v) { return f_value == v; }
 #endif
+#endif
 	bool operator != (const limited_auto_init& n) { return f_value != n.f_value; }
+	bool operator != (T v) { return f_value != v; }
+#if 0
 	bool operator != (bool v) { return f_value != v; }
 	bool operator != (char v) { return f_value != v; }
 	bool operator != (signed char v) { return f_value != v; }
@@ -766,7 +837,10 @@ public:
 #if 0 //def __APPLE___
 	bool operator != (time_t v) { return f_value != v; }
 #endif
+#endif
 	bool operator < (const limited_auto_init& n) { return f_value < n.f_value; }
+	bool operator < (T v) { return f_value < v; }
+#if 0
 	bool operator < (bool v) { return f_value < v; }
 	bool operator < (char v) { return f_value < v; }
 	bool operator < (signed char v) { return f_value < v; }
@@ -797,7 +871,10 @@ public:
 #if 0 //def __APPLE___
 	bool operator < (time_t v) { return f_value < v; }
 #endif
+#endif
 	bool operator <= (const limited_auto_init& n) { return f_value <= n.f_value; }
+	bool operator <= (T v) { return f_value <= v; }
+#if 0
 	bool operator <= (bool v) { return f_value <= v; }
 	bool operator <= (char v) { return f_value <= v; }
 	bool operator <= (signed char v) { return f_value <= v; }
@@ -828,7 +905,10 @@ public:
 #if 0 //def __APPLE___
 	bool operator <= (time_t v) { return f_value <= v; }
 #endif
+#endif
 	bool operator > (const limited_auto_init& n) { return f_value > n.f_value; }
+	bool operator > (T v) { return f_value > v; }
+#if 0
 	bool operator > (bool v) { return f_value > v; }
 	bool operator > (char v) { return f_value > v; }
 	bool operator > (signed char v) { return f_value > v; }
@@ -859,7 +939,10 @@ public:
 #if 0 //def __APPLE___
 	bool operator > (time_t v) { return f_value > v; }
 #endif
+#endif
 	bool operator >= (const limited_auto_init& n) { return f_value >= n.f_value; }
+	bool operator >= (T v) { return f_value >= v; }
+#if 0
 	bool operator >= (bool v) { return f_value >= v; }
 	bool operator >= (char v) { return f_value >= v; }
 	bool operator >= (signed char v) { return f_value >= v; }
@@ -889,6 +972,7 @@ public:
 #endif
 #if 0 //def __APPLE___
 	bool operator >= (time_t v) { return f_value >= v; }
+#endif
 #endif
 #ifdef CONTROLLED_VARS_DEBUG
 	bool is_initialized() const { return true; }
