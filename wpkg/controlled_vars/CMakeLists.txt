@@ -1,46 +1,88 @@
 #
-# File:
-#      CMakeLists.txt
+# File:		CMakeLists.txt
+# Object:	Definitions to create the build environment
 #
-# Description:
-#      Definitions to install controlled variables header files.
+# Copyright:	Copyright (c) 2011-2015 Made to Order Software Corp.
+#		All Rights Reserved.
 #
-# Documentation:
-#      See the CMake documentation.
-#
-# License:
-#      Copyright (c) 2012 Made to Order Software Corp.
-#
-#      https://sourceforge.net/projects/unigw/
-#      contact@m2osw.com
-#
-#      Permission is hereby granted, free of charge, to any person obtaining a
-#      copy of this software and associated documentation files (the
-#      "Software"), to deal in the Software without restriction, including
-#      without limitation the rights to use, copy, modify, merge, publish,
-#      distribute, sublicense, and/or sell copies of the Software, and to
-#      permit persons to whom the Software is furnished to do so, subject to
-#      the following conditions:
-#
-#      The above copyright notice and this permission notice shall be included
-#      in all copies or substantial portions of the Software.
-#
-#      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-#      OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-#      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-#      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-#      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-#      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-#      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# http://snapwebsites.org/
+# contact@m2osw.com
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 #
 
+##
+## Controlled Variables Generator
+##
+project(controlled_vars)
 
-install(
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    DESTINATION include/wpkg
-    COMPONENT headers
-    FILES_MATCHING PATTERN "*.h"
-    PATTERN .svn EXCLUDE
+include(CheckIncludeFiles)
+check_include_files(unistd.h HAVE_UNISTD_H)
+if(${CMAKE_SYSTEM_NAME}="Darwin")
+  set(OS_DARWIN 1)
+endif(${CMAKE_SYSTEM_NAME}="Darwin")
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/controlled_vars_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/controlled_vars_version.h)
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable( ${PROJECT_NAME}
+	controlled_vars.cpp
 )
 
-# vim: ts=4 sw=4 et
+##
+## Controlled Variables Header
+##
+project( controlled_vars.h )
+
+add_custom_command(
+	OUTPUT controlled_vars.h
+	COMMAND controlled_vars
+	DEPENDS controlled_vars
+)
+
+add_custom_target( make_controlled_vars_headers ALL DEPENDS controlled_vars.h )
+
+install(FILES
+		${CMAKE_CURRENT_BINARY_DIR}/controlled_vars_auto_enum_init.h
+		${CMAKE_CURRENT_BINARY_DIR}/controlled_vars_auto_init.h
+		${CMAKE_CURRENT_BINARY_DIR}/controlled_vars_exceptions.h
+		${CMAKE_CURRENT_BINARY_DIR}/controlled_vars_fauto_init.h
+		${CMAKE_CURRENT_BINARY_DIR}/controlled_vars.h
+		${CMAKE_CURRENT_BINARY_DIR}/controlled_vars_limited_auto_enum_init.h
+		${CMAKE_CURRENT_BINARY_DIR}/controlled_vars_limited_auto_init.h
+		${CMAKE_CURRENT_BINARY_DIR}/controlled_vars_limited_fauto_init.h
+		${CMAKE_CURRENT_BINARY_DIR}/controlled_vars_limited_need_enum_init.h
+		${CMAKE_CURRENT_BINARY_DIR}/controlled_vars_limited_need_init.h
+		${CMAKE_CURRENT_BINARY_DIR}/controlled_vars_limited_no_enum_init.h
+		${CMAKE_CURRENT_BINARY_DIR}/controlled_vars_limited_no_init.h
+		${CMAKE_CURRENT_BINARY_DIR}/controlled_vars_need_enum_init.h
+		${CMAKE_CURRENT_BINARY_DIR}/controlled_vars_need_init.h
+		${CMAKE_CURRENT_BINARY_DIR}/controlled_vars_no_enum_init.h
+		${CMAKE_CURRENT_BINARY_DIR}/controlled_vars_no_init.h
+		${CMAKE_CURRENT_BINARY_DIR}/controlled_vars_ptr_auto_init.h
+		${CMAKE_CURRENT_BINARY_DIR}/controlled_vars_ptr_need_init.h
+		${CMAKE_CURRENT_BINARY_DIR}/controlled_vars_ptr_no_init.h
+		${CMAKE_CURRENT_BINARY_DIR}/controlled_vars_static_assert.h
+		${CMAKE_CURRENT_BINARY_DIR}/controlled_vars_version.h
+	DESTINATION include/wpkg
+	COMPONENT headers
+)
+
