@@ -19,12 +19,12 @@
  *    Alexis Wilke   alexis@m2osw.com
  */
 
-#include "unittest_system.h"
 #include "unittest_main.h"
 #include "libdebpackages/debian_packages.h"
 #include "libdebpackages/wpkg_control.h"
 #include <stdexcept>
 #include <string.h>
+#include <catch.hpp>
 
 // for the WEXITSTATUS()
 #ifdef __GNUC__
@@ -49,10 +49,8 @@
 // by installing a "special" package with an integration test.
 //
 
-CPPUNIT_TEST_SUITE_REGISTRATION( SystemUnitTests );
 
-
-void SystemUnitTests::setUp()
+CATCH_TEST_CASE("SystemUnitTests::setUp","SystemUnitTests")
 {
     // make sure that the temporary directory is not empty, may be relative
     if(unittest::tmp_dir.empty())
@@ -438,12 +436,12 @@ void create_target()
     const std::string core_cmd(unittest::wpkg_tool + " --root " + target_path.path_only() + " --create-admindir " + core_ctrl_filename.path_only());
     printf("Run --create-admindir command: \"%s\"\n", core_cmd.c_str());
     fflush(stdout);
-    CPPUNIT_ASSERT(system(core_cmd.c_str()) == 0);
+    CATCH_REQUIRE(system(core_cmd.c_str()) == 0);
 }
 
 
 
-void SystemUnitTests::manual_builds()
+CATCH_TEST_CASE("SystemUnitTests::manual_builds","SystemUnitTests")
 {
     wpkg_filename::uri_filename root(unittest::tmp_dir);
     root.os_mkdir_p();
@@ -484,7 +482,7 @@ void SystemUnitTests::manual_builds()
             fflush(stdout);
             int r(system(cmd.c_str()));
             printf(" Build command returned %d (expected 0)\n", WEXITSTATUS(r));
-            CPPUNIT_ASSERT(WEXITSTATUS(r) == 0);
+            CATCH_REQUIRE(WEXITSTATUS(r) == 0);
         }
 
         // build binary package
@@ -509,14 +507,14 @@ void SystemUnitTests::manual_builds()
             fflush(stdout);
             int r(system(cmd.c_str()));
             printf(" Build command returned %d (expected 0)\n", WEXITSTATUS(r));
-            CPPUNIT_ASSERT(WEXITSTATUS(r) == 0);
+            CATCH_REQUIRE(WEXITSTATUS(r) == 0);
         }
     }
 }
 
 
 
-void SystemUnitTests::automated_builds()
+CATCH_TEST_CASE("SystemUnitTests::automated_builds","SystemUnitTests")
 {
     wpkg_filename::uri_filename root(unittest::tmp_dir);
     root.os_mkdir_p();
@@ -557,7 +555,7 @@ void SystemUnitTests::automated_builds()
             fflush(stdout);
             int r(system(cmd.c_str()));
             printf(" Build command returned %d (expected 0)\n", WEXITSTATUS(r));
-            CPPUNIT_ASSERT(WEXITSTATUS(r) == 0);
+            CATCH_REQUIRE(WEXITSTATUS(r) == 0);
         }
     }
 
@@ -578,7 +576,7 @@ void SystemUnitTests::automated_builds()
         fflush(stdout);
         int r(system(cmd.c_str()));
         printf(" Build command returned %d (expected 0)\n", WEXITSTATUS(r));
-        CPPUNIT_ASSERT(WEXITSTATUS(r) == 0);
+        CATCH_REQUIRE(WEXITSTATUS(r) == 0);
     }
 }
 

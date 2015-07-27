@@ -19,163 +19,202 @@
  *    Alexis Wilke   alexis@m2osw.com
  */
 
-#include "unittest_uri_filename.h"
 #include "unittest_main.h"
 #include "libdebpackages/wpkg_filename.h"
 #include "libdebpackages/wpkg_util.h"
 
-#include <cppunit/config/SourcePrefix.h>
 #include <string.h>
 #include <time.h>
+#include <catch.hpp>
 
 
-CPPUNIT_TEST_SUITE_REGISTRATION( URIFilenameUnitTests );
+#define ASSERT_MESSAGE( M, T ) \
+    { \
+        CATCH_INFO( (M) ); \
+        CATCH_REQUIRE( (T) ); \
+    }
 
-void URIFilenameUnitTests::setUp()
+
+namespace
 {
+    struct expected_result
+    {
+        const char *    f_original_filename;
+        const char *    f_fixed_original_filename;
+        const char *    f_path_type;
+        const char *    f_path_scheme;
+        const char *    f_path_only;
+        const char *    f_path_only_no_drive;
+        const char *    f_full_path;
+        const char *    f_segments[32];
+        const char *    f_dirname;
+        const char *    f_dirname_no_drive;
+        const char *    f_basename;
+        const char *    f_basename_last_only;
+        const char *    f_extension;
+        const char *    f_previous_extension;
+        const char      f_msdos_drive;
+        const char *    f_username;
+        const char *    f_password;
+        const char *    f_domain;
+        const char *    f_port;
+        const char *    f_share;
+        bool            f_decode;
+        const char *    f_anchor;
+        const char *    f_query_variables[32];
+        const char *    f_glob;
+
+        bool            f_empty;
+        bool            f_is_deb;
+        bool            f_is_valid;
+        bool            f_is_direct;
+        bool            f_is_absolute;
+    };
+
+    expected_result empty =
+    {
+        /* f_original_filename;         */ "",
+        /* f_fixed_original_filename;   */ NULL,
+        /* f_path_type;                 */ wpkg_filename::uri_filename::uri_type_undefined,
+        /* f_path_scheme;               */ "",
+        /* f_path_only;                 */ "",
+        /* f_path_only_no_drive;        */ "",
+        /* f_full_path;                 */ "",
+        /* f_segments[32];              */ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        /* f_dirname;                   */ "",
+        /* f_dirname_no_drive;          */ "",
+        /* f_basename;                  */ "",
+        /* f_basename_last_only;        */ "",
+        /* f_extension;                 */ "",
+        /* f_previous_extension;        */ "",
+        /* f_msdos_drive;               */ wpkg_filename::uri_filename::uri_no_msdos_drive,
+        /* f_username;                  */ "",
+        /* f_password;                  */ "",
+        /* f_domain;                    */ "",
+        /* f_port;                      */ "",
+        /* f_share;                     */ "",
+        /* f_decode;                    */ false,
+        /* f_anchor;                    */ "",
+        /* f_query_variables[32];       */ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        /* f_glob;                      */ "*",
+        /* f_empty;                     */ true,
+        /* f_is_deb;                    */ false,
+        /* f_is_valid;                  */ false,
+        /* f_is_direct;                 */ false,
+        /* f_is_absolute;               */ false
+    };
+
+
+    void check(const wpkg_filename::uri_filename& fn, const expected_result& er)
+    {
+        std::string msg("check(): \"");
+        msg += er.f_original_filename;
+        msg += "\"";
+
+        msg += " [";
+        msg += std::string(er.f_full_path) + "] [";
+        msg += fn.full_path() + "] [";
+        msg += fn.get_decode() ? "true" : "false";
+        msg += "]";
+
+        if(er.f_fixed_original_filename)
+        {
+            ASSERT_MESSAGE(msg, fn.original_filename() == er.f_fixed_original_filename);
+        }
+        else
+        {
+            ASSERT_MESSAGE(msg, fn.original_filename() == er.f_original_filename);
+        }
+        ASSERT_MESSAGE(msg, fn.path_type() == er.f_path_type);
+        ASSERT_MESSAGE(msg, fn.path_scheme() == er.f_path_scheme);
+
+        ASSERT_MESSAGE(msg, fn.path_only( /*true*/ ) == er.f_path_only);
+        ASSERT_MESSAGE(msg, fn.path_only(true) == er.f_path_only);
+        ASSERT_MESSAGE(msg, fn.path_only(false) == er.f_path_only_no_drive);
+        ASSERT_MESSAGE(msg, fn.full_path() == er.f_full_path);
+
+        size_t i(0);
+        for(; i < sizeof(er.f_segments) / sizeof(er.f_segments[0]); ++i)
+        {
+            if(er.f_segments[i] == NULL)
+            {
+                break;
+            }
+            std::string smsg = msg + " \"" + fn.segment(static_cast<int>(i)) + "\" [" + er.f_segments[i] + "]";
+            ASSERT_MESSAGE(smsg, fn.segment(static_cast<int>(i)) == er.f_segments[i]);
+
+            if(er.f_is_direct)
+            {
+                ASSERT_MESSAGE(smsg, wpkg_util::is_valid_windows_filename(fn.segment(static_cast<int>(i))));
+            }
+        }
+        ASSERT_MESSAGE(msg, fn.segment_size() == static_cast<int>(i));
+
+        ASSERT_MESSAGE(msg, fn.dirname( /*true*/ ) == er.f_dirname);
+        ASSERT_MESSAGE(msg, fn.dirname(true) == er.f_dirname);
+        ASSERT_MESSAGE(msg, fn.dirname(false) == er.f_dirname_no_drive);
+        ASSERT_MESSAGE(msg, fn.basename( /*false*/ ) == er.f_basename);
+        ASSERT_MESSAGE(msg, fn.basename(false) == er.f_basename);
+        ASSERT_MESSAGE(msg, fn.basename(true) == er.f_basename_last_only);
+        ASSERT_MESSAGE(msg, fn.extension() == er.f_extension);
+        ASSERT_MESSAGE(msg, fn.previous_extension() == er.f_previous_extension);
+        ASSERT_MESSAGE(msg, fn.msdos_drive() == er.f_msdos_drive);
+        ASSERT_MESSAGE(msg, fn.get_username() == er.f_username);
+        ASSERT_MESSAGE(msg, fn.get_password() == er.f_password);
+        ASSERT_MESSAGE(msg, fn.get_domain() == er.f_domain);
+        ASSERT_MESSAGE(msg, fn.get_port() == er.f_port);
+        ASSERT_MESSAGE(msg, fn.get_share() == er.f_share);
+        ASSERT_MESSAGE(msg, fn.get_decode() == er.f_decode);
+        ASSERT_MESSAGE(msg, fn.get_anchor() == er.f_anchor);
+
+        // test the map knowing the exact variable names
+        i = 0;
+        for(; i < sizeof(er.f_query_variables) / sizeof(er.f_query_variables[0]) / 2; ++i)
+        {
+            if(er.f_query_variables[i * 2] == NULL)
+            {
+                break;
+            }
+            std::string smsg = msg + " \"" + fn.query_variable(er.f_query_variables[i * 2]) + "\" [" + er.f_query_variables[i * 2 + 1] + "]";
+            ASSERT_MESSAGE(smsg, fn.query_variable(er.f_query_variables[i * 2]) == er.f_query_variables[i * 2 + 1]);
+        }
+
+        ASSERT_MESSAGE(msg, fn.query_variable("no-a-variable") == "");
+
+        // now test the map itself
+        wpkg_filename::uri_filename::query_variables_t vars(fn.all_query_variables());
+        i = 0;
+        for(wpkg_filename::uri_filename::query_variables_t::const_iterator v(vars.begin()); i < sizeof(er.f_query_variables) / sizeof(er.f_query_variables[0]) / 2; ++i, ++v)
+        {
+            if(er.f_query_variables[i * 2] == NULL)
+            {
+                break;
+            }
+            std::string smsg = msg + " \"" + fn.query_variable(er.f_query_variables[i * 2]) + "\" [" + er.f_query_variables[i * 2 + 1] + "]";
+            ASSERT_MESSAGE(smsg, v != vars.end());
+            ASSERT_MESSAGE(smsg, v->first == er.f_query_variables[i * 2]);
+            ASSERT_MESSAGE(smsg, v->second == er.f_query_variables[i * 2 + 1]);
+        }
+        // check that the size of the vars is not larger than the f_query_variables
+        ASSERT_MESSAGE(msg, vars.size() == i);
+
+        // check a glob() call on each file, that allows us to make sure the glob()
+        // function works as expected
+        {
+            std::string smsg = msg + " glob: \"" + er.f_glob + "\"";
+            ASSERT_MESSAGE(smsg, fn.glob(er.f_glob));
+        }
+
+        ASSERT_MESSAGE(msg, fn.empty() == er.f_empty);
+        ASSERT_MESSAGE(msg, fn.is_deb() == er.f_is_deb);
+        ASSERT_MESSAGE(msg, fn.is_valid() == er.f_is_valid);
+        ASSERT_MESSAGE(msg, fn.is_direct() == er.f_is_direct);
+        ASSERT_MESSAGE(msg, fn.is_absolute() == er.f_is_absolute);
+    }
 }
+// unnamed namespace
 
-void URIFilenameUnitTests::check(const wpkg_filename::uri_filename& fn, const expected_result& er)
-{
-    std::string msg("URIFilenameUnitTests::check(): \"");
-    msg += er.f_original_filename;
-    msg += "\"";
-
-    msg += " [";
-    msg += std::string(er.f_full_path) + "] [";
-    msg += fn.full_path() + "] [";
-    msg += fn.get_decode() ? "true" : "false";
-    msg += "]";
-
-    if(er.f_fixed_original_filename)
-    {
-        CPPUNIT_ASSERT_MESSAGE(msg, fn.original_filename() == er.f_fixed_original_filename);
-    }
-    else
-    {
-        CPPUNIT_ASSERT_MESSAGE(msg, fn.original_filename() == er.f_original_filename);
-    }
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.path_type() == er.f_path_type);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.path_scheme() == er.f_path_scheme);
-
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.path_only( /*true*/ ) == er.f_path_only);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.path_only(true) == er.f_path_only);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.path_only(false) == er.f_path_only_no_drive);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.full_path() == er.f_full_path);
-
-    size_t i(0);
-    for(; i < sizeof(er.f_segments) / sizeof(er.f_segments[0]); ++i)
-    {
-        if(er.f_segments[i] == NULL)
-        {
-            break;
-        }
-        std::string smsg = msg + " \"" + fn.segment(static_cast<int>(i)) + "\" [" + er.f_segments[i] + "]";
-        CPPUNIT_ASSERT_MESSAGE(smsg, fn.segment(static_cast<int>(i)) == er.f_segments[i]);
-
-        if(er.f_is_direct)
-        {
-            CPPUNIT_ASSERT_MESSAGE(smsg, wpkg_util::is_valid_windows_filename(fn.segment(static_cast<int>(i))));
-        }
-    }
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.segment_size() == static_cast<int>(i));
-
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.dirname( /*true*/ ) == er.f_dirname);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.dirname(true) == er.f_dirname);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.dirname(false) == er.f_dirname_no_drive);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.basename( /*false*/ ) == er.f_basename);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.basename(false) == er.f_basename);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.basename(true) == er.f_basename_last_only);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.extension() == er.f_extension);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.previous_extension() == er.f_previous_extension);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.msdos_drive() == er.f_msdos_drive);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.get_username() == er.f_username);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.get_password() == er.f_password);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.get_domain() == er.f_domain);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.get_port() == er.f_port);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.get_share() == er.f_share);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.get_decode() == er.f_decode);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.get_anchor() == er.f_anchor);
-
-    // test the map knowing the exact variable names
-    i = 0;
-    for(; i < sizeof(er.f_query_variables) / sizeof(er.f_query_variables[0]) / 2; ++i)
-    {
-        if(er.f_query_variables[i * 2] == NULL)
-        {
-            break;
-        }
-        std::string smsg = msg + " \"" + fn.query_variable(er.f_query_variables[i * 2]) + "\" [" + er.f_query_variables[i * 2 + 1] + "]";
-        CPPUNIT_ASSERT_MESSAGE(smsg, fn.query_variable(er.f_query_variables[i * 2]) == er.f_query_variables[i * 2 + 1]);
-    }
-
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.query_variable("no-a-variable") == "");
-
-    // now test the map itself
-    wpkg_filename::uri_filename::query_variables_t vars(fn.all_query_variables());
-    i = 0;
-    for(wpkg_filename::uri_filename::query_variables_t::const_iterator v(vars.begin()); i < sizeof(er.f_query_variables) / sizeof(er.f_query_variables[0]) / 2; ++i, ++v)
-    {
-        if(er.f_query_variables[i * 2] == NULL)
-        {
-            break;
-        }
-        std::string smsg = msg + " \"" + fn.query_variable(er.f_query_variables[i * 2]) + "\" [" + er.f_query_variables[i * 2 + 1] + "]";
-        CPPUNIT_ASSERT_MESSAGE(smsg, v != vars.end());
-        CPPUNIT_ASSERT_MESSAGE(smsg, v->first == er.f_query_variables[i * 2]);
-        CPPUNIT_ASSERT_MESSAGE(smsg, v->second == er.f_query_variables[i * 2 + 1]);
-    }
-    // check that the size of the vars is not larger than the f_query_variables
-    CPPUNIT_ASSERT_MESSAGE(msg, vars.size() == i);
-
-    // check a glob() call on each file, that allows us to make sure the glob()
-    // function works as expected
-    {
-        std::string smsg = msg + " glob: \"" + er.f_glob + "\"";
-        CPPUNIT_ASSERT_MESSAGE(smsg, fn.glob(er.f_glob));
-    }
-
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.empty() == er.f_empty);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.is_deb() == er.f_is_deb);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.is_valid() == er.f_is_valid);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.is_direct() == er.f_is_direct);
-    CPPUNIT_ASSERT_MESSAGE(msg, fn.is_absolute() == er.f_is_absolute);
-}
-
-URIFilenameUnitTests::expected_result empty =
-{
-    /* f_original_filename;         */ "",
-    /* f_fixed_original_filename;   */ NULL,
-    /* f_path_type;                 */ wpkg_filename::uri_filename::uri_type_undefined,
-    /* f_path_scheme;               */ "",
-    /* f_path_only;                 */ "",
-    /* f_path_only_no_drive;        */ "",
-    /* f_full_path;                 */ "",
-    /* f_segments[32];              */ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    /* f_dirname;                   */ "",
-    /* f_dirname_no_drive;          */ "",
-    /* f_basename;                  */ "",
-    /* f_basename_last_only;        */ "",
-    /* f_extension;                 */ "",
-    /* f_previous_extension;        */ "",
-    /* f_msdos_drive;               */ wpkg_filename::uri_filename::uri_no_msdos_drive,
-    /* f_username;                  */ "",
-    /* f_password;                  */ "",
-    /* f_domain;                    */ "",
-    /* f_port;                      */ "",
-    /* f_share;                     */ "",
-    /* f_decode;                    */ false,
-    /* f_anchor;                    */ "",
-    /* f_query_variables[32];       */ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    /* f_glob;                      */ "*",
-    /* f_empty;                     */ true,
-    /* f_is_deb;                    */ false,
-    /* f_is_valid;                  */ false,
-    /* f_is_direct;                 */ false,
-    /* f_is_absolute;               */ false
-};
-
-void URIFilenameUnitTests::path()
+CATCH_TEST_CASE("URIFilenameUnitTests::path","URIFilenameUnitTests")
 {
     {
         wpkg_filename::uri_filename filename;
@@ -334,7 +373,7 @@ void URIFilenameUnitTests::path()
         try
         {
             wpkg_filename::uri_filename filename(result.f_original_filename);
-            CPPUNIT_ASSERT(!"~name/... did not generate an exception");
+            CATCH_REQUIRE(!"~name/... did not generate an exception");
         }
         catch(const wpkg_filename::wpkg_filename_exception_parameter&)
         {
@@ -379,7 +418,7 @@ void URIFilenameUnitTests::path()
         {
             putenv(const_cast<char *>("HOME=~/test"));
             wpkg_filename::uri_filename filename(result.f_original_filename);
-            CPPUNIT_ASSERT(!"HOME=~/test did not generate an exception");
+            CATCH_REQUIRE(!"HOME=~/test did not generate an exception");
         }
         catch(const wpkg_filename::wpkg_filename_exception_parameter&)
         {
@@ -424,7 +463,7 @@ void URIFilenameUnitTests::path()
         {
             putenv(const_cast<char *>("HOME=not/absolute"));
             wpkg_filename::uri_filename filename(result.f_original_filename);
-            CPPUNIT_ASSERT(!"HOME=not/absolute did not generate an exception");
+            CATCH_REQUIRE(!"HOME=not/absolute did not generate an exception");
         }
         catch(const wpkg_filename::wpkg_filename_exception_parameter&)
         {
@@ -962,7 +1001,7 @@ void URIFilenameUnitTests::path()
         try
         {
             wpkg_filename::uri_filename filename(result.f_original_filename);
-            CPPUNIT_ASSERT(!"netbios with the username or password missing");
+            CATCH_REQUIRE(!"netbios with the username or password missing");
         }
         catch(const wpkg_filename::wpkg_filename_exception_parameter&)
         {
@@ -1006,7 +1045,7 @@ void URIFilenameUnitTests::path()
         try
         {
             wpkg_filename::uri_filename filename(result.f_original_filename);
-            CPPUNIT_ASSERT(!"netbios with the username or password missing");
+            CATCH_REQUIRE(!"netbios with the username or password missing");
         }
         catch(const wpkg_filename::wpkg_filename_exception_parameter&)
         {
@@ -1050,7 +1089,7 @@ void URIFilenameUnitTests::path()
         try
         {
             wpkg_filename::uri_filename filename(result.f_original_filename);
-            CPPUNIT_ASSERT(!"space in variable name");
+            CATCH_REQUIRE(!"space in variable name");
         }
         catch(const wpkg_filename::wpkg_filename_exception_parameter&)
         {
@@ -1094,7 +1133,7 @@ void URIFilenameUnitTests::path()
         try
         {
             wpkg_filename::uri_filename filename(result.f_original_filename);
-            CPPUNIT_ASSERT(!"netbios with the username or password missing");
+            CATCH_REQUIRE(!"netbios with the username or password missing");
         }
         catch(const wpkg_filename::wpkg_filename_exception_parameter&)
         {
@@ -1138,7 +1177,7 @@ void URIFilenameUnitTests::path()
         try
         {
             wpkg_filename::uri_filename filename(result.f_original_filename);
-            CPPUNIT_ASSERT(!"netbios path without shared name");
+            CATCH_REQUIRE(!"netbios path without shared name");
         }
         catch(const wpkg_filename::wpkg_filename_exception_parameter&)
         {
@@ -1408,14 +1447,14 @@ namespace
     };
 }
 
-void URIFilenameUnitTests::invalid_ms_paths()
+CATCH_TEST_CASE("URIFilenameUnitTests::invalid_ms_paths","URIFilenameUnitTests")
 {
     for(size_t i(0); i < sizeof(bad_filenames) / sizeof(bad_filenames[0]); ++i)
     {
         try
         {
             wpkg_filename::uri_filename filename(bad_filenames[i]);
-            CPPUNIT_ASSERT_MESSAGE(bad_filenames[i], !"invalid MS-Windows filename accepted");
+            ASSERT_MESSAGE(bad_filenames[i], !"invalid MS-Windows filename accepted");
         }
         catch(const wpkg_filename::wpkg_filename_exception_parameter&)
         {
@@ -1427,7 +1466,7 @@ void URIFilenameUnitTests::invalid_ms_paths()
         try
         {
             wpkg_filename::uri_filename filename(bad_characters[i]);
-            CPPUNIT_ASSERT_MESSAGE(bad_characters[i], !"invalid MS-Windows character accepted");
+            ASSERT_MESSAGE(bad_characters[i], !"invalid MS-Windows character accepted");
         }
         catch(const wpkg_filename::wpkg_filename_exception_parameter&)
         {
@@ -1453,7 +1492,7 @@ namespace
 }
 
 
-void URIFilenameUnitTests::invalid_uri()
+CATCH_TEST_CASE("URIFilenameUnitTests::invalid_uri","URIFilenameUnitTests")
 {
     const char *home = getenv("HOME");
     putenv(const_cast<char *>("HOME=/home/wpkg"));
@@ -1462,32 +1501,32 @@ void URIFilenameUnitTests::invalid_uri()
         try
         {
             wpkg_filename::uri_filename filename(bad_uri[i][0]);
-            CPPUNIT_ASSERT_MESSAGE(bad_uri[i][0], !"invalid URI filename accepted");
+            ASSERT_MESSAGE(bad_uri[i][0], !"invalid URI filename accepted");
         }
         catch(const wpkg_filename::wpkg_filename_exception_parameter& e)
         {
-            CPPUNIT_ASSERT_MESSAGE(std::string("got \"") + e.what() + "\", expected \"" + bad_uri[i][1] + "\"", std::string(e.what()).substr(0, strlen(bad_uri[i][1])) == bad_uri[i][1]);
+            ASSERT_MESSAGE(std::string("got \"") + e.what() + "\", expected \"" + bad_uri[i][1] + "\"", std::string(e.what()).substr(0, strlen(bad_uri[i][1])) == bad_uri[i][1]);
         }
     }
     putenv(const_cast<char *>("HOME=~/bad/home"));
     try
     {
         wpkg_filename::uri_filename filename("~/fail/because/of/home");
-        CPPUNIT_ASSERT_MESSAGE("~/fail/because/of/home", !"invalid URI filename accepted");
+        ASSERT_MESSAGE("~/fail/because/of/home", !"invalid URI filename accepted");
     }
     catch(const wpkg_filename::wpkg_filename_exception_parameter& e)
     {
-        CPPUNIT_ASSERT_MESSAGE(std::string("got \"") + e.what() + "\", expected \"$HOME path cannot itself start with a tilde (~).\"", std::string(e.what()) == "$HOME path cannot itself start with a tilde (~).");
+        ASSERT_MESSAGE(std::string("got \"") + e.what() + "\", expected \"$HOME path cannot itself start with a tilde (~).\"", std::string(e.what()) == "$HOME path cannot itself start with a tilde (~).");
     }
     putenv(const_cast<char *>("HOME=bad/home"));
     try
     {
         wpkg_filename::uri_filename filename("~/fail/because/of/home");
-        CPPUNIT_ASSERT_MESSAGE("~/fail/because/of/home", !"invalid URI filename accepted");
+        ASSERT_MESSAGE("~/fail/because/of/home", !"invalid URI filename accepted");
     }
     catch(const wpkg_filename::wpkg_filename_exception_parameter& e)
     {
-        CPPUNIT_ASSERT_MESSAGE(std::string("got \"") + e.what() + "\", expected \"$HOME path is not absolute; we cannot safely replace the ~ character.\"", std::string(e.what()) == "$HOME path is not absolute; we cannot safely replace the ~ character.");
+        ASSERT_MESSAGE(std::string("got \"") + e.what() + "\", expected \"$HOME path is not absolute; we cannot safely replace the ~ character.\"", std::string(e.what()) == "$HOME path is not absolute; we cannot safely replace the ~ character.");
     }
     putenv(const_cast<char *>(home));
 }
@@ -1602,16 +1641,16 @@ namespace
     };
 }
 
-void URIFilenameUnitTests::common_segments()
+CATCH_TEST_CASE("URIFilenameUnitTests::common_segments","URIFilenameUnitTests")
 {
     for(size_t i(0); i < sizeof(common_segment_samples) / sizeof(common_segment_samples[0]); ++i)
     {
         wpkg_filename::uri_filename a(common_segment_samples[i][0]);
         wpkg_filename::uri_filename b(common_segment_samples[i][1]);
         wpkg_filename::uri_filename c(a.remove_common_segments(b));
-        CPPUNIT_ASSERT_MESSAGE("got: \"" + c.full_path() + "\", expected: \"" + common_segment_samples[i][2] + "\" from \"" + common_segment_samples[i][0] + "\" and \"" + common_segment_samples[i][1] + "\"", c.full_path() == common_segment_samples[i][2]);
+        ASSERT_MESSAGE("got: \"" + c.full_path() + "\", expected: \"" + common_segment_samples[i][2] + "\" from \"" + common_segment_samples[i][0] + "\" and \"" + common_segment_samples[i][1] + "\"", c.full_path() == common_segment_samples[i][2]);
         wpkg_filename::uri_filename d(b.remove_common_segments(a));
-        CPPUNIT_ASSERT_MESSAGE("got: \"" + d.full_path() + "\", expected: \"" + common_segment_samples[i][3] + "\" from \"" + common_segment_samples[i][0] + "\" and \"" + common_segment_samples[i][1] + "\"", d.full_path() == common_segment_samples[i][3]);
+        ASSERT_MESSAGE("got: \"" + d.full_path() + "\", expected: \"" + common_segment_samples[i][3] + "\" from \"" + common_segment_samples[i][0] + "\" and \"" + common_segment_samples[i][1] + "\"", d.full_path() == common_segment_samples[i][3]);
     }
 }
 
@@ -1668,7 +1707,7 @@ std::string generate_uri_filename(int limit)
     return filename;
 }
 
-void URIFilenameUnitTests::long_filename()
+CATCH_TEST_CASE("URIFilenameUnitTests::long_filename","URIFilenameUnitTests")
 {
     // define a long filename
     //

@@ -19,20 +19,18 @@
  *    Alexis Wilke   alexis@m2osw.com
  */
 
-#include "unittest_expr.h"
 #include "libexpr/expr.h"
 
-#include <cppunit/config/SourcePrefix.h>
 #include <string.h>
 #include <math.h>
 #include <time.h>
+
+#include <catch.hpp>
 
 // warning C4554: '<<' : check operator precedence for possible error; use parentheses to clarify precedence
 #pragma warning(disable: 4554)
 // warning C4805: '==' : unsafe mix of type 'long' and type 'bool' in operation
 #pragma warning(disable: 4805)
-
-CPPUNIT_TEST_SUITE_REGISTRATION( ExprUnitTests );
 
 #ifdef _MSC_VER
 namespace
@@ -74,10 +72,6 @@ double rint(double flt)
 #endif
 
 
-void ExprUnitTests::setUp()
-{
-}
-
 long compute_long(const char *op)
 {
 //printf("compute long [%s]\n", op);
@@ -116,178 +110,179 @@ bool compute_string(const char *op, const char *expected)
 }
 
 #define ASSERT_LONG_OPERATION(operation) \
-    CPPUNIT_ASSERT(compute_long(#operation) == (operation))
+    CATCH_REQUIRE((compute_long(#operation) == (operation)))
 
 #define ASSERT_DOUBLE_OPERATION(operation) \
-    CPPUNIT_ASSERT(compute_double(#operation, (operation)))
+    CATCH_REQUIRE((compute_double(#operation, (operation))))
 
 
-void ExprUnitTests::bad_literals()
+CATCH_TEST_CASE("ExprUnitTests::bad_literals","ExprUnitTests")
 {
     // bad hex
-    CPPUNIT_ASSERT_THROW(compute_long("(0x) * 2"), libexpr::syntax_error);
+    CATCH_REQUIRE_THROWS_AS(compute_long("(0x) * 2"), libexpr::syntax_error);
 
     // bad octal
-    CPPUNIT_ASSERT_THROW(compute_long("03 + 08"), libexpr::syntax_error);
-    CPPUNIT_ASSERT_THROW(compute_long("033 + 09"), libexpr::syntax_error);
+    CATCH_REQUIRE_THROWS_AS(compute_long("03 + 08"),  libexpr::syntax_error);
+    CATCH_REQUIRE_THROWS_AS(compute_long("033 + 09"), libexpr::syntax_error);
 
     // bad float
-    CPPUNIT_ASSERT_THROW(compute_long("0.3e++"), libexpr::syntax_error);
-    CPPUNIT_ASSERT_THROW(compute_long("0.3ee3"), libexpr::syntax_error);
-    CPPUNIT_ASSERT_THROW(compute_long("0.3e-a"), libexpr::syntax_error);
+    CATCH_REQUIRE_THROWS_AS(compute_long("0.3e++"), libexpr::syntax_error);
+    CATCH_REQUIRE_THROWS_AS(compute_long("0.3ee3"), libexpr::syntax_error);
+    CATCH_REQUIRE_THROWS_AS(compute_long("0.3e-a"), libexpr::syntax_error);
 
     // bad character
-    CPPUNIT_ASSERT_THROW(compute_long("'h + 3"), libexpr::syntax_error);
-    CPPUNIT_ASSERT_THROW(compute_long("'h"), libexpr::syntax_error);
-    CPPUNIT_ASSERT_THROW(compute_long("'\\x74 + 3"), libexpr::syntax_error);
-    CPPUNIT_ASSERT_THROW(compute_long("'\\x74"), libexpr::syntax_error);
+    CATCH_REQUIRE_THROWS_AS(compute_long("'h + 3"),     libexpr::syntax_error);
+    CATCH_REQUIRE_THROWS_AS(compute_long("'h"),         libexpr::syntax_error);
+    CATCH_REQUIRE_THROWS_AS(compute_long("'\\x74 + 3"), libexpr::syntax_error);
+    CATCH_REQUIRE_THROWS_AS(compute_long("'\\x74"),     libexpr::syntax_error);
 
     // bad string
-    CPPUNIT_ASSERT_THROW(compute_long("\"hello world"), libexpr::syntax_error);
-    CPPUNIT_ASSERT_THROW(compute_long("\"hello\\xqaworld\""), libexpr::syntax_error);
+    CATCH_REQUIRE_THROWS_AS(compute_long("\"hello world"),       libexpr::syntax_error);
+    CATCH_REQUIRE_THROWS_AS(compute_long("\"hello\\xqaworld\""), libexpr::syntax_error);
 
     // bad conditional
-    CPPUNIT_ASSERT_THROW(compute_long("(a = 3, b = 55, 3 > 0 ? a b)"), libexpr::syntax_error);
+    CATCH_REQUIRE_THROWS_AS(compute_long("(a = 3, b = 55, 3 > 0 ? a b)"), libexpr::syntax_error);
 }
 
-void ExprUnitTests::bad_variables()
+CATCH_TEST_CASE("ExprUnitTests::bad_variables","ExprUnitTests")
 {
-    CPPUNIT_ASSERT_THROW(compute_long("a"), libexpr::undefined_variable);
+    CATCH_REQUIRE_THROWS_AS(compute_long("a"), libexpr::undefined_variable);
 
-    CPPUNIT_ASSERT_THROW(compute_long("a++"), libexpr::undefined_variable);
-    CPPUNIT_ASSERT_THROW(compute_long("++a"), libexpr::undefined_variable);
-    CPPUNIT_ASSERT_THROW(compute_long("a--"), libexpr::undefined_variable);
-    CPPUNIT_ASSERT_THROW(compute_long("--a"), libexpr::undefined_variable);
+    CATCH_REQUIRE_THROWS_AS(compute_long("a++"), libexpr::undefined_variable);
+    CATCH_REQUIRE_THROWS_AS(compute_long("++a"), libexpr::undefined_variable);
+    CATCH_REQUIRE_THROWS_AS(compute_long("a--"), libexpr::undefined_variable);
+    CATCH_REQUIRE_THROWS_AS(compute_long("--a"), libexpr::undefined_variable);
 
-    CPPUNIT_ASSERT_THROW(compute_long("a = b;"), libexpr::undefined_variable); // cannot get an undefined variable
-    CPPUNIT_ASSERT_THROW(compute_long("a *= 5;"), libexpr::undefined_variable); // cannot get an undefined variable
-    CPPUNIT_ASSERT_THROW(compute_long("a /= 5;"), libexpr::undefined_variable); // cannot get an undefined variable
-    CPPUNIT_ASSERT_THROW(compute_long("a %= 5;"), libexpr::undefined_variable); // cannot get an undefined variable
-    CPPUNIT_ASSERT_THROW(compute_long("a += 5;"), libexpr::undefined_variable); // cannot get an undefined variable
-    CPPUNIT_ASSERT_THROW(compute_long("a -= 5;"), libexpr::undefined_variable); // cannot get an undefined variable
-    CPPUNIT_ASSERT_THROW(compute_long("a >>= 5;"), libexpr::undefined_variable); // cannot get an undefined variable
-    CPPUNIT_ASSERT_THROW(compute_long("a <<= 5;"), libexpr::undefined_variable); // cannot get an undefined variable
-    CPPUNIT_ASSERT_THROW(compute_long("a &= 5;"), libexpr::undefined_variable); // cannot get an undefined variable
-    CPPUNIT_ASSERT_THROW(compute_long("a ^= 5;"), libexpr::undefined_variable); // cannot get an undefined variable
-    CPPUNIT_ASSERT_THROW(compute_long("a |= 5;"), libexpr::undefined_variable); // cannot get an undefined variable
+    CATCH_REQUIRE_NOTHROW( compute_long("a  = 5;") );
+
+    CATCH_REQUIRE_THROWS_AS(compute_long("a = b;"),   libexpr::undefined_variable); // cannot get an undefined variable
+    CATCH_REQUIRE_THROWS_AS(compute_long("a *= 5;"),  libexpr::undefined_variable); // cannot get an undefined variable
+    CATCH_REQUIRE_THROWS_AS(compute_long("a /= 5;"),  libexpr::undefined_variable); // cannot get an undefined variable
+    CATCH_REQUIRE_THROWS_AS(compute_long("a += 5;"),  libexpr::undefined_variable); // cannot get an undefined variable
+    CATCH_REQUIRE_THROWS_AS(compute_long("a -= 5;"),  libexpr::undefined_variable); // cannot get an undefined variable
+    CATCH_REQUIRE_THROWS_AS(compute_long("a >>= 5;"), libexpr::undefined_variable); // cannot get an undefined variable
+    CATCH_REQUIRE_THROWS_AS(compute_long("a <<= 5;"), libexpr::undefined_variable); // cannot get an undefined variable
+    CATCH_REQUIRE_THROWS_AS(compute_long("a &= 5;"),  libexpr::undefined_variable); // cannot get an undefined variable
+    CATCH_REQUIRE_THROWS_AS(compute_long("a ^= 5;"),  libexpr::undefined_variable); // cannot get an undefined variable
+    CATCH_REQUIRE_THROWS_AS(compute_long("a |= 5;"),  libexpr::undefined_variable); // cannot get an undefined variable
 }
 
-void ExprUnitTests::bad_expressions()
+CATCH_TEST_CASE("ExprUnitTests::bad_expressions","ExprUnitTests")
 {
     // misc.
-    CPPUNIT_ASSERT_THROW(compute_long("(a = 3, b = \"abc\", a->b = 5)"), libexpr::syntax_error); // arrow not supported
-    CPPUNIT_ASSERT_THROW(compute_long("(a = 5, a++"), libexpr::syntax_error); // ')' missing
-    CPPUNIT_ASSERT_THROW(compute_long("(a = 5 a)"), libexpr::syntax_error); // comma missing
-    CPPUNIT_ASSERT_THROW(compute_long("a = 5, a)"), libexpr::syntax_error); // '(' missing
-    CPPUNIT_ASSERT_THROW(compute_long("a = 5 a"), libexpr::syntax_error); // ',' missing
-    CPPUNIT_ASSERT_THROW(compute_long(")a)"), libexpr::syntax_error); // ')' instead of '('
-    CPPUNIT_ASSERT_THROW(compute_long("lrint("), libexpr::syntax_error); // missing argument
-    CPPUNIT_ASSERT_THROW(compute_long("lrint(3.4"), libexpr::syntax_error); // ')' missing
-    CPPUNIT_ASSERT_THROW(compute_long("lrint(3.4,"), libexpr::syntax_error); // expect only one parameter, missing ')'
-    CPPUNIT_ASSERT_THROW(compute_long("lrint(3.4, 5)"), libexpr::function_args); // expects only one parameter
-    CPPUNIT_ASSERT_THROW(compute_long("3(75)"), libexpr::syntax_error); // not a function name
-    CPPUNIT_ASSERT_THROW(compute_long("unknown_function_name(1, 2, 3)"), libexpr::undefined_function); // function not defined
+    CATCH_REQUIRE_THROWS_AS(compute_long("(a = 3, b = \"abc\", a->b = 5)"), libexpr::syntax_error); // arrow not supported
+    CATCH_REQUIRE_THROWS_AS(compute_long("(a = 5, a++"), libexpr::syntax_error); // ')' missing
+    CATCH_REQUIRE_THROWS_AS(compute_long("(a = 5 a)"), libexpr::syntax_error); // comma missing
+    CATCH_REQUIRE_THROWS_AS(compute_long("a = 5, a)"), libexpr::syntax_error); // '(' missing
+    CATCH_REQUIRE_THROWS_AS(compute_long("a = 5 a"), libexpr::syntax_error); // ',' missing
+    CATCH_REQUIRE_THROWS_AS(compute_long(")a)"), libexpr::syntax_error); // ')' instead of '('
+    CATCH_REQUIRE_THROWS_AS(compute_long("lrint("), libexpr::syntax_error); // missing argument
+    CATCH_REQUIRE_THROWS_AS(compute_long("lrint(3.4"), libexpr::syntax_error); // ')' missing
+    CATCH_REQUIRE_THROWS_AS(compute_long("lrint(3.4,"), libexpr::syntax_error); // expect only one parameter, missing ')'
+    CATCH_REQUIRE_THROWS_AS(compute_long("lrint(3.4, 5)"), libexpr::function_args); // expects only one parameter
+    CATCH_REQUIRE_THROWS_AS(compute_long("3(75)"), libexpr::syntax_error); // not a function name
+    CATCH_REQUIRE_THROWS_AS(compute_long("unknown_function_name(1, 2, 3)"), libexpr::undefined_function); // function not defined
 #if !defined(WINDOWS) && !defined(_WINDOWS)
     // shell true and false are inverted!
-    CPPUNIT_ASSERT_THROW(compute_long("shell( \"true\" , \"magic\" )"), libexpr::function_args);
-    CPPUNIT_ASSERT_THROW(compute_long("shell( \"totally-unknown-command\" )"), libexpr::libexpr_runtime_error);
+    CATCH_REQUIRE_THROWS_AS(compute_long("shell( \"true\" , \"magic\" )"), libexpr::function_args);
+    CATCH_REQUIRE_THROWS_AS(compute_long("shell( \"totally-unknown-command\" )"), libexpr::libexpr_runtime_error);
 #endif
-    CPPUNIT_ASSERT_THROW(compute_long("a = 5, a++++"), libexpr::syntax_error); // ++ only applicable to lvalue
-    CPPUNIT_ASSERT_THROW(compute_long("a = 5, a----"), libexpr::syntax_error); // -- only applicable to lvalue
-    CPPUNIT_ASSERT_THROW(compute_long("a = 5, a++--"), libexpr::syntax_error); // -- only applicable to lvalue
-    CPPUNIT_ASSERT_THROW(compute_long("a = 5, a--++"), libexpr::syntax_error); // ++ only applicable to lvalue
-    CPPUNIT_ASSERT_THROW(compute_long("5--"), libexpr::expected_a_variable); // ++ only applicable to lvalue
-    CPPUNIT_ASSERT_THROW(compute_long("5++"), libexpr::expected_a_variable); // ++ only applicable to lvalue
-    CPPUNIT_ASSERT_THROW(compute_long("++5"), libexpr::expected_a_variable); // ++ only applicable to lvalue
-    CPPUNIT_ASSERT_THROW(compute_long("--5"), libexpr::expected_a_variable); // ++ only applicable to lvalue
-    CPPUNIT_ASSERT_THROW(compute_long("5.3--"), libexpr::expected_a_variable); // ++ only applicable to lvalue
-    CPPUNIT_ASSERT_THROW(compute_long("5.2++"), libexpr::expected_a_variable); // ++ only applicable to lvalue
-    CPPUNIT_ASSERT_THROW(compute_long("++5.1"), libexpr::expected_a_variable); // ++ only applicable to lvalue
-    CPPUNIT_ASSERT_THROW(compute_long("--7.9"), libexpr::expected_a_variable); // ++ only applicable to lvalue
-    CPPUNIT_ASSERT_THROW(compute_long("3 = 5;"), libexpr::expected_a_variable); // cannot set a number
-    CPPUNIT_ASSERT_THROW(compute_long("3 *= 5;"), libexpr::expected_a_variable); // cannot get/set a number
-    CPPUNIT_ASSERT_THROW(compute_long("3 /= 5;"), libexpr::expected_a_variable); // cannot get/set a number
-    CPPUNIT_ASSERT_THROW(compute_long("3 %= 5;"), libexpr::expected_a_variable); // cannot get/set a number
-    CPPUNIT_ASSERT_THROW(compute_long("3 += 5;"), libexpr::expected_a_variable); // cannot get/set a number
-    CPPUNIT_ASSERT_THROW(compute_long("3 -= 5;"), libexpr::expected_a_variable); // cannot get/set a number
-    CPPUNIT_ASSERT_THROW(compute_long("3 >>= 5;"), libexpr::expected_a_variable); // cannot get/set a number
-    CPPUNIT_ASSERT_THROW(compute_long("3 <<= 5;"), libexpr::expected_a_variable); // cannot get/set a number
-    CPPUNIT_ASSERT_THROW(compute_long("3 &= 5;"), libexpr::expected_a_variable); // cannot get/set a number
-    CPPUNIT_ASSERT_THROW(compute_long("3 ^= 5;"), libexpr::expected_a_variable); // cannot get/set a number
-    CPPUNIT_ASSERT_THROW(compute_long("3 |= 5;"), libexpr::expected_a_variable); // cannot get/set a number
+    CATCH_REQUIRE_THROWS_AS(compute_long("a = 5, a++++"), libexpr::syntax_error); // ++ only applicable to lvalue
+    CATCH_REQUIRE_THROWS_AS(compute_long("a = 5, a----"), libexpr::syntax_error); // -- only applicable to lvalue
+    CATCH_REQUIRE_THROWS_AS(compute_long("a = 5, a++--"), libexpr::syntax_error); // -- only applicable to lvalue
+    CATCH_REQUIRE_THROWS_AS(compute_long("a = 5, a--++"), libexpr::syntax_error); // ++ only applicable to lvalue
+    CATCH_REQUIRE_THROWS_AS(compute_long("5--"), libexpr::expected_a_variable); // ++ only applicable to lvalue
+    CATCH_REQUIRE_THROWS_AS(compute_long("5++"), libexpr::expected_a_variable); // ++ only applicable to lvalue
+    CATCH_REQUIRE_THROWS_AS(compute_long("++5"), libexpr::expected_a_variable); // ++ only applicable to lvalue
+    CATCH_REQUIRE_THROWS_AS(compute_long("--5"), libexpr::expected_a_variable); // ++ only applicable to lvalue
+    CATCH_REQUIRE_THROWS_AS(compute_long("5.3--"), libexpr::expected_a_variable); // ++ only applicable to lvalue
+    CATCH_REQUIRE_THROWS_AS(compute_long("5.2++"), libexpr::expected_a_variable); // ++ only applicable to lvalue
+    CATCH_REQUIRE_THROWS_AS(compute_long("++5.1"), libexpr::expected_a_variable); // ++ only applicable to lvalue
+    CATCH_REQUIRE_THROWS_AS(compute_long("--7.9"), libexpr::expected_a_variable); // ++ only applicable to lvalue
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 = 5;"), libexpr::expected_a_variable); // cannot set a number
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 *= 5;"), libexpr::expected_a_variable); // cannot get/set a number
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 /= 5;"), libexpr::expected_a_variable); // cannot get/set a number
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 %= 5;"), libexpr::expected_a_variable); // cannot get/set a number
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 += 5;"), libexpr::expected_a_variable); // cannot get/set a number
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 -= 5;"), libexpr::expected_a_variable); // cannot get/set a number
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 >>= 5;"), libexpr::expected_a_variable); // cannot get/set a number
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 <<= 5;"), libexpr::expected_a_variable); // cannot get/set a number
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 &= 5;"), libexpr::expected_a_variable); // cannot get/set a number
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 ^= 5;"), libexpr::expected_a_variable); // cannot get/set a number
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 |= 5;"), libexpr::expected_a_variable); // cannot get/set a number
 
     // string problems
-    CPPUNIT_ASSERT_THROW(compute_long("-\"neg\""), libexpr::incompatible_type); // -"string" not valid
-    CPPUNIT_ASSERT_THROW(compute_long("+\"neg\""), libexpr::incompatible_type); // +"string" not valid
-    CPPUNIT_ASSERT_THROW(compute_long("3 * \"mul\""), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("3 % \"mod\""), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("3 / \"div\""), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("3 - \"div\""), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_double("3.5 * \"mul\"", 0.0), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_double("17.3 / \"div\"", 0.0), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_double("3.9 % \"mod\"", 0.0), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_double("3.9 - \"mod\"", 0.0), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("\"mul\" * 3"), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("\"div\" / 3"), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("\"min\" - 3"), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("\"min\" & 3"), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("\"min\" ^ 3"), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("\"min\" | 3"), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("3 & \"min\""), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("3 ^ \"min\""), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("3 | \"min\""), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("~\"min\""), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("3 == \"str\""), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("3.5 == \"str\""), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("3 != \"str\""), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("3.5 != \"str\""), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("3 < \"str\""), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("3.5 < \"str\""), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("3 <= \"str\""), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("3.5 <= \"str\""), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("3 > \"str\""), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("3.5 > \"str\""), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("3 >= \"str\""), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("3.5 >= \"str\""), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("\"str\" == 56"), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("\"str\" == 895.3"), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("\"str\" != 56"), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("\"str\" != 895.3"), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("\"str\" < 56"), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("\"str\" < 895.3"), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("\"str\" <= 56"), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("\"str\" <= 895.3"), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("\"str\" > 56"), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("\"str\" > 895.3"), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("\"str\" >= 56"), libexpr::incompatible_type); // "string" operation not valid
-    CPPUNIT_ASSERT_THROW(compute_long("\"str\" >= 895.3"), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("-\"neg\""), libexpr::incompatible_type); // -"string" not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("+\"neg\""), libexpr::incompatible_type); // +"string" not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 * \"mul\""), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 % \"mod\""), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 / \"div\""), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 - \"div\""), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_double("3.5 * \"mul\"", 0.0), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_double("17.3 / \"div\"", 0.0), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_double("3.9 % \"mod\"", 0.0), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_double("3.9 - \"mod\"", 0.0), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("\"mul\" * 3"), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("\"div\" / 3"), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("\"min\" - 3"), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("\"min\" & 3"), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("\"min\" ^ 3"), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("\"min\" | 3"), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 & \"min\""), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 ^ \"min\""), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 | \"min\""), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("~\"min\""), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 == \"str\""), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("3.5 == \"str\""), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 != \"str\""), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("3.5 != \"str\""), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 < \"str\""), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("3.5 < \"str\""), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 <= \"str\""), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("3.5 <= \"str\""), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 > \"str\""), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("3.5 > \"str\""), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("3 >= \"str\""), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("3.5 >= \"str\""), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("\"str\" == 56"), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("\"str\" == 895.3"), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("\"str\" != 56"), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("\"str\" != 895.3"), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("\"str\" < 56"), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("\"str\" < 895.3"), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("\"str\" <= 56"), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("\"str\" <= 895.3"), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("\"str\" > 56"), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("\"str\" > 895.3"), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("\"str\" >= 56"), libexpr::incompatible_type); // "string" operation not valid
+    CATCH_REQUIRE_THROWS_AS(compute_long("\"str\" >= 895.3"), libexpr::incompatible_type); // "string" operation not valid
 
     // floating point problems
-    CPPUNIT_ASSERT_THROW(compute_double("-3.5 % 2.4", 0.0), libexpr::incompatible_type); // % not valid with float
-    CPPUNIT_ASSERT_THROW(compute_double("-3 % 2.4", 0.0), libexpr::incompatible_type); // % not valid with float
-    CPPUNIT_ASSERT_THROW(compute_double("-3.5 % 2", 0.0), libexpr::incompatible_type); // % not valid with float
-    CPPUNIT_ASSERT_THROW(compute_double("-3.5 << 2.4", 0.0), libexpr::incompatible_type); // << not valid with float
-    CPPUNIT_ASSERT_THROW(compute_double("-3 << 2.4", 0.0), libexpr::incompatible_type); // << not valid with float
-    CPPUNIT_ASSERT_THROW(compute_double("-3.5 << 2", 0.0), libexpr::incompatible_type); // << not valid with float
-    CPPUNIT_ASSERT_THROW(compute_double("-3.5 >> 2.4", 0.0), libexpr::incompatible_type); // >> not valid with float
-    CPPUNIT_ASSERT_THROW(compute_double("-3 >> 2.4", 0.0), libexpr::incompatible_type); // >> not valid with float
-    CPPUNIT_ASSERT_THROW(compute_double("-3.5 >> 2", 0.0), libexpr::incompatible_type); // >> not valid with float
-    CPPUNIT_ASSERT_THROW(compute_double("-3.5 & 2", 0.0), libexpr::incompatible_type); // & not valid with float
-    CPPUNIT_ASSERT_THROW(compute_double("-3.5 ^ 2", 0.0), libexpr::incompatible_type); // ^ not valid with float
-    CPPUNIT_ASSERT_THROW(compute_double("-3.5 | 2", 0.0), libexpr::incompatible_type); // | not valid with float
-    CPPUNIT_ASSERT_THROW(compute_double("~3.5", 0.0), libexpr::incompatible_type); // ~ not valid with float
-    CPPUNIT_ASSERT_THROW(compute_double("~-9.3", 0.0), libexpr::incompatible_type); // ~ not valid with float
+    CATCH_REQUIRE_THROWS_AS(compute_double("-3.5 % 2.4", 0.0), libexpr::incompatible_type); // % not valid with float
+    CATCH_REQUIRE_THROWS_AS(compute_double("-3 % 2.4", 0.0), libexpr::incompatible_type); // % not valid with float
+    CATCH_REQUIRE_THROWS_AS(compute_double("-3.5 % 2", 0.0), libexpr::incompatible_type); // % not valid with float
+    CATCH_REQUIRE_THROWS_AS(compute_double("-3.5 << 2.4", 0.0), libexpr::incompatible_type); // << not valid with float
+    CATCH_REQUIRE_THROWS_AS(compute_double("-3 << 2.4", 0.0), libexpr::incompatible_type); // << not valid with float
+    CATCH_REQUIRE_THROWS_AS(compute_double("-3.5 << 2", 0.0), libexpr::incompatible_type); // << not valid with float
+    CATCH_REQUIRE_THROWS_AS(compute_double("-3.5 >> 2.4", 0.0), libexpr::incompatible_type); // >> not valid with float
+    CATCH_REQUIRE_THROWS_AS(compute_double("-3 >> 2.4", 0.0), libexpr::incompatible_type); // >> not valid with float
+    CATCH_REQUIRE_THROWS_AS(compute_double("-3.5 >> 2", 0.0), libexpr::incompatible_type); // >> not valid with float
+    CATCH_REQUIRE_THROWS_AS(compute_double("-3.5 & 2", 0.0), libexpr::incompatible_type); // & not valid with float
+    CATCH_REQUIRE_THROWS_AS(compute_double("-3.5 ^ 2", 0.0), libexpr::incompatible_type); // ^ not valid with float
+    CATCH_REQUIRE_THROWS_AS(compute_double("-3.5 | 2", 0.0), libexpr::incompatible_type); // | not valid with float
+    CATCH_REQUIRE_THROWS_AS(compute_double("~3.5", 0.0), libexpr::incompatible_type); // ~ not valid with float
+    CATCH_REQUIRE_THROWS_AS(compute_double("~-9.3", 0.0), libexpr::incompatible_type); // ~ not valid with float
 
     // incompatible data type for our get
-    CPPUNIT_ASSERT_THROW(compute_double("3", 0.0), libexpr::invalid_type); // 3 is a long, not a float
-    CPPUNIT_ASSERT_THROW(compute_double("\"hello\"", 0.0), libexpr::invalid_type); // "hello" is a string, not a float
-    CPPUNIT_ASSERT_THROW(compute_long("3.3"), libexpr::invalid_type); // 3.3 is a float, not a long
-    CPPUNIT_ASSERT_THROW(compute_long("\"hello\""), libexpr::invalid_type); // "hello" is a string, not a long
-    CPPUNIT_ASSERT_THROW(compute_string("3", "3"), libexpr::invalid_type); // 3 is a long, not a string
-    CPPUNIT_ASSERT_THROW(compute_string("4.5", "4.5"), libexpr::invalid_type); // 4.5 is a float, not a string
+    CATCH_REQUIRE_THROWS_AS(compute_double("3", 0.0), libexpr::invalid_type); // 3 is a long, not a float
+    CATCH_REQUIRE_THROWS_AS(compute_double("\"hello\"", 0.0), libexpr::invalid_type); // "hello" is a string, not a float
+    CATCH_REQUIRE_THROWS_AS(compute_long("3.3"), libexpr::invalid_type); // 3.3 is a float, not a long
+    CATCH_REQUIRE_THROWS_AS(compute_long("\"hello\""), libexpr::invalid_type); // "hello" is a string, not a long
+    CATCH_REQUIRE_THROWS_AS(compute_string("3", "3"), libexpr::invalid_type); // 3 is a long, not a string
+    CATCH_REQUIRE_THROWS_AS(compute_string("4.5", "4.5"), libexpr::invalid_type); // 4.5 is a float, not a string
 }
 
-void ExprUnitTests::additions()
+CATCH_TEST_CASE("ExprUnitTests::additions","ExprUnitTests")
 {
 #if defined( __GNUC__ )
 #   pragma GCC diagnostic push
@@ -314,21 +309,21 @@ void ExprUnitTests::additions()
 
     // test newlines and carriage returns
     // although at this point we cannot check the f_line (not accessible)
-    CPPUNIT_ASSERT(compute_double("3.5\n*\r\n7.2", 3.5 * 7.2));
-    CPPUNIT_ASSERT(compute_double("13.5 // this is an approximation\n+\r\n /* multiplye is * but we use + here and luckily we found this number: */ 7.05", 13.5 + 7.05));
+    CATCH_REQUIRE(compute_double("3.5\n*\r\n7.2", 3.5 * 7.2));
+    CATCH_REQUIRE(compute_double("13.5 // this is an approximation\n+\r\n /* multiplye is * but we use + here and luckily we found this number: */ 7.05", 13.5 + 7.05));
 
     // string concatenation
-    CPPUNIT_ASSERT(compute_string("\"this\" + \"that\"", "thisthat"));
-    CPPUNIT_ASSERT(compute_string("\"\\x74hi\\163\\7\" + \".\\40.\" + \"that\\x07\"", "this\a. .that\a"));
-    CPPUNIT_ASSERT(compute_string("\"escapes: \\a\\b\\e\\f\" + \"\\n\\r\\t\\v\\?\"", "escapes: \a\b\33\f\n\r\t\v\?"));
-    CPPUNIT_ASSERT(compute_string("\"\\xaa\\XFF\\XFQ\" + \"\\xBe\\xDc\" \"auto-concat\";;;", "\xaa\xff\xfQ\xbe\xdc" "auto-concat"));
-    CPPUNIT_ASSERT(compute_string("\"this\" + 3", "this3"));
-    CPPUNIT_ASSERT(compute_string("3 + \"this\"", "3this"));
-    CPPUNIT_ASSERT(compute_string("3 + \"this\" + 3", "3this3"));
-    CPPUNIT_ASSERT(compute_string("3.35 + \"this\" + 3.35", "3.35this3.35"));
+    CATCH_REQUIRE(compute_string("\"this\" + \"that\"", "thisthat"));
+    CATCH_REQUIRE(compute_string("\"\\x74hi\\163\\7\" + \".\\40.\" + \"that\\x07\"", "this\a. .that\a"));
+    CATCH_REQUIRE(compute_string("\"escapes: \\a\\b\\e\\f\" + \"\\n\\r\\t\\v\\?\"", "escapes: \a\b\33\f\n\r\t\v\?"));
+    CATCH_REQUIRE(compute_string("\"\\xaa\\XFF\\XFQ\" + \"\\xBe\\xDc\" \"auto-concat\";;;", "\xaa\xff\xfQ\xbe\xdc" "auto-concat"));
+    CATCH_REQUIRE(compute_string("\"this\" + 3", "this3"));
+    CATCH_REQUIRE(compute_string("3 + \"this\"", "3this"));
+    CATCH_REQUIRE(compute_string("3 + \"this\" + 3", "3this3"));
+    CATCH_REQUIRE(compute_string("3.35 + \"this\" + 3.35", "3.35this3.35"));
 }
 
-void ExprUnitTests::shifts()
+CATCH_TEST_CASE("ExprUnitTests::shifts","ExprUnitTests")
 {
     ASSERT_LONG_OPERATION(1 << 0xD);
     ASSERT_LONG_OPERATION(0x8000 >> 05);
@@ -350,7 +345,7 @@ void ExprUnitTests::shifts()
     ASSERT_LONG_OPERATION(((0x3000 >> 7) | (0x3000 << 7)) & 0xFFFF);
 }
 
-void ExprUnitTests::increments() // postfix/prefix
+CATCH_TEST_CASE("ExprUnitTests::increments","ExprUnitTests") // postfix/prefix
 {
     // note that we support multiple ++ and -- in a row, but that
     // is not valid C++ (i.e. a++++ is not valid because the second
@@ -367,7 +362,7 @@ void ExprUnitTests::increments() // postfix/prefix
     ASSERT_LONG_OPERATION((_a = 934, --_a, _a));
 }
 
-void ExprUnitTests::multiplications()
+CATCH_TEST_CASE("ExprUnitTests::multiplications","ExprUnitTests")
 {
     // integer operations
     ASSERT_LONG_OPERATION(3 + 7 + 2 * 143);
@@ -391,7 +386,7 @@ void ExprUnitTests::multiplications()
     ASSERT_DOUBLE_OPERATION(3 * 34 - 2.4);
 }
 
-void ExprUnitTests::bitwise()
+CATCH_TEST_CASE("ExprUnitTests::bitwise","ExprUnitTests")
 {
     ASSERT_LONG_OPERATION(3 | +4);
     ASSERT_LONG_OPERATION(255 & -4);
@@ -418,7 +413,7 @@ void ExprUnitTests::bitwise()
     ASSERT_LONG_OPERATION('a' & 0x55 | 071 ^ 0xEF);
 }
 
-void ExprUnitTests::comparisons()
+CATCH_TEST_CASE("ExprUnitTests::comparisons","ExprUnitTests")
 {
     // integers
     ASSERT_LONG_OPERATION(7 != 9);
@@ -467,21 +462,21 @@ void ExprUnitTests::comparisons()
     ASSERT_LONG_OPERATION(9 * 47.1 <= 3 * 7);
 
     // string
-    CPPUNIT_ASSERT(compute_long("\"this\" == \"th\" \"is\"") == true);
-    CPPUNIT_ASSERT(compute_long("\"th\" + \"is\" == \"th\" \"is\"") == true);
-    CPPUNIT_ASSERT(compute_long("\"9 * 47\" == \"3.1 * 7\"") == false);
-    CPPUNIT_ASSERT(compute_long("\"9 * 47.1\" == \"3 * 7\"") == false);
-    CPPUNIT_ASSERT(compute_long("\"9 * 47\" != \"3.1 * 7\"") == true);
-    CPPUNIT_ASSERT(compute_long("\"9 * 47.1\" != \"3 * 7\"") == true);
-    CPPUNIT_ASSERT(compute_long("\"th\" + \"is\" != \"th\" \"is\"") == false);
-    CPPUNIT_ASSERT(compute_long("\"9 * 47\" > \"3.1 * 7\"") == true);
-    CPPUNIT_ASSERT(compute_long("\"9 * 47.1\" > \"3 * 7\"") == true);
-    CPPUNIT_ASSERT(compute_long("\"9 * 47\" >= \"3.1 * 7\"") == true);
-    CPPUNIT_ASSERT(compute_long("\"9 * 47.1\" >= \"3 * 7\"") == true);
-    CPPUNIT_ASSERT(compute_long("\"9 * 47\" < \"3.1 * 7\"") == false);
-    CPPUNIT_ASSERT(compute_long("\"9 * 47.1\" < \"3 * 7\"") == false);
-    CPPUNIT_ASSERT(compute_long("\"9 * 47\" <= \"3.1 * 7\"") == false);
-    CPPUNIT_ASSERT(compute_long("\"9 * 47.1\" <= \"3 * 7\"") == false);
+    CATCH_REQUIRE(compute_long("\"this\" == \"th\" \"is\"") == true);
+    CATCH_REQUIRE(compute_long("\"th\" + \"is\" == \"th\" \"is\"") == true);
+    CATCH_REQUIRE(compute_long("\"9 * 47\" == \"3.1 * 7\"") == false);
+    CATCH_REQUIRE(compute_long("\"9 * 47.1\" == \"3 * 7\"") == false);
+    CATCH_REQUIRE(compute_long("\"9 * 47\" != \"3.1 * 7\"") == true);
+    CATCH_REQUIRE(compute_long("\"9 * 47.1\" != \"3 * 7\"") == true);
+    CATCH_REQUIRE(compute_long("\"th\" + \"is\" != \"th\" \"is\"") == false);
+    CATCH_REQUIRE(compute_long("\"9 * 47\" > \"3.1 * 7\"") == true);
+    CATCH_REQUIRE(compute_long("\"9 * 47.1\" > \"3 * 7\"") == true);
+    CATCH_REQUIRE(compute_long("\"9 * 47\" >= \"3.1 * 7\"") == true);
+    CATCH_REQUIRE(compute_long("\"9 * 47.1\" >= \"3 * 7\"") == true);
+    CATCH_REQUIRE(compute_long("\"9 * 47\" < \"3.1 * 7\"") == false);
+    CATCH_REQUIRE(compute_long("\"9 * 47.1\" < \"3 * 7\"") == false);
+    CATCH_REQUIRE(compute_long("\"9 * 47\" <= \"3.1 * 7\"") == false);
+    CATCH_REQUIRE(compute_long("\"9 * 47.1\" <= \"3 * 7\"") == false);
 
     {
     // proves we can redefine e along the way
@@ -494,31 +489,31 @@ void ExprUnitTests::comparisons()
     ASSERT_LONG_OPERATION(!0);
     ASSERT_LONG_OPERATION(!7);
     ASSERT_LONG_OPERATION(!-7);
-    CPPUNIT_ASSERT(compute_long("!\"\"") == true);  // we return true but C++ says false here!
+    CATCH_REQUIRE(compute_long("!\"\"") == true);  // we return true but C++ says false here!
     ASSERT_LONG_OPERATION(!"not empty");
     ASSERT_LONG_OPERATION(!3.5);
     ASSERT_LONG_OPERATION(!-3.5);
     ASSERT_LONG_OPERATION(!0.0);
 
     // test our addition (^^)
-    CPPUNIT_ASSERT(compute_long("true ^^ true") == false);
-    CPPUNIT_ASSERT(compute_long("true ^^ false") == true);
-    CPPUNIT_ASSERT(compute_long("false ^^ true") == true);
-    CPPUNIT_ASSERT(compute_long("false ^^ false") == false);
-    CPPUNIT_ASSERT(compute_long("3 ^^ 3.3") == false);
-    CPPUNIT_ASSERT(compute_long("3 ^^ \"\"") == true);
-    CPPUNIT_ASSERT(compute_long("3.3 ^^ 3") == false);
-    CPPUNIT_ASSERT(compute_long("3.3 ^^ \"\"") == true);
-    CPPUNIT_ASSERT(compute_long("\"\" ^^ 3") == true);
-    CPPUNIT_ASSERT(compute_long("\"\" ^^ 5.4") == true);
+    CATCH_REQUIRE(compute_long("true ^^ true") == false);
+    CATCH_REQUIRE(compute_long("true ^^ false") == true);
+    CATCH_REQUIRE(compute_long("false ^^ true") == true);
+    CATCH_REQUIRE(compute_long("false ^^ false") == false);
+    CATCH_REQUIRE(compute_long("3 ^^ 3.3") == false);
+    CATCH_REQUIRE(compute_long("3 ^^ \"\"") == true);
+    CATCH_REQUIRE(compute_long("3.3 ^^ 3") == false);
+    CATCH_REQUIRE(compute_long("3.3 ^^ \"\"") == true);
+    CATCH_REQUIRE(compute_long("\"\" ^^ 3") == true);
+    CATCH_REQUIRE(compute_long("\"\" ^^ 5.4") == true);
 
-    CPPUNIT_ASSERT(compute_long("true && true ^^ true && true") == false);
-    CPPUNIT_ASSERT(compute_long("true && true ^^ true && false") == true);
-    CPPUNIT_ASSERT(compute_long("true && false ^^ true && true") == true);
-    CPPUNIT_ASSERT(compute_long("true && true ^^ false && true") == true);
-    CPPUNIT_ASSERT(compute_long("false && true ^^ true && true") == true);
-    CPPUNIT_ASSERT(compute_long("true && false ^^ true && false") == false);
-    CPPUNIT_ASSERT(compute_long("false && false ^^ true && false") == false);
+    CATCH_REQUIRE(compute_long("true && true ^^ true && true") == false);
+    CATCH_REQUIRE(compute_long("true && true ^^ true && false") == true);
+    CATCH_REQUIRE(compute_long("true && false ^^ true && true") == true);
+    CATCH_REQUIRE(compute_long("true && true ^^ false && true") == true);
+    CATCH_REQUIRE(compute_long("false && true ^^ true && true") == true);
+    CATCH_REQUIRE(compute_long("true && false ^^ true && false") == false);
+    CATCH_REQUIRE(compute_long("false && false ^^ true && false") == false);
 
     // some priority checks
     ASSERT_LONG_OPERATION(true && true || true);
@@ -544,15 +539,15 @@ void ExprUnitTests::comparisons()
     ASSERT_LONG_OPERATION(5.5 && 35);
     ASSERT_LONG_OPERATION(5.5 && "35");
     ASSERT_LONG_OPERATION("35" && 5.5);
-    CPPUNIT_ASSERT(compute_long("\"\" && 5.4") == false);
-    CPPUNIT_ASSERT(compute_long("5.4 && \"\"") == false);
+    CATCH_REQUIRE(compute_long("\"\" && 5.4") == false);
+    CATCH_REQUIRE(compute_long("5.4 && \"\"") == false);
     ASSERT_LONG_OPERATION(33 || 35);
     ASSERT_LONG_OPERATION(33 || 3.5);
     ASSERT_LONG_OPERATION(5.5 || 35);
     ASSERT_LONG_OPERATION(5.5 || "35");
     ASSERT_LONG_OPERATION("35" || 5.5);
-    CPPUNIT_ASSERT(compute_long("\"\" || 5.4") == true);
-    CPPUNIT_ASSERT(compute_long("5.4 || \"\"") == true);
+    CATCH_REQUIRE(compute_long("\"\" || 5.4") == true);
+    CATCH_REQUIRE(compute_long("5.4 || \"\"") == true);
 
     // conditional
     {
@@ -562,7 +557,7 @@ void ExprUnitTests::comparisons()
     }
 }
 
-void ExprUnitTests::assignments()
+CATCH_TEST_CASE("ExprUnitTests::assignments","ExprUnitTests")
 {
     long a, b;
     ASSERT_LONG_OPERATION((a = 9444, b = a, b + 3));
@@ -600,7 +595,7 @@ void ExprUnitTests::assignments()
     ASSERT_LONG_OPERATION((a = 9444, b = 4531, a |= b, b));
 }
 
-void ExprUnitTests::functions()
+CATCH_TEST_CASE("ExprUnitTests::functions","ExprUnitTests")
 {
     double a, b, pi(3.14159265358979323846), e(2.7182818284590452354);
     const char *s;
@@ -676,7 +671,7 @@ void ExprUnitTests::functions()
     {
         the_ctime = the_ctime.substr(0, p);
     }
-    CPPUNIT_ASSERT(compute_string("a = 1234123412, ctime(a)", the_ctime.c_str()));
+    CATCH_REQUIRE(compute_string("a = 1234123412, ctime(a)", the_ctime.c_str()));
 
     // exp
     ASSERT_DOUBLE_OPERATION((a = 0.0, exp(a)));
@@ -732,10 +727,10 @@ void ExprUnitTests::functions()
 
 #if !defined(WINDOWS) && !defined(_WINDOWS)
     // shell true and false are inverted!
-    CPPUNIT_ASSERT(compute_long("shell( \"true\" , \"exitcode\" )") == 0);
-    CPPUNIT_ASSERT(compute_long("shell(\"false\", \"exitcode\")") == 256);
-    CPPUNIT_ASSERT(compute_string("shell(\"echo true\", \"output\")", "true\n"));
-    CPPUNIT_ASSERT(compute_string("shell(\"echo true\")", "true\n"));
+    CATCH_REQUIRE(compute_long("shell( \"true\" , \"exitcode\" )") == 0);
+    CATCH_REQUIRE(compute_long("shell(\"false\", \"exitcode\")") == 256);
+    CATCH_REQUIRE(compute_string("shell(\"echo true\", \"output\")", "true\n"));
+    CATCH_REQUIRE(compute_string("shell(\"echo true\")", "true\n"));
 #endif
 
     // sin
@@ -784,59 +779,59 @@ void ExprUnitTests::functions()
     // time
     time_t now(time(NULL));
     time_t expr_now(compute_long("time()"));
-    CPPUNIT_ASSERT((expr_now - now) <= 1);
+    CATCH_REQUIRE((expr_now - now) <= 1);
 }
 
-void ExprUnitTests::misc()
+CATCH_TEST_CASE("ExprUnitTests::misc","ExprUnitTests")
 {
     libexpr::variable v, undefined, result;
     std::string str;
     undefined.to_string(str);
-    CPPUNIT_ASSERT(str == "undefined");
+    CATCH_REQUIRE(str == "undefined");
 
     v.set(128394L);
-    CPPUNIT_ASSERT_THROW(result.add(v, undefined), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.add(v, undefined), libexpr::incompatible_type);
     v.set(128.394);
-    CPPUNIT_ASSERT_THROW(result.add(v, undefined), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.add(v, undefined), libexpr::incompatible_type);
     v.set("128394");
-    CPPUNIT_ASSERT_THROW(result.add(v, undefined), libexpr::incompatible_type);
-    CPPUNIT_ASSERT_THROW(result.add(undefined, v), libexpr::incompatible_type);
-    CPPUNIT_ASSERT_THROW(result.lt(undefined, v), libexpr::incompatible_type);
-    CPPUNIT_ASSERT_THROW(result.lt(v, undefined), libexpr::incompatible_type);
-    CPPUNIT_ASSERT_THROW(result.le(undefined, v), libexpr::incompatible_type);
-    CPPUNIT_ASSERT_THROW(result.le(v, undefined), libexpr::incompatible_type);
-    CPPUNIT_ASSERT_THROW(result.gt(undefined, v), libexpr::incompatible_type);
-    CPPUNIT_ASSERT_THROW(result.gt(v, undefined), libexpr::incompatible_type);
-    CPPUNIT_ASSERT_THROW(result.ge(undefined, v), libexpr::incompatible_type);
-    CPPUNIT_ASSERT_THROW(result.ge(v, undefined), libexpr::incompatible_type);
-    CPPUNIT_ASSERT_THROW(result.eq(undefined, v), libexpr::incompatible_type);
-    CPPUNIT_ASSERT_THROW(result.eq(v, undefined), libexpr::incompatible_type);
-    CPPUNIT_ASSERT_THROW(result.ne(undefined, v), libexpr::incompatible_type);
-    CPPUNIT_ASSERT_THROW(result.ne(v, undefined), libexpr::incompatible_type);
-    CPPUNIT_ASSERT_THROW(result.logic_and(undefined, v), libexpr::incompatible_type);
-    CPPUNIT_ASSERT_THROW(result.logic_and(v, undefined), libexpr::incompatible_type);
-    CPPUNIT_ASSERT_THROW(result.logic_or(undefined, v), libexpr::incompatible_type);
-    CPPUNIT_ASSERT_THROW(result.logic_or(v, undefined), libexpr::incompatible_type);
-    CPPUNIT_ASSERT_THROW(result.logic_xor(undefined, v), libexpr::incompatible_type);
-    CPPUNIT_ASSERT_THROW(result.logic_xor(v, undefined), libexpr::incompatible_type);
-    CPPUNIT_ASSERT_THROW(result.logic_not(undefined), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.add(v, undefined), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.add(undefined, v), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.lt(undefined, v), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.lt(v, undefined), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.le(undefined, v), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.le(v, undefined), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.gt(undefined, v), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.gt(v, undefined), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.ge(undefined, v), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.ge(v, undefined), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.eq(undefined, v), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.eq(v, undefined), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.ne(undefined, v), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.ne(v, undefined), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.logic_and(undefined, v), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.logic_and(v, undefined), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.logic_or(undefined, v), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.logic_or(v, undefined), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.logic_xor(undefined, v), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.logic_xor(v, undefined), libexpr::incompatible_type);
+    CATCH_REQUIRE_THROWS_AS(result.logic_not(undefined), libexpr::incompatible_type);
 
     v.set(std::string("string"));
     v.to_string(str);
-    CPPUNIT_ASSERT(str == "string");
+    CATCH_REQUIRE(str == "string");
     v.set(5.509);
     v.to_string(str);
-    CPPUNIT_ASSERT(str == "5.509");
+    CATCH_REQUIRE(str == "5.509");
     v.set("string");
     v.to_string(str);
-    CPPUNIT_ASSERT(str == "string");
+    CATCH_REQUIRE(str == "string");
     std::wstring wstr(L"wide-string");
     v.set(wstr);
     v.to_string(str);
-    CPPUNIT_ASSERT(str == "wide-string");
+    CATCH_REQUIRE(str == "wide-string");
     v.set(L"wc-string");
     v.to_string(str);
-    CPPUNIT_ASSERT(str == "wc-string");
+    CATCH_REQUIRE(str == "wc-string");
 
 }
 

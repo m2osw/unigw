@@ -19,14 +19,13 @@
  *    Alexis Wilke   alexis@m2osw.com
  */
 
-#include "unittest_architecture.h"
 #include "unittest_main.h"
+#include "libdebpackages/wpkg_architecture.h"
+
 #include <stdexcept>
 #include <cstring>
 
-
-
-CPPUNIT_TEST_SUITE_REGISTRATION( ArchitectureUnitTests );
+#include <catch.hpp>
 
 
 namespace
@@ -50,16 +49,10 @@ std::string replace_all(std::string& s, std::string const& to_replace, std::stri
 } // no name namespace
 
 
-void ArchitectureUnitTests::setUp()
-{
-}
-
-
-
-void ArchitectureUnitTests::valid_vendors()
+CATCH_TEST_CASE( "ArchitectureUnitTests::valid_vendors", "ArchitectureUnitTests" )
 {
     // an empty name is always valid
-    CPPUNIT_ASSERT(wpkg_architecture::architecture::valid_vendor(""));
+    CATCH_REQUIRE(wpkg_architecture::architecture::valid_vendor(""));
 
     for(int c(1); c < 256; ++c)
     {
@@ -71,17 +64,17 @@ void ArchitectureUnitTests::valid_vendors()
         || c == '+'
         || c == '.')
         {
-            CPPUNIT_ASSERT(wpkg_architecture::architecture::valid_vendor(str));
+            CATCH_REQUIRE(wpkg_architecture::architecture::valid_vendor(str));
         }
         else
         {
-            CPPUNIT_ASSERT(!wpkg_architecture::architecture::valid_vendor(str));
+            CATCH_REQUIRE(!wpkg_architecture::architecture::valid_vendor(str));
         }
     }
 }
 
 
-void ArchitectureUnitTests::verify_abbreviations()
+CATCH_TEST_CASE( "ArchitectureUnitTests::verify_abbreviations", "ArchitectureUnitTests" )
 {
     for(const wpkg_architecture::architecture::abbreviation_t *abbr(wpkg_architecture::architecture::abbreviation_list());; ++abbr)
     {
@@ -89,16 +82,16 @@ void ArchitectureUnitTests::verify_abbreviations()
         {
             return;
         }
-        CPPUNIT_ASSERT(wpkg_architecture::architecture::find_abbreviation(abbr->f_abbreviation) == abbr);
+        CATCH_REQUIRE(wpkg_architecture::architecture::find_abbreviation(abbr->f_abbreviation) == abbr);
 
         std::string str("invalid");
-        CPPUNIT_ASSERT(wpkg_architecture::architecture::find_abbreviation(str + abbr->f_abbreviation) == nullptr);
-        CPPUNIT_ASSERT(wpkg_architecture::architecture::find_abbreviation(abbr->f_abbreviation + str) == nullptr);
+        CATCH_REQUIRE((wpkg_architecture::architecture::find_abbreviation(str + abbr->f_abbreviation) == nullptr));
+        CATCH_REQUIRE((wpkg_architecture::architecture::find_abbreviation(abbr->f_abbreviation + str) == nullptr));
     }
 }
 
 
-void ArchitectureUnitTests::verify_os()
+CATCH_TEST_CASE( "ArchitectureUnitTests::verify_os", "ArchitectureUnitTests" )
 {
     for(const wpkg_architecture::architecture::os_t *os(wpkg_architecture::architecture::os_list());; ++os)
     {
@@ -106,22 +99,22 @@ void ArchitectureUnitTests::verify_os()
         {
             return;
         }
-        CPPUNIT_ASSERT(wpkg_architecture::architecture::find_os(os->f_name) == os);
+        CATCH_REQUIRE(wpkg_architecture::architecture::find_os(os->f_name) == os);
 
         if(strcmp(os->f_name, "mswindows") == 0)
         {
-            CPPUNIT_ASSERT(wpkg_architecture::architecture::find_os("win32") == os);
-            CPPUNIT_ASSERT(wpkg_architecture::architecture::find_os("win64") == os);
+            CATCH_REQUIRE(wpkg_architecture::architecture::find_os("win32") == os);
+            CATCH_REQUIRE(wpkg_architecture::architecture::find_os("win64") == os);
         }
 
         std::string str("invalid");
-        CPPUNIT_ASSERT(wpkg_architecture::architecture::find_os(str + os->f_name) == nullptr);
-        CPPUNIT_ASSERT(wpkg_architecture::architecture::find_os(os->f_name + str) == nullptr);
+        CATCH_REQUIRE((wpkg_architecture::architecture::find_os(str + os->f_name) == nullptr));
+        CATCH_REQUIRE((wpkg_architecture::architecture::find_os(os->f_name + str) == nullptr));
     }
 }
 
 
-void ArchitectureUnitTests::verify_processors()
+CATCH_TEST_CASE( "ArchitectureUnitTests::verify_processors", "ArchitectureUnitTests" )
 {
     for(const wpkg_architecture::architecture::processor_t *processor(wpkg_architecture::architecture::processor_list());; ++processor)
     {
@@ -130,11 +123,11 @@ void ArchitectureUnitTests::verify_processors()
             return;
         }
 //std::cerr << "testing proc name = [" << processor->f_name << "]\n";
-        CPPUNIT_ASSERT(wpkg_architecture::architecture::find_processor(processor->f_name, false) == processor);
+        CATCH_REQUIRE(wpkg_architecture::architecture::find_processor(processor->f_name, false) == processor);
 
         std::string str("invalid");
-        CPPUNIT_ASSERT(wpkg_architecture::architecture::find_processor(str + processor->f_name, false) == nullptr);
-        CPPUNIT_ASSERT(wpkg_architecture::architecture::find_processor(str + processor->f_name, true) == nullptr);
+        CATCH_REQUIRE((wpkg_architecture::architecture::find_processor(str + processor->f_name, false) == nullptr));
+        CATCH_REQUIRE((wpkg_architecture::architecture::find_processor(str + processor->f_name, true) == nullptr));
 
         // the aliases vary dramatically depending on the processor and
         // we do not have a list of all possibilities but instead we use
@@ -150,16 +143,16 @@ void ArchitectureUnitTests::verify_processors()
                 ss << processor->f_name << idx;
                 if(ss.str() != "arm64") // yeah... funny test!
                 {
-                    CPPUNIT_ASSERT(wpkg_architecture::architecture::find_processor(ss.str(), false) != processor);
-                    CPPUNIT_ASSERT(wpkg_architecture::architecture::find_processor(ss.str(), true) == processor);
+                    CATCH_REQUIRE(wpkg_architecture::architecture::find_processor(ss.str(), false) != processor);
+                    CATCH_REQUIRE(wpkg_architecture::architecture::find_processor(ss.str(), true) == processor);
                 }
             }
             {
                 // but we forbid invalid (unwanted) characters such as '-'
                 std::stringstream ss;
                 ss << processor->f_name << "-";
-                CPPUNIT_ASSERT(wpkg_architecture::architecture::find_processor(ss.str(), false) != processor);
-                CPPUNIT_ASSERT(wpkg_architecture::architecture::find_processor(ss.str(), true) != processor);
+                CATCH_REQUIRE(wpkg_architecture::architecture::find_processor(ss.str(), false) != processor);
+                CATCH_REQUIRE(wpkg_architecture::architecture::find_processor(ss.str(), true) != processor);
             }
         }
         else
@@ -168,16 +161,16 @@ void ArchitectureUnitTests::verify_processors()
             if(strcmp(processor->f_name, "arm64") != 0
             && strcmp(processor->f_name, "armeb") != 0)
             {
-                CPPUNIT_ASSERT(wpkg_architecture::architecture::find_processor(processor->f_name + str, false) == nullptr);
-                CPPUNIT_ASSERT(wpkg_architecture::architecture::find_processor(processor->f_name + str, true) == nullptr);
+                CATCH_REQUIRE((wpkg_architecture::architecture::find_processor(processor->f_name + str, false) == nullptr));
+                CATCH_REQUIRE((wpkg_architecture::architecture::find_processor(processor->f_name + str, true) == nullptr));
             }
 
             if(strcmp(processor->f_name, "arm64") == 0
             || strcmp(processor->f_name, "mips") == 0
             || strcmp(processor->f_name, "powerpc") == 0)
             {
-                CPPUNIT_ASSERT(wpkg_architecture::architecture::find_processor(processor->f_other_names, false) != processor);
-                CPPUNIT_ASSERT(wpkg_architecture::architecture::find_processor(processor->f_other_names, true) == processor);
+                CATCH_REQUIRE(wpkg_architecture::architecture::find_processor(processor->f_other_names, false) != processor);
+                CATCH_REQUIRE(wpkg_architecture::architecture::find_processor(processor->f_other_names, true) == processor);
             }
             else if(strcmp(processor->f_name, "armeb") == 0)
             {
@@ -185,40 +178,40 @@ void ArchitectureUnitTests::verify_processors()
                 {
                     std::stringstream ss;
                     ss << "arm" << idx << "b";
-                    CPPUNIT_ASSERT(wpkg_architecture::architecture::find_processor(ss.str(), false) != processor);
-                    CPPUNIT_ASSERT(wpkg_architecture::architecture::find_processor(ss.str(), true) == processor);
+                    CATCH_REQUIRE(wpkg_architecture::architecture::find_processor(ss.str(), false) != processor);
+                    CATCH_REQUIRE(wpkg_architecture::architecture::find_processor(ss.str(), true) == processor);
                 }
                 // but we forbid invalid (unwanted) characters such as '-'
-                CPPUNIT_ASSERT(wpkg_architecture::architecture::find_processor("arm-b", false) != processor);
-                CPPUNIT_ASSERT(wpkg_architecture::architecture::find_processor("arm-b", true) != processor);
+                CATCH_REQUIRE(wpkg_architecture::architecture::find_processor("arm-b", false) != processor);
+                CATCH_REQUIRE(wpkg_architecture::architecture::find_processor("arm-b", true) != processor);
             }
         }
     }
 }
 
 
-void ArchitectureUnitTests::verify_architecture()
+CATCH_TEST_CASE( "ArchitectureUnitTests::verify_architecture", "ArchitectureUnitTests" )
 {
     // empty architecture
     wpkg_architecture::architecture empty;
-    CPPUNIT_ASSERT(empty.empty());
-    CPPUNIT_ASSERT(!empty.is_pattern());
-    CPPUNIT_ASSERT(!empty.is_source());
-    CPPUNIT_ASSERT(!empty.is_unix());
-    CPPUNIT_ASSERT(!empty.is_mswindows());
-    CPPUNIT_ASSERT(empty.get_os().empty());
-    CPPUNIT_ASSERT(empty.get_vendor().empty());
-    CPPUNIT_ASSERT(empty.get_processor().empty());
-    CPPUNIT_ASSERT(empty.to_string().empty());
-    CPPUNIT_ASSERT(!empty.ignore_vendor());
-    CPPUNIT_ASSERT(static_cast<std::string>(empty).empty());
-    CPPUNIT_ASSERT(!static_cast<bool>(empty));
-    CPPUNIT_ASSERT(!empty);
+    CATCH_REQUIRE(empty.empty());
+    CATCH_REQUIRE(!empty.is_pattern());
+    CATCH_REQUIRE(!empty.is_source());
+    CATCH_REQUIRE(!empty.is_unix());
+    CATCH_REQUIRE(!empty.is_mswindows());
+    CATCH_REQUIRE(empty.get_os().empty());
+    CATCH_REQUIRE(empty.get_vendor().empty());
+    CATCH_REQUIRE(empty.get_processor().empty());
+    CATCH_REQUIRE(empty.to_string().empty());
+    CATCH_REQUIRE(!empty.ignore_vendor());
+    CATCH_REQUIRE(static_cast<std::string>(empty).empty());
+    CATCH_REQUIRE(!static_cast<bool>(empty));
+    CATCH_REQUIRE(!empty);
 
     empty.set_ignore_vendor(true);
-    CPPUNIT_ASSERT(empty.ignore_vendor());
+    CATCH_REQUIRE(empty.ignore_vendor());
     empty.set_ignore_vendor(false);
-    CPPUNIT_ASSERT(!empty.ignore_vendor());
+    CATCH_REQUIRE(!empty.ignore_vendor());
 
     // test all combos, after all we do not really have any limits...
     {
@@ -249,130 +242,130 @@ void ArchitectureUnitTests::verify_architecture()
                         ss << os->f_name << "-" << processor->f_name;
                         wpkg_architecture::architecture arch(ss.str());
 
-                        CPPUNIT_ASSERT(!arch.empty());
+                        CATCH_REQUIRE(!arch.empty());
                         if(strcmp(os->f_name, "any") == 0
                         || strcmp(processor->f_name, "any") == 0)
                         {
-                            CPPUNIT_ASSERT(arch.is_pattern());
+                            CATCH_REQUIRE(arch.is_pattern());
                         }
                         else
                         {
-                            CPPUNIT_ASSERT(!arch.is_pattern());
+                            CATCH_REQUIRE(!arch.is_pattern());
                         }
-                        CPPUNIT_ASSERT(arch.is_source() ^ (arch.get_processor() != "source"));
+                        CATCH_REQUIRE((arch.is_source() ^ (arch.get_processor() != "source")));
                         if(arch.get_os() == "all"
                         || arch.get_os() == "any")
                         {
-                            CPPUNIT_ASSERT(!arch.is_unix());
-                            CPPUNIT_ASSERT(!arch.is_mswindows());
+                            CATCH_REQUIRE(!arch.is_unix());
+                            CATCH_REQUIRE(!arch.is_mswindows());
                         }
                         else if(arch.get_os() == "mswindows")
                         {
-                            CPPUNIT_ASSERT(!arch.is_unix());
-                            CPPUNIT_ASSERT(arch.is_mswindows());
+                            CATCH_REQUIRE(!arch.is_unix());
+                            CATCH_REQUIRE(arch.is_mswindows());
                         }
                         else
                         {
-                            CPPUNIT_ASSERT(arch.is_unix());
-                            CPPUNIT_ASSERT(!arch.is_mswindows());
+                            CATCH_REQUIRE(arch.is_unix());
+                            CATCH_REQUIRE(!arch.is_mswindows());
                         }
-                        CPPUNIT_ASSERT(arch.get_os() == os->f_name);
-                        CPPUNIT_ASSERT(arch.get_vendor() == wpkg_architecture::architecture::UNKNOWN_VENDOR);
-                        CPPUNIT_ASSERT(arch.get_processor() == processor->f_name);
-                        CPPUNIT_ASSERT(!arch.ignore_vendor());
+                        CATCH_REQUIRE(arch.get_os() == os->f_name);
+                        CATCH_REQUIRE(arch.get_vendor() == wpkg_architecture::architecture::UNKNOWN_VENDOR);
+                        CATCH_REQUIRE(arch.get_processor() == processor->f_name);
+                        CATCH_REQUIRE(!arch.ignore_vendor());
                         if(strcmp(os->f_name, "any") == 0
                         && strcmp(processor->f_name, "any") == 0)
                         {
-                            CPPUNIT_ASSERT(arch.to_string() == "any");
-                            CPPUNIT_ASSERT(static_cast<std::string>(arch) == "any");
+                            CATCH_REQUIRE(arch.to_string() == "any");
+                            CATCH_REQUIRE(static_cast<std::string>(arch) == "any");
                         }
                         else
                         {
-                            CPPUNIT_ASSERT(arch.to_string() == ss.str());
-                            CPPUNIT_ASSERT(static_cast<std::string>(arch) == ss.str());
+                            CATCH_REQUIRE(arch.to_string() == ss.str());
+                            CATCH_REQUIRE(static_cast<std::string>(arch) == ss.str());
                         }
-                        CPPUNIT_ASSERT(static_cast<bool>(arch));
-                        CPPUNIT_ASSERT(!!arch);
+                        CATCH_REQUIRE(static_cast<bool>(arch));
+                        CATCH_REQUIRE(!!arch);
                         if(strcmp(os->f_name, "any") == 0
                         && strcmp(processor->f_name, "any") == 0)
                         {
-                            CPPUNIT_ASSERT(arch == empty);
+                            CATCH_REQUIRE(arch == empty);
                         }
                         else
                         {
-                            CPPUNIT_ASSERT(arch != empty);
+                            CATCH_REQUIRE(arch != empty);
                         }
 
                         // Test a copy of partial architecture
                         wpkg_architecture::architecture copy(arch);
 
-                        CPPUNIT_ASSERT(!copy.empty());
+                        CATCH_REQUIRE(!copy.empty());
                         if(strcmp(os->f_name, "any") == 0
                         || strcmp(processor->f_name, "any") == 0)
                         {
-                            CPPUNIT_ASSERT(copy.is_pattern());
+                            CATCH_REQUIRE(copy.is_pattern());
                         }
                         else
                         {
-                            CPPUNIT_ASSERT(!copy.is_pattern());
+                            CATCH_REQUIRE(!copy.is_pattern());
                         }
-                        CPPUNIT_ASSERT(copy.is_source() ^ (copy.get_processor() != "source"));
+                        CATCH_REQUIRE((copy.is_source() ^ (copy.get_processor() != "source")));
                         if(copy.get_os() == "all"
                         || copy.get_os() == "any")
                         {
-                            CPPUNIT_ASSERT(!copy.is_unix());
-                            CPPUNIT_ASSERT(!copy.is_mswindows());
+                            CATCH_REQUIRE(!copy.is_unix());
+                            CATCH_REQUIRE(!copy.is_mswindows());
                         }
                         else if(copy.get_os() == "mswindows")
                         {
-                            CPPUNIT_ASSERT(!copy.is_unix());
-                            CPPUNIT_ASSERT(copy.is_mswindows());
+                            CATCH_REQUIRE(!copy.is_unix());
+                            CATCH_REQUIRE(copy.is_mswindows());
                         }
                         else
                         {
-                            CPPUNIT_ASSERT(copy.is_unix());
-                            CPPUNIT_ASSERT(!copy.is_mswindows());
+                            CATCH_REQUIRE(copy.is_unix());
+                            CATCH_REQUIRE(!copy.is_mswindows());
                         }
-                        CPPUNIT_ASSERT(copy.get_os() == os->f_name);
-                        CPPUNIT_ASSERT(copy.get_vendor() == wpkg_architecture::architecture::UNKNOWN_VENDOR);
-                        CPPUNIT_ASSERT(copy.get_processor() == processor->f_name);
-                        CPPUNIT_ASSERT(!copy.ignore_vendor());
+                        CATCH_REQUIRE(copy.get_os() == os->f_name);
+                        CATCH_REQUIRE(copy.get_vendor() == wpkg_architecture::architecture::UNKNOWN_VENDOR);
+                        CATCH_REQUIRE(copy.get_processor() == processor->f_name);
+                        CATCH_REQUIRE(!copy.ignore_vendor());
                         if(strcmp(os->f_name, "any") == 0
                         && strcmp(processor->f_name, "any") == 0)
                         {
-                            CPPUNIT_ASSERT(copy.to_string() == "any");
-                            CPPUNIT_ASSERT(static_cast<std::string>(copy) == "any");
+                            CATCH_REQUIRE(copy.to_string() == "any");
+                            CATCH_REQUIRE(static_cast<std::string>(copy) == "any");
                         }
                         else
                         {
-                            CPPUNIT_ASSERT(copy.to_string() == ss.str());
-                            CPPUNIT_ASSERT(static_cast<std::string>(copy) == ss.str());
+                            CATCH_REQUIRE(copy.to_string() == ss.str());
+                            CATCH_REQUIRE(static_cast<std::string>(copy) == ss.str());
                         }
-                        CPPUNIT_ASSERT(static_cast<bool>(copy));
-                        CPPUNIT_ASSERT(!!copy);
+                        CATCH_REQUIRE(static_cast<bool>(copy));
+                        CATCH_REQUIRE(!!copy);
                         if(strcmp(os->f_name, "any") == 0
                         && strcmp(processor->f_name, "any") == 0)
                         {
-                            CPPUNIT_ASSERT(copy == empty);
+                            CATCH_REQUIRE(copy == empty);
                         }
                         else
                         {
-                            CPPUNIT_ASSERT(copy != empty);
+                            CATCH_REQUIRE(copy != empty);
                         }
 
                         // we can compare with limits
-                        CPPUNIT_ASSERT(arch == copy);
-                        CPPUNIT_ASSERT(copy == arch);
-                        CPPUNIT_ASSERT(!(arch != copy));
-                        CPPUNIT_ASSERT(!(copy != arch));
-                        CPPUNIT_ASSERT(!(arch < copy));
-                        CPPUNIT_ASSERT(!(arch > copy));
-                        CPPUNIT_ASSERT(!(copy < arch));
-                        CPPUNIT_ASSERT(!(copy > arch));
-                        CPPUNIT_ASSERT(arch <= copy);
-                        CPPUNIT_ASSERT(arch >= copy);
-                        CPPUNIT_ASSERT(copy <= arch);
-                        CPPUNIT_ASSERT(copy >= arch);
+                        CATCH_REQUIRE(arch == copy);
+                        CATCH_REQUIRE(copy == arch);
+                        CATCH_REQUIRE(!(arch != copy));
+                        CATCH_REQUIRE(!(copy != arch));
+                        CATCH_REQUIRE(!(arch < copy));
+                        CATCH_REQUIRE(!(arch > copy));
+                        CATCH_REQUIRE(!(copy < arch));
+                        CATCH_REQUIRE(!(copy > arch));
+                        CATCH_REQUIRE(arch <= copy);
+                        CATCH_REQUIRE(arch >= copy);
+                        CATCH_REQUIRE(copy <= arch);
+                        CATCH_REQUIRE(copy >= arch);
                     }
 
                     // With Vendor
@@ -381,211 +374,211 @@ void ArchitectureUnitTests::verify_architecture()
                         ss << os->f_name << "-" << *v << "-" << processor->f_name;
                         wpkg_architecture::architecture arch(ss.str());
 
-                        CPPUNIT_ASSERT(!arch.empty());
+                        CATCH_REQUIRE(!arch.empty());
                         if(strcmp(os->f_name, "any") == 0
                         || strcmp(*v, "any") == 0
                         || strcmp(processor->f_name, "any") == 0)
                         {
-                            CPPUNIT_ASSERT(arch.is_pattern());
+                            CATCH_REQUIRE(arch.is_pattern());
                         }
                         else
                         {
-                            CPPUNIT_ASSERT(!arch.is_pattern());
+                            CATCH_REQUIRE(!arch.is_pattern());
                         }
-                        CPPUNIT_ASSERT(arch.is_source() ^ (arch.get_processor() != "source"));
+                        CATCH_REQUIRE((arch.is_source() ^ (arch.get_processor() != "source")));
                         if(arch.get_os() == "all"
                         || arch.get_os() == "any")
                         {
-                            CPPUNIT_ASSERT(!arch.is_unix());
-                            CPPUNIT_ASSERT(!arch.is_mswindows());
+                            CATCH_REQUIRE(!arch.is_unix());
+                            CATCH_REQUIRE(!arch.is_mswindows());
                         }
                         else if(arch.get_os() == "mswindows")
                         {
-                            CPPUNIT_ASSERT(!arch.is_unix());
-                            CPPUNIT_ASSERT(arch.is_mswindows());
+                            CATCH_REQUIRE(!arch.is_unix());
+                            CATCH_REQUIRE(arch.is_mswindows());
                         }
                         else
                         {
-                            CPPUNIT_ASSERT(arch.is_unix());
-                            CPPUNIT_ASSERT(!arch.is_mswindows());
+                            CATCH_REQUIRE(arch.is_unix());
+                            CATCH_REQUIRE(!arch.is_mswindows());
                         }
-                        CPPUNIT_ASSERT(arch.get_os() == os->f_name);
-                        CPPUNIT_ASSERT(arch.get_vendor() == *v);
-                        CPPUNIT_ASSERT(arch.get_processor() == processor->f_name);
-                        CPPUNIT_ASSERT(!arch.ignore_vendor());
+                        CATCH_REQUIRE(arch.get_os() == os->f_name);
+                        CATCH_REQUIRE(arch.get_vendor() == *v);
+                        CATCH_REQUIRE(arch.get_processor() == processor->f_name);
+                        CATCH_REQUIRE(!arch.ignore_vendor());
                         if(strcmp(os->f_name, "any") == 0
                         && strcmp(*v, "any") == 0
                         && strcmp(processor->f_name, "any") == 0)
                         {
-                            CPPUNIT_ASSERT(arch.to_string() == "any");
-                            CPPUNIT_ASSERT(static_cast<std::string>(arch) == "any");
+                            CATCH_REQUIRE(arch.to_string() == "any");
+                            CATCH_REQUIRE(static_cast<std::string>(arch) == "any");
                         }
                         else
                         {
-                            CPPUNIT_ASSERT(arch.to_string() == ss.str());
-                            CPPUNIT_ASSERT(static_cast<std::string>(arch) == ss.str());
+                            CATCH_REQUIRE(arch.to_string() == ss.str());
+                            CATCH_REQUIRE(static_cast<std::string>(arch) == ss.str());
                         }
-                        CPPUNIT_ASSERT(static_cast<bool>(arch));
-                        CPPUNIT_ASSERT(!!arch);
+                        CATCH_REQUIRE(static_cast<bool>(arch));
+                        CATCH_REQUIRE(!!arch);
                         if(strcmp(os->f_name, "any") == 0
                         && strcmp(*v, "any") == 0
                         && strcmp(processor->f_name, "any") == 0)
                         {
-                            CPPUNIT_ASSERT(arch == empty);
+                            CATCH_REQUIRE(arch == empty);
                         }
                         else
                         {
-                            CPPUNIT_ASSERT(arch != empty);
+                            CATCH_REQUIRE(arch != empty);
                         }
 
                         // Test copy of full arch.
                         wpkg_architecture::architecture copy(arch);
 
-                        CPPUNIT_ASSERT(!copy.empty());
+                        CATCH_REQUIRE(!copy.empty());
                         if(strcmp(os->f_name, "any") == 0
                         || strcmp(*v, "any") == 0
                         || strcmp(processor->f_name, "any") == 0)
                         {
-                            CPPUNIT_ASSERT(copy.is_pattern());
+                            CATCH_REQUIRE(copy.is_pattern());
                         }
                         else
                         {
-                            CPPUNIT_ASSERT(!copy.is_pattern());
+                            CATCH_REQUIRE(!copy.is_pattern());
                         }
-                        CPPUNIT_ASSERT(copy.is_source() ^ (copy.get_processor() != "source"));
+                        CATCH_REQUIRE((copy.is_source() ^ (copy.get_processor() != "source")));
                         if(copy.get_os() == "all"
                         || copy.get_os() == "any")
                         {
-                            CPPUNIT_ASSERT(!copy.is_unix());
-                            CPPUNIT_ASSERT(!copy.is_mswindows());
+                            CATCH_REQUIRE(!copy.is_unix());
+                            CATCH_REQUIRE(!copy.is_mswindows());
                         }
                         else if(copy.get_os() == "mswindows")
                         {
-                            CPPUNIT_ASSERT(!copy.is_unix());
-                            CPPUNIT_ASSERT(copy.is_mswindows());
+                            CATCH_REQUIRE(!copy.is_unix());
+                            CATCH_REQUIRE(copy.is_mswindows());
                         }
                         else
                         {
-                            CPPUNIT_ASSERT(copy.is_unix());
-                            CPPUNIT_ASSERT(!copy.is_mswindows());
+                            CATCH_REQUIRE(copy.is_unix());
+                            CATCH_REQUIRE(!copy.is_mswindows());
                         }
-                        CPPUNIT_ASSERT(copy.get_os() == os->f_name);
-                        CPPUNIT_ASSERT(copy.get_vendor() == *v);
-                        CPPUNIT_ASSERT(copy.get_processor() == processor->f_name);
-                        CPPUNIT_ASSERT(!copy.ignore_vendor());
+                        CATCH_REQUIRE(copy.get_os() == os->f_name);
+                        CATCH_REQUIRE(copy.get_vendor() == *v);
+                        CATCH_REQUIRE(copy.get_processor() == processor->f_name);
+                        CATCH_REQUIRE(!copy.ignore_vendor());
                         if(strcmp(os->f_name, "any") == 0
                         && strcmp(*v, "any") == 0
                         && strcmp(processor->f_name, "any") == 0)
                         {
-                            CPPUNIT_ASSERT(copy.to_string() == "any");
-                            CPPUNIT_ASSERT(static_cast<std::string>(copy) == "any");
+                            CATCH_REQUIRE(copy.to_string() == "any");
+                            CATCH_REQUIRE(static_cast<std::string>(copy) == "any");
                         }
                         else
                         {
-                            CPPUNIT_ASSERT(copy.to_string() == ss.str());
-                            CPPUNIT_ASSERT(static_cast<std::string>(copy) == ss.str());
+                            CATCH_REQUIRE(copy.to_string() == ss.str());
+                            CATCH_REQUIRE(static_cast<std::string>(copy) == ss.str());
                         }
-                        CPPUNIT_ASSERT(static_cast<bool>(copy));
-                        CPPUNIT_ASSERT(!!copy);
+                        CATCH_REQUIRE(static_cast<bool>(copy));
+                        CATCH_REQUIRE(!!copy);
                         if(strcmp(os->f_name, "any") == 0
                         && strcmp(*v, "any") == 0
                         && strcmp(processor->f_name, "any") == 0)
                         {
-                            CPPUNIT_ASSERT(copy == empty);
+                            CATCH_REQUIRE(copy == empty);
                         }
                         else
                         {
-                            CPPUNIT_ASSERT(copy != empty);
+                            CATCH_REQUIRE(copy != empty);
                         }
 
                         // we can compare with limits
-                        CPPUNIT_ASSERT(arch == copy);
-                        CPPUNIT_ASSERT(copy == arch);
-                        CPPUNIT_ASSERT(!(arch != copy));
-                        CPPUNIT_ASSERT(!(copy != arch));
-                        CPPUNIT_ASSERT(!(arch < copy));
-                        CPPUNIT_ASSERT(!(arch > copy));
-                        CPPUNIT_ASSERT(!(copy < arch));
-                        CPPUNIT_ASSERT(!(copy > arch));
-                        CPPUNIT_ASSERT(arch <= copy);
-                        CPPUNIT_ASSERT(arch >= copy);
-                        CPPUNIT_ASSERT(copy <= arch);
-                        CPPUNIT_ASSERT(copy >= arch);
+                        CATCH_REQUIRE(arch == copy);
+                        CATCH_REQUIRE(copy == arch);
+                        CATCH_REQUIRE(!(arch != copy));
+                        CATCH_REQUIRE(!(copy != arch));
+                        CATCH_REQUIRE(!(arch < copy));
+                        CATCH_REQUIRE(!(arch > copy));
+                        CATCH_REQUIRE(!(copy < arch));
+                        CATCH_REQUIRE(!(copy > arch));
+                        CATCH_REQUIRE(arch <= copy);
+                        CATCH_REQUIRE(arch >= copy);
+                        CATCH_REQUIRE(copy <= arch);
+                        CATCH_REQUIRE(copy >= arch);
 
                         // Test the set() function directly
                         wpkg_architecture::architecture set;
                         set.set(arch);
 
-                        CPPUNIT_ASSERT(!set.empty());
+                        CATCH_REQUIRE(!set.empty());
                         if(strcmp(os->f_name, "any") == 0
                         || strcmp(*v, "any") == 0
                         || strcmp(processor->f_name, "any") == 0)
                         {
-                            CPPUNIT_ASSERT(set.is_pattern());
+                            CATCH_REQUIRE(set.is_pattern());
                         }
                         else
                         {
-                            CPPUNIT_ASSERT(!set.is_pattern());
+                            CATCH_REQUIRE(!set.is_pattern());
                         }
-                        CPPUNIT_ASSERT(set.is_source() ^ (set.get_processor() != "source"));
+                        CATCH_REQUIRE((set.is_source() ^ (set.get_processor() != "source")));
                         if(set.get_os() == "all"
                         || set.get_os() == "any")
                         {
-                            CPPUNIT_ASSERT(!set.is_unix());
-                            CPPUNIT_ASSERT(!set.is_mswindows());
+                            CATCH_REQUIRE(!set.is_unix());
+                            CATCH_REQUIRE(!set.is_mswindows());
                         }
                         else if(set.get_os() == "mswindows")
                         {
-                            CPPUNIT_ASSERT(!set.is_unix());
-                            CPPUNIT_ASSERT(set.is_mswindows());
+                            CATCH_REQUIRE(!set.is_unix());
+                            CATCH_REQUIRE(set.is_mswindows());
                         }
                         else
                         {
-                            CPPUNIT_ASSERT(set.is_unix());
-                            CPPUNIT_ASSERT(!set.is_mswindows());
+                            CATCH_REQUIRE(set.is_unix());
+                            CATCH_REQUIRE(!set.is_mswindows());
                         }
-                        CPPUNIT_ASSERT(set.get_os() == os->f_name);
-                        CPPUNIT_ASSERT(set.get_vendor() == *v);
-                        CPPUNIT_ASSERT(set.get_processor() == processor->f_name);
-                        CPPUNIT_ASSERT(!set.ignore_vendor());
+                        CATCH_REQUIRE(set.get_os() == os->f_name);
+                        CATCH_REQUIRE(set.get_vendor() == *v);
+                        CATCH_REQUIRE(set.get_processor() == processor->f_name);
+                        CATCH_REQUIRE(!set.ignore_vendor());
                         if(strcmp(os->f_name, "any") == 0
                         && strcmp(*v, "any") == 0
                         && strcmp(processor->f_name, "any") == 0)
                         {
-                            CPPUNIT_ASSERT(set.to_string() == "any");
-                            CPPUNIT_ASSERT(static_cast<std::string>(set) == "any");
+                            CATCH_REQUIRE(set.to_string() == "any");
+                            CATCH_REQUIRE(static_cast<std::string>(set) == "any");
                         }
                         else
                         {
-                            CPPUNIT_ASSERT(set.to_string() == ss.str());
-                            CPPUNIT_ASSERT(static_cast<std::string>(set) == ss.str());
+                            CATCH_REQUIRE(set.to_string() == ss.str());
+                            CATCH_REQUIRE(static_cast<std::string>(set) == ss.str());
                         }
-                        CPPUNIT_ASSERT(static_cast<bool>(set));
-                        CPPUNIT_ASSERT(!!set);
+                        CATCH_REQUIRE(static_cast<bool>(set));
+                        CATCH_REQUIRE(!!set);
                         if(strcmp(os->f_name, "any") == 0
                         && strcmp(*v, "any") == 0
                         && strcmp(processor->f_name, "any") == 0)
                         {
-                            CPPUNIT_ASSERT(set == empty);
+                            CATCH_REQUIRE(set == empty);
                         }
                         else
                         {
-                            CPPUNIT_ASSERT(set != empty);
+                            CATCH_REQUIRE(set != empty);
                         }
 
                         // we can compare with limits
-                        CPPUNIT_ASSERT(arch == set);
-                        CPPUNIT_ASSERT(set == arch);
-                        CPPUNIT_ASSERT(!(arch != set));
-                        CPPUNIT_ASSERT(!(set != arch));
-                        CPPUNIT_ASSERT(!(arch < set));
-                        CPPUNIT_ASSERT(!(arch > set));
-                        CPPUNIT_ASSERT(!(set < arch));
-                        CPPUNIT_ASSERT(!(set > arch));
-                        CPPUNIT_ASSERT(arch <= set);
-                        CPPUNIT_ASSERT(arch >= set);
-                        CPPUNIT_ASSERT(set <= arch);
-                        CPPUNIT_ASSERT(set >= arch);
+                        CATCH_REQUIRE(arch == set);
+                        CATCH_REQUIRE(set == arch);
+                        CATCH_REQUIRE(!(arch != set));
+                        CATCH_REQUIRE(!(set != arch));
+                        CATCH_REQUIRE(!(arch < set));
+                        CATCH_REQUIRE(!(arch > set));
+                        CATCH_REQUIRE(!(set < arch));
+                        CATCH_REQUIRE(!(set > arch));
+                        CATCH_REQUIRE(arch <= set);
+                        CATCH_REQUIRE(arch >= set);
+                        CATCH_REQUIRE(set <= arch);
+                        CATCH_REQUIRE(set >= arch);
 
                         for(const wpkg_architecture::architecture::os_t *sub_os(wpkg_architecture::architecture::os_list()); sub_os->f_name != nullptr; ++sub_os)
                         {
@@ -637,18 +630,18 @@ void ArchitectureUnitTests::verify_architecture()
                                                 pattern_equal = strcmp(processor->f_name, sub_processor->f_name) == 0;
                                             }
                                         }
-                                        CPPUNIT_ASSERT((arch == sub_arch) ^ !pattern_equal);
-                                        CPPUNIT_ASSERT((sub_arch == arch) ^ !pattern_equal);
-                                        CPPUNIT_ASSERT((arch != sub_arch) ^ pattern_equal);
-                                        CPPUNIT_ASSERT((sub_arch != arch) ^ pattern_equal);
+                                        CATCH_REQUIRE(((arch == sub_arch) ^ !pattern_equal));
+                                        CATCH_REQUIRE(((sub_arch == arch) ^ !pattern_equal));
+                                        CATCH_REQUIRE(((arch != sub_arch) ^ pattern_equal));
+                                        CATCH_REQUIRE(((sub_arch != arch) ^ pattern_equal));
                                     }
                                     else
                                     {
                                         // compare as is
-                                        CPPUNIT_ASSERT((arch == sub_arch) ^ !equal);
-                                        CPPUNIT_ASSERT((sub_arch == arch) ^ !equal);
-                                        CPPUNIT_ASSERT((arch != sub_arch) ^ equal);
-                                        CPPUNIT_ASSERT((sub_arch != arch) ^ equal);
+                                        CATCH_REQUIRE(((arch == sub_arch) ^ !equal));
+                                        CATCH_REQUIRE(((sub_arch == arch) ^ !equal));
+                                        CATCH_REQUIRE(((arch != sub_arch) ^ equal));
+                                        CATCH_REQUIRE(((sub_arch != arch) ^ equal));
                                     }
 
                                     std::string arch_str(ss.str());
@@ -658,15 +651,15 @@ void ArchitectureUnitTests::verify_architecture()
 
                                     bool const less(arch_str < sub_arch_str);
 //std::cerr << "converted for '<' [" << arch_str << "] < [" << sub_arch_str << "] -> " << less << "\n";
-                                    CPPUNIT_ASSERT((arch < sub_arch) ^ !less);
-                                    CPPUNIT_ASSERT((arch > sub_arch) ^ (less | equal));
-                                    CPPUNIT_ASSERT((sub_arch < arch) ^ (less | equal));
-                                    CPPUNIT_ASSERT((sub_arch > arch) ^ !less);
+                                    CATCH_REQUIRE(((arch < sub_arch) ^ !less));
+                                    CATCH_REQUIRE(((arch > sub_arch) ^ (less | equal)));
+                                    CATCH_REQUIRE(((sub_arch < arch) ^ (less | equal)));
+                                    CATCH_REQUIRE(((sub_arch > arch) ^ !less));
 
-                                    CPPUNIT_ASSERT((arch <= sub_arch) ^ !(less | equal));
-                                    CPPUNIT_ASSERT((arch >= sub_arch) ^ less);
-                                    CPPUNIT_ASSERT((sub_arch <= arch) ^ less);
-                                    CPPUNIT_ASSERT((sub_arch >= arch) ^ !(less | equal));
+                                    CATCH_REQUIRE(((arch <= sub_arch) ^ !(less | equal)));
+                                    CATCH_REQUIRE(((arch >= sub_arch) ^ less));
+                                    CATCH_REQUIRE(((sub_arch <= arch) ^ less));
+                                    CATCH_REQUIRE(((sub_arch >= arch) ^ !(less | equal)));
                                 }
                             }
                         }

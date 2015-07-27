@@ -19,12 +19,11 @@
  *    Alexis Wilke   alexis@m2osw.com
  */
 
-#include <cppunit/BriefTestProgressListener.h>
-#include <cppunit/CompilerOutputter.h>
-#include <cppunit/extensions/TestFactoryRegistry.h>
-#include <cppunit/TestRunner.h>
-#include <cppunit/TestResult.h>
-#include <cppunit/TestResultCollector.h>
+// Tell catch we want it to add the runner code in this file.
+#define CATCH_CONFIG_RUNNER
+
+#include <catch.hpp>
+
 #include "tools/license.h"
 #include "libdebpackages/advgetopt.h"
 #include "libdebpackages/debian_packages.h"
@@ -34,223 +33,122 @@
 #   include <sys/types.h>
 #   include <unistd.h>
 #endif
-#ifdef HAVE_QT4
-#   include <qxcppunit/testrunner.h>
-#   include <QApplication>
-#endif
 
 
 namespace unittest
 {
-
-std::string   tmp_dir;
-std::string   wpkg_tool;
-
+    std::string   tmp_dir;
+    std::string   wpkg_tool;
 }
 
 
-// Recursive dumps the given Test heirarchy to cout
 namespace
 {
-void dump(CPPUNIT_NS::Test *test, std::string indent)
-{
-    if(test)
+    struct UnitTestCLData
     {
-        std::cout << indent << test->getName() << std::endl;
+        bool        help;
+        bool        license;
+        int         seed;
+        std::string tmp;
+        std::string wpkg;
+        bool        version;
 
-        // recursive for children
-        indent += "  ";
-        int max(test->getChildTestCount());
-        for(int i = 0; i < max; ++i)
+        UnitTestCLData()
+            : help(false)
+            , license(false)
+            , seed(0)
+            //, tmp
+            //, wpkg;
+            , version(false)
         {
-            dump(test->getChildTestAt(i), indent);
-        }
-    }
-}
-
-template<class R>
-void add_tests(const advgetopt::getopt& opt, R& runner)
-{
-    CPPUNIT_NS::Test *root(CPPUNIT_NS::TestFactoryRegistry::getRegistry().makeTest());
-    int max(opt.size("filename"));
-    if(max == 0 || opt.is_defined("all"))
-    {
-        if(max != 0)
-        {
-            fprintf(stderr, "unittest: named tests on the command line will be ignored since --all was used.\n");
-        }
-        CPPUNIT_NS::Test *all_tests(root->findTest("All Tests"));
-        if(all_tests == NULL)
-        {
-            // this should not happen because cppunit throws if they do not find
-            // the test you specify to the findTest() function
-            std::cerr << "error: no tests were found." << std::endl;
-            exit(1);
-        }
-        runner.addTest(all_tests);
-    }
-    else
-    {
-        for(int i = 0; i < max; ++i)
-        {
-            std::string test_name(opt.get_string("filename", i));
-            CPPUNIT_NS::Test *test(root->findTest(test_name));
-            if(test == NULL)
-            {
-                // this should not happen because cppunit throws if they do not find
-                // the test you specify to the findTest() function
-                std::cerr << "error: test \"" << test_name << "\" was not found." << std::endl;
-                exit(1);
-            }
-            runner.addTest(test);
-        }
-    }
-}
-}
-
-int unittest_main(int argc, char *argv[])
-{
-    static const advgetopt::getopt::option options[] = {
-        {
-            '\0',
-            0,
-            NULL,
-            NULL,
-            "Usage: unittest [--opt] [test-name]",
-            advgetopt::getopt::help_argument
-        },
-        {
-            'a',
-            0,
-            "all",
-            NULL,
-            "run all the tests in the console (default)",
-            advgetopt::getopt::no_argument
-        },
-        {
-            'g',
-            0,
-            "gui",
-            NULL,
-            "start the GUI version if available",
-            advgetopt::getopt::no_argument
-        },
-        {
-            'h',
-            0,
-            "help",
-            NULL,
-            "print out this help screen",
-            advgetopt::getopt::no_argument
-        },
-        {
-            '\0',
-            0,
-            "license",
-            NULL,
-            "prints out the license of the tests",
-            advgetopt::getopt::no_argument
-        },
-        {
-            '\0',
-            0,
-            "licence",
-            NULL,
-            NULL, // hide this one from the help screen
-            advgetopt::getopt::no_argument
-        },
-        {
-            'l',
-            0,
-            "list",
-            NULL,
-            "list all the available tests",
-            advgetopt::getopt::no_argument
-        },
-        {
-            'S',
-            0,
-            "seed",
-            NULL,
-            "value to seed the randomizer",
-            advgetopt::getopt::required_argument
-        },
-        {
-            't',
-            0,
-            "tmp",
-            NULL,
-            "path to a temporary directory",
-            advgetopt::getopt::required_argument
-        },
-        {
-            'w',
-            0,
-            "wpkg",
-            NULL,
-            "path to the wpkg executable",
-            advgetopt::getopt::required_argument
-        },
-        {
-            'V',
-            0,
-            "version",
-            NULL,
-            "print out the wpkg project version these unit tests pertain to",
-            advgetopt::getopt::no_argument
-        },
-        {
-            '\0',
-            0,
-            "filename",
-            NULL,
-            NULL, // hidden argument in --help screen
-            advgetopt::getopt::default_multiple_argument
-        },
-        {
-            '\0',
-            0,
-            NULL,
-            NULL,
-            NULL,
-            advgetopt::getopt::end_of_options
         }
     };
 
-    std::vector<std::string> configuration_files;
-    advgetopt::getopt opt(argc, argv, options, configuration_files, "UNITTEST_OPTIONS");
-
-    if(opt.is_defined("help"))
+    void remove_from_args( std::vector<std::string>& vect, const std::string& long_opt, const std::string& short_opt )
     {
-        opt.usage(advgetopt::getopt::no_error, "Usage: unittest [--opt] [test-name]");
-        /*NOTREACHED*/
+        auto iter = std::find_if( vect.begin(), vect.end(), [long_opt, short_opt]( const std::string& arg )
+        {
+            return arg == long_opt || arg == short_opt;
+        });
+        if( iter != vect.end() )
+        {
+            auto next_iter = iter;
+            vect.erase( ++next_iter );
+            vect.erase( iter );
+        }
+    }
+}
+// namespace
+
+
+int unittest_main(int argc, char *argv[])
+{
+    UnitTestCLData configData;
+    Clara::CommandLine<UnitTestCLData> cli;
+
+    cli.bind( &UnitTestCLData::help )
+        .describe( "display usage information" )
+        .shortOpt( "?")
+        .shortOpt( "h")
+        .longOpt( "help" );
+    cli.bind( &UnitTestCLData::license )
+        .describe( "prints out the license of the tests" )
+        .shortOpt( "l")
+        .longOpt( "license" )
+        .longOpt( "licence" );
+    cli.bind( &UnitTestCLData::seed )
+        .describe( "value to seed the randomizerd" )
+        .shortOpt( "S")
+        .longOpt( "seed" )
+        .hint("the_seed");
+    cli.bind( &UnitTestCLData::tmp )
+        .describe( "path to a temporary directory" )
+        .shortOpt( "t")
+        .longOpt( "tmp" )
+        .hint( "path" );
+    cli.bind( &UnitTestCLData::wpkg )
+        .describe( "path to the wpkg executable" )
+        .shortOpt( "w")
+        .longOpt( "wpkg" )
+        .hint( "path" );
+    cli.bind( &UnitTestCLData::version )
+        .describe( "print out the wpkg project version these unit tests pertain to" )
+        .shortOpt( "V")
+        .longOpt( "version" );
+    cli.parseInto( argc, argv, configData );
+
+    if( configData.help )
+    {
+        cli.usage( std::cout, argv[0] );
+        Catch::Session().run(argc, argv);
+        exit(1);
     }
 
-    if(opt.is_defined("version"))
+    if( configData.version )
     {
         printf("%s\n", debian_packages_version_string());
         exit(1);
     }
 
-    if(opt.is_defined("license") || opt.is_defined("licence"))
+    if( configData.license )
     {
         license::license();
         exit(1);
     }
 
-    if(opt.is_defined("list"))
+    std::vector<std::string> arg_list;
+    for( int i = 0; i < argc; ++i )
     {
-        CPPUNIT_NS::Test *all = CPPUNIT_NS::TestFactoryRegistry::getRegistry().makeTest();
-        dump(all, "");
-        exit(1);
+        arg_list.push_back( argv[i] );
     }
 
     // by default we get a different seed each time; that really helps
     // in detecting errors! (I know, I wrote loads of tests before)
     unsigned int seed(static_cast<unsigned int>(time(NULL)));
-    if(opt.is_defined("seed"))
+    if( configData.seed != 0 )
     {
-        seed = static_cast<unsigned int>(opt.get_long("seed"));
+        seed = static_cast<unsigned int>(configData.seed);
+        remove_from_args( arg_list, "--seed", "-s" );
     }
     srand(seed);
     printf("wpkg[%d]:unittest: seed is %d\n", getpid(), seed);
@@ -264,58 +162,24 @@ int unittest_main(int argc, char *argv[])
     putenv(const_cast<char *>("WPKG_SUBST=f=/opt/wpkg|/m2osw/packages:h=usr/local/bin/wpkg"));
 #endif
 
-    if(opt.is_defined("tmp"))
+    if( !configData.tmp.empty() )
     {
-        unittest::tmp_dir = opt.get_string("tmp");
+        unittest::tmp_dir = configData.tmp;
+        remove_from_args( arg_list, "--tmp", "-t" );
     }
-    if(opt.is_defined("wpkg"))
+    if( !configData.wpkg.empty() )
     {
-        unittest::wpkg_tool = opt.get_string("wpkg");
-    }
-
-    if(opt.is_defined("gui"))
-    {
-#ifdef HAVE_QT4
-        QApplication app(argc, argv);
-        QxCppUnit::TestRunner runner;
-        //runner.addTest(CPPUNIT_NS::TestFactoryRegistry::getRegistry().makeTest());
-        add_tests(opt, runner);
-        runner.run();
-#else
-        fprintf(stderr, "error: no GUI compiled in this test, you cannot use the --gui option.\n");
-        exit(1);
-#endif
-    }
-    else
-    {
-        // Create the event manager and test controller
-        CPPUNIT_NS::TestResult controller;
-
-        // Add a listener that colllects test result
-        CPPUNIT_NS::TestResultCollector result;
-        controller.addListener(&result);        
-
-        // Add a listener that print dots as test run.
-        CPPUNIT_NS::BriefTestProgressListener progress;
-        controller.addListener(&progress);      
-
-        CPPUNIT_NS::TestRunner runner;
-
-        add_tests(opt, runner);
-
-        runner.run(controller);
-
-        // Print test in a compiler compatible format.
-        CPPUNIT_NS::CompilerOutputter outputter(&result, CPPUNIT_NS::stdCOut());
-        outputter.write(); 
-
-        if(result.testFailuresTotal())
-        {
-            return 1;
-        }
+        unittest::wpkg_tool = configData.wpkg;
+        remove_from_args( arg_list, "--wpkg", "-w" );
     }
 
-    return 0;
+    std::vector<char*> new_argv;
+    std::for_each( arg_list.begin(), arg_list.end(), [&new_argv]( const std::string& arg )
+    {
+        new_argv.push_back( const_cast<char*>(arg.c_str()) );
+    });
+
+    return Catch::Session().run( static_cast<int>(new_argv.size()), &new_argv[0] );
 }
 
 

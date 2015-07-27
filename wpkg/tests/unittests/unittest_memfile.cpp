@@ -19,102 +19,111 @@
  *    Alexis Wilke   alexis@m2osw.com
  */
 
-#include "unittest_memfile.h"
 #include "libdebpackages/memfile.h"
 
-#include <cppunit/config/SourcePrefix.h>
 #include <string.h>
 #include <time.h>
+#include <catch.hpp>
 
 
 // seed: 1367790804
 
-CPPUNIT_TEST_SUITE_REGISTRATION( MemfileUnitTests );
 
-void MemfileUnitTests::setUp()
+namespace
 {
-}
-
-
-void MemfileUnitTests::compression(int zlevel)
-{
-    memfile::memory_file i;         // input
-    memfile::memory_file z;         // compressed
-    memfile::memory_file t;         // test version (must be == to input)
-
-    // Test 1
-    // create a file of 0 to block_size bytes with all z levels
-    const int block_size = 145 * 1024;
-    char buf[block_size + 1];
-    char tst[block_size + 1];
-    for(int pos = 0; pos < block_size; ++pos)
+    void compression(int zlevel)
     {
-        buf[pos] = rand();
-    }
+        memfile::memory_file i;         // input
+        memfile::memory_file z;         // compressed
+        memfile::memory_file t;         // test version (must be == to input)
 
-    i.create(memfile::memory_file::file_format_other);
-    for(int size = 0; size <= block_size; size += rand() & 0x03FF)
-    {
-        CPPUNIT_ASSERT( i.write(buf, 0, size) == size );
-        i.compress(z, memfile::memory_file::file_format_gz, zlevel);
-        z.decompress(t);
-        memset(tst, 0, size);
-        CPPUNIT_ASSERT( t.read(tst, 0, size) == size );
-        CPPUNIT_ASSERT( memcmp(buf, tst, size) == 0 );
+        // Test 1
+        // create a file of 0 to block_size bytes with all z levels
+        const int block_size = 145 * 1024;
+        char buf[block_size + 1];
+        char tst[block_size + 1];
+        for(int pos = 0; pos < block_size; ++pos)
+        {
+            buf[pos] = rand();
+        }
 
-        CPPUNIT_ASSERT( i.write(buf, 0, size) == size );
-//fprintf(stderr, "Try bz2 compression\n");
-//i.write_file("last-file.raw");
-        i.compress(z, memfile::memory_file::file_format_bz2, zlevel);
-//fprintf(stderr, "Succeeded bz2 compression, expected size = %d\n", size);
-        z.decompress(t);
-        memset(tst, 0, size);
-        CPPUNIT_ASSERT( t.read(tst, 0, size) == size );
-        CPPUNIT_ASSERT( memcmp(buf, tst, size) == 0 );
+        i.create(memfile::memory_file::file_format_other);
+        for(int size = 0; size <= block_size; size += rand() & 0x03FF)
+        {
+            CATCH_REQUIRE( i.write(buf, 0, size) == size );
+            i.compress(z, memfile::memory_file::file_format_gz, zlevel);
+            z.decompress(t);
+            memset(tst, 0, size);
+            CATCH_REQUIRE( t.read(tst, 0, size) == size );
+            CATCH_REQUIRE( memcmp(buf, tst, size) == 0 );
+
+            CATCH_REQUIRE( i.write(buf, 0, size) == size );
+            //fprintf(stderr, "Try bz2 compression\n");
+            //i.write_file("last-file.raw");
+            i.compress(z, memfile::memory_file::file_format_bz2, zlevel);
+            //fprintf(stderr, "Succeeded bz2 compression, expected size = %d\n", size);
+            z.decompress(t);
+            memset(tst, 0, size);
+            CATCH_REQUIRE( t.read(tst, 0, size) == size );
+            CATCH_REQUIRE( memcmp(buf, tst, size) == 0 );
+        }
     }
 }
 
-void MemfileUnitTests::compression1()
+CATCH_TEST_CASE("MemfileUnitTests::buffer1","MemfileUnitTests")
+{
+    //memfile::memory_file::block_manager::buffer_t buf;
+    // TODO:
+    //
+    // Write out some data.
+    // Read it back in, make sure it's correct.
+    // Test the swapfile, make sure it has sane contents.
+    // Make sure that we can swap in and out of memory, and the data stays
+    // consistent.
+    // Make sure the swap file is deleted when the object is destroyed.
+}
+
+CATCH_TEST_CASE("MemfileUnitTests::compression1","MemfileUnitTests")
 {
     compression(1);
 }
 
-void MemfileUnitTests::compression2()
+CATCH_TEST_CASE("MemfileUnitTests::compression2","MemfileUnitTests")
 {
     compression(2);
 }
 
-void MemfileUnitTests::compression3()
+CATCH_TEST_CASE("MemfileUnitTests::compression3","MemfileUnitTests")
 {
     compression(3);
 }
 
-void MemfileUnitTests::compression4()
+CATCH_TEST_CASE("MemfileUnitTests::compression4","MemfileUnitTests")
 {
     compression(4);
 }
 
-void MemfileUnitTests::compression5()
+CATCH_TEST_CASE("MemfileUnitTests::compression5","MemfileUnitTests")
 {
     compression(5);
 }
 
-void MemfileUnitTests::compression6()
+CATCH_TEST_CASE("MemfileUnitTests::compression6","MemfileUnitTests")
 {
     compression(6);
 }
 
-void MemfileUnitTests::compression7()
+CATCH_TEST_CASE("MemfileUnitTests::compression7","MemfileUnitTests")
 {
     compression(7);
 }
 
-void MemfileUnitTests::compression8()
+CATCH_TEST_CASE("MemfileUnitTests::compression8","MemfileUnitTests")
 {
     compression(8);
 }
 
-void MemfileUnitTests::compression9()
+CATCH_TEST_CASE("MemfileUnitTests::compression9","MemfileUnitTests")
 {
     compression(9);
 }

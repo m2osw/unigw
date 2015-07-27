@@ -3352,7 +3352,7 @@ void wpkgar_install::find_dependencies(wpkgar_package_list_t& tree, const wpkgar
                         // Otherwise, we are doing an absurd compare that could never be true.
                         //
                         auto temp_d( d );
-                        temp_d.f_operator = wpkg_dependencies::dependencies::operator_lt;
+                        temp_d.f_operator = wpkg_dependencies::dependencies::operator_le;
                         // this is a match, use it if possible!
                         switch(tree_item.get_type())
                         {

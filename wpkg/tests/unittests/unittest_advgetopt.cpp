@@ -19,40 +19,41 @@
  *    Alexis Wilke   alexis@m2osw.com
  */
 
-#include "unittest_advgetopt.h"
 #include "unittest_main.h"
 #include "libdebpackages/advgetopt.h"
 #include "libdebpackages/memfile.h"
 
-#include <cppunit/config/SourcePrefix.h>
 #include <string.h>
 #include <math.h>
 #include <time.h>
 
-CPPUNIT_TEST_SUITE_REGISTRATION( AdvGetOptUnitTests );
+#include <catch.hpp>
 
 
-void AdvGetOptUnitTests::setUp()
+namespace
 {
-    //wpkg_filename::uri_filename config("~/.config/wpkg/wpkg.conf");
-    //if(config.exists())
-    //{
-    //    fprintf(stderr, "\nerror:unittest_advgetopt: ~/.config/wpkg/wpkg.conf already exists, the advgetopt tests would not work as expected with such. Please delete or rename that file.\n");
-    //    throw std::runtime_error("~/.config/wpkg/wpkg.conf already exists");
-    //}
-    const char *options(getenv("ADVGETOPT_TEST_OPTIONS"));
-    if(options != NULL && *options != '\0')
+    void setUp()
     {
-        fprintf(stderr, "\nerror:unittest_advgetopt: ADVGETOPT_TEST_OPTIONS already exists, the advgetopt tests would not work as expected with such. Please unset that environment variable.\n");
-        throw std::runtime_error("ADVGETOPT_TEST_OPTIONS already exists");
-    }
+        //wpkg_filename::uri_filename config("~/.config/wpkg/wpkg.conf");
+        //if(config.exists())
+        //{
+        //    fprintf(stderr, "\nerror:unittest_advgetopt: ~/.config/wpkg/wpkg.conf already exists, the advgetopt tests would not work as expected with such. Please delete or rename that file.\n");
+        //    throw std::runtime_error("~/.config/wpkg/wpkg.conf already exists");
+        //}
+        const char *options(getenv("ADVGETOPT_TEST_OPTIONS"));
+        if(options != NULL && *options != '\0')
+        {
+            fprintf(stderr, "\nerror:unittest_advgetopt: ADVGETOPT_TEST_OPTIONS already exists, the advgetopt tests would not work as expected with such. Please unset that environment variable.\n");
+            throw std::runtime_error("ADVGETOPT_TEST_OPTIONS already exists");
+        }
 #ifndef ADVGETOPT_THROW_FOR_EXIT
-    fprintf(stderr, "\nwarning:unittest_advgetopt: the ADVGETOPT_THROW_FOR_EXIT flag is not defined, usage() calls will not be tested.\n");
+        fprintf(stderr, "\nwarning:unittest_advgetopt: the ADVGETOPT_THROW_FOR_EXIT flag is not defined, usage() calls will not be tested.\n");
 #endif
+    }
 }
 
 
-void AdvGetOptUnitTests::invalid_parameters()
+CATCH_TEST_CASE( "AdvGetOptUnitTests::invalid_parameters", "AdvGetOptUnitTests" )
 {
     printf("\nAdvanced GetOpt Output:\n");
     // default arguments
@@ -87,7 +88,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         }
     };
     {
-        CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc, argv, options_empty_list, confs, NULL); }, advgetopt::getopt_exception_invalid);
+        CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc, argv, options_empty_list, confs, NULL); }, advgetopt::getopt_exception_invalid);
     }
 
     // option without a name and "wrong" type
@@ -119,7 +120,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         }
     };
     {
-        CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc, argv, options_no_name_list, confs, NULL); }, advgetopt::getopt_exception_invalid);
+        CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc, argv, options_no_name_list, confs, NULL); }, advgetopt::getopt_exception_invalid);
     }
 
     // long options must be 2+ characters
@@ -151,7 +152,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         }
     };
     {
-        CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc, argv, options_2chars_minimum, confs, NULL); }, advgetopt::getopt_exception_invalid);
+        CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc, argv, options_2chars_minimum, confs, NULL); }, advgetopt::getopt_exception_invalid);
     }
 
     // long options must be 2+ characters
@@ -183,7 +184,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         }
     };
     {
-        CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc, argv, options_2chars_minimum2, confs, NULL); }, advgetopt::getopt_exception_invalid);
+        CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc, argv, options_2chars_minimum2, confs, NULL); }, advgetopt::getopt_exception_invalid);
     }
 
     // same long option defined twice
@@ -223,7 +224,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         }
     };
     {
-        CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc, argv, options_defined_twice, confs, NULL); }, advgetopt::getopt_exception_invalid);
+        CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc, argv, options_defined_twice, confs, NULL); }, advgetopt::getopt_exception_invalid);
     }
 
     // same short option defined twice
@@ -263,7 +264,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         }
     };
     {
-        CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc, argv, options_short_defined_twice, confs, "ADVGETOPT_TEST_OPTIONS"); }, advgetopt::getopt_exception_invalid);
+        CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc, argv, options_short_defined_twice, confs, "ADVGETOPT_TEST_OPTIONS"); }, advgetopt::getopt_exception_invalid);
     }
 
     // 2 default_multiple_argument's in the same list is invalid
@@ -303,7 +304,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         }
     };
     {
-        CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc, argv, options_two_default_multiple_arguments, confs, NULL); }, advgetopt::getopt_exception_default);
+        CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc, argv, options_two_default_multiple_arguments, confs, NULL); }, advgetopt::getopt_exception_default);
     }
 
     // 2 default_argument's in the same list is invalid
@@ -343,7 +344,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         }
     };
     {
-        CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc, argv, options_two_default_arguments, confs, NULL); }, advgetopt::getopt_exception_default);
+        CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc, argv, options_two_default_arguments, confs, NULL); }, advgetopt::getopt_exception_default);
     }
 
     // mix of default arguments in the same list is invalid
@@ -383,7 +384,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         }
     };
     {
-        CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc, argv, options_mix_of_default, confs, "ADVGETOPT_TEST_OPTIONS"); }, advgetopt::getopt_exception_default);
+        CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc, argv, options_mix_of_default, confs, "ADVGETOPT_TEST_OPTIONS"); }, advgetopt::getopt_exception_default);
     }
 
 #ifdef ADVGETOPT_THROW_FOR_EXIT
@@ -428,7 +429,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         const int sub_argc = sizeof(sub_cargv) / sizeof(sub_cargv[0]) - 1;
         char **sub_argv = const_cast<char **>(sub_cargv);
 
-        CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(sub_argc, sub_argv, options_no_defaults, confs, NULL); }, advgetopt::getopt_exception_exiting);
+        CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(sub_argc, sub_argv, options_no_defaults, confs, NULL); }, advgetopt::getopt_exception_exiting);
     }
     {
         // a '-' by itself is a problem when there is no default because it
@@ -443,7 +444,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         const int sub_argc = sizeof(sub_cargv) / sizeof(sub_cargv[0]) - 1;
         char **sub_argv = const_cast<char **>(sub_cargv);
 
-        CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(sub_argc, sub_argv, options_no_defaults, confs, NULL); }, advgetopt::getopt_exception_exiting);
+        CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(sub_argc, sub_argv, options_no_defaults, confs, NULL); }, advgetopt::getopt_exception_exiting);
     }
     {
         // the -- by itself would be fine, but since it represents a
@@ -460,7 +461,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         const int sub_argc = sizeof(sub_cargv) / sizeof(sub_cargv[0]) - 1;
         char **sub_argv = const_cast<char **>(sub_cargv);
 
-        CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(sub_argc, sub_argv, options_no_defaults, confs, NULL); }, advgetopt::getopt_exception_exiting);
+        CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(sub_argc, sub_argv, options_no_defaults, confs, NULL); }, advgetopt::getopt_exception_exiting);
     }
     {
         const char *sub_cargv[] =
@@ -478,7 +479,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         const int sub_argc = sizeof(sub_cargv) / sizeof(sub_cargv[0]) - 1;
         char **sub_argv = const_cast<char **>(sub_cargv);
 
-        CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(sub_argc, sub_argv, options_no_defaults, confs, NULL); }, advgetopt::getopt_exception_exiting);
+        CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(sub_argc, sub_argv, options_no_defaults, confs, NULL); }, advgetopt::getopt_exception_exiting);
     }
     {
         // check that -v, that does not exist, generates a usage error
@@ -491,7 +492,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         const int sub_argc = sizeof(sub_cargv) / sizeof(sub_cargv[0]) - 1;
         char **sub_argv = const_cast<char **>(sub_cargv);
 
-        CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(sub_argc, sub_argv, options_no_defaults, confs, NULL); }, advgetopt::getopt_exception_exiting);
+        CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(sub_argc, sub_argv, options_no_defaults, confs, NULL); }, advgetopt::getopt_exception_exiting);
     }
 #endif
 
@@ -547,7 +548,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         const int sub_argc = sizeof(sub_cargv) / sizeof(sub_cargv[0]) - 1;
         char **sub_argv = const_cast<char **>(sub_cargv);
 
-        CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(sub_argc, sub_argv, options_no_defaults_in_envvar, confs, "ADVGETOPT_TEST_OPTIONS"); }, advgetopt::getopt_exception_exiting);
+        CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(sub_argc, sub_argv, options_no_defaults_in_envvar, confs, "ADVGETOPT_TEST_OPTIONS"); }, advgetopt::getopt_exception_exiting);
     }
     {
         unittest::obj_setenv env("ADVGETOPT_TEST_OPTIONS=--verbose no default here");
@@ -564,7 +565,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         const int sub_argc = sizeof(sub_cargv) / sizeof(sub_cargv[0]) - 1;
         char **sub_argv = const_cast<char **>(sub_cargv);
 
-        CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(sub_argc, sub_argv, options_no_defaults_in_envvar, confs, "ADVGETOPT_TEST_OPTIONS"); }, advgetopt::getopt_exception_exiting);
+        CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(sub_argc, sub_argv, options_no_defaults_in_envvar, confs, "ADVGETOPT_TEST_OPTIONS"); }, advgetopt::getopt_exception_exiting);
     }
     {
         unittest::obj_setenv env("ADVGETOPT_TEST_OPTIONS=--verbose -- foo bar blah");
@@ -586,7 +587,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         const int sub_argc = sizeof(sub_cargv) / sizeof(sub_cargv[0]) - 1;
         char **sub_argv = const_cast<char **>(sub_cargv);
 
-        CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(sub_argc, sub_argv, options_no_defaults_in_envvar, confs, "ADVGETOPT_TEST_OPTIONS"); }, advgetopt::getopt_exception_exiting);
+        CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(sub_argc, sub_argv, options_no_defaults_in_envvar, confs, "ADVGETOPT_TEST_OPTIONS"); }, advgetopt::getopt_exception_exiting);
     }
 #endif
 
@@ -629,7 +630,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         const int sub_argc = sizeof(sub_cargv) / sizeof(sub_cargv[0]) - 1;
         char **sub_argv = const_cast<char **>(sub_cargv);
 
-        CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(sub_argc, sub_argv, valid_options_unknown_command_line_option, confs, NULL); }, advgetopt::getopt_exception_exiting);
+        CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(sub_argc, sub_argv, valid_options_unknown_command_line_option, confs, NULL); }, advgetopt::getopt_exception_exiting);
     }
 #endif
 
@@ -665,12 +666,12 @@ void AdvGetOptUnitTests::invalid_parameters()
     {
         // long
         unittest::obj_setenv env("ADVGETOPT_TEST_OPTIONS=--verbose");
-        CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc, argv, options_illegal_in_variable, confs, "ADVGETOPT_TEST_OPTIONS"); }, advgetopt::getopt_exception_exiting);
+        CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc, argv, options_illegal_in_variable, confs, "ADVGETOPT_TEST_OPTIONS"); }, advgetopt::getopt_exception_exiting);
     }
     {
         // short
         unittest::obj_setenv env("ADVGETOPT_TEST_OPTIONS=-v");
-        CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc, argv, options_illegal_in_variable, confs, "ADVGETOPT_TEST_OPTIONS"); }, advgetopt::getopt_exception_exiting);
+        CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc, argv, options_illegal_in_variable, confs, "ADVGETOPT_TEST_OPTIONS"); }, advgetopt::getopt_exception_exiting);
     }
 #endif
 
@@ -703,7 +704,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         }
     };
     {
-        CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc, argv, configuration_long_name_missing, confs, "ADVGETOPT_TEST_OPTIONS"); }, advgetopt::getopt_exception_invalid);
+        CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc, argv, configuration_long_name_missing, confs, "ADVGETOPT_TEST_OPTIONS"); }, advgetopt::getopt_exception_invalid);
     }
 
     // create invalid configuration files
@@ -765,7 +766,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         {
             std::vector<std::string> invalid_confs;
             invalid_confs.push_back(config_filename.full_path());
-            CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc, argv, valid_options, invalid_confs, NULL); }, advgetopt::getopt_exception_exiting);
+            CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc, argv, valid_options, invalid_confs, NULL); }, advgetopt::getopt_exception_exiting);
         }
     }
     {
@@ -781,7 +782,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         {
             std::vector<std::string> invalid_confs;
             invalid_confs.push_back(config_filename.full_path());
-            CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc, argv, valid_options, invalid_confs, NULL); }, advgetopt::getopt_exception_exiting);
+            CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc, argv, valid_options, invalid_confs, NULL); }, advgetopt::getopt_exception_exiting);
         }
     }
     {
@@ -797,7 +798,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         {
             std::vector<std::string> invalid_confs;
             invalid_confs.push_back(config_filename.full_path());
-            CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc, argv, valid_options, invalid_confs, NULL); }, advgetopt::getopt_exception_exiting);
+            CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc, argv, valid_options, invalid_confs, NULL); }, advgetopt::getopt_exception_exiting);
         }
     }
     {
@@ -813,7 +814,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         {
             std::vector<std::string> invalid_confs;
             invalid_confs.push_back(config_filename.full_path());
-            CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc, argv, valid_options, invalid_confs, NULL); }, advgetopt::getopt_exception_exiting);
+            CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc, argv, valid_options, invalid_confs, NULL); }, advgetopt::getopt_exception_exiting);
         }
     }
     {
@@ -829,7 +830,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         {
             std::vector<std::string> invalid_confs;
             invalid_confs.push_back(config_filename.full_path());
-            CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc, argv, valid_options, invalid_confs, NULL); }, advgetopt::getopt_exception_exiting);
+            CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc, argv, valid_options, invalid_confs, NULL); }, advgetopt::getopt_exception_exiting);
         }
     }
     {
@@ -845,7 +846,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         {
             std::vector<std::string> invalid_confs;
             invalid_confs.push_back(config_filename.full_path());
-            CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc, argv, valid_options, invalid_confs, NULL); }, advgetopt::getopt_exception_exiting);
+            CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc, argv, valid_options, invalid_confs, NULL); }, advgetopt::getopt_exception_exiting);
         }
     }
 #endif
@@ -894,7 +895,7 @@ void AdvGetOptUnitTests::invalid_parameters()
             // the one in add_option() is not reachable because it is called only
             // when a default option is defined and that means the mode is
             // correct
-            CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc2, argv2, options, confs, NULL); }, advgetopt::getopt_exception_invalid );
+            CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc2, argv2, options, confs, NULL); }, advgetopt::getopt_exception_invalid );
         }
         {
             const char *cargv2[] =
@@ -911,7 +912,7 @@ void AdvGetOptUnitTests::invalid_parameters()
             advgetopt::getopt opt(argc2, argv2, options, confs, NULL);
             for(int i(static_cast<int>(advgetopt::getopt::no_error)); i <= static_cast<int>(advgetopt::getopt::fatal); ++i)
             {
-                CPPUNIT_ASSERT_THROW( opt.usage(static_cast<advgetopt::getopt::status_t>(i), "test no error, warnings, errors..."), advgetopt::getopt_exception_invalid);
+                CATCH_REQUIRE_THROWS_AS( opt.usage(static_cast<advgetopt::getopt::status_t>(i), "test no error, warnings, errors..."), advgetopt::getopt_exception_invalid);
             }
         }
     }
@@ -1019,41 +1020,41 @@ void AdvGetOptUnitTests::invalid_parameters()
         advgetopt::getopt opt(argc2, argv2, options, confs, "ADVGETOPT_TEST_OPTIONS");
 
         // cannot get the default without a valid name!
-        CPPUNIT_ASSERT_THROW( opt.get_default(""), advgetopt::getopt_exception_undefined);
+        CATCH_REQUIRE_THROWS_AS( opt.get_default(""), advgetopt::getopt_exception_undefined);
 
         // cannot get a long named "blah"
-        CPPUNIT_ASSERT_THROW( opt.get_long("blah"), advgetopt::getopt_exception_undefined);
+        CATCH_REQUIRE_THROWS_AS( opt.get_long("blah"), advgetopt::getopt_exception_undefined);
         // existing "long", but only 1 entry
-        CPPUNIT_ASSERT_THROW( opt.get_long("long", 100), advgetopt::getopt_exception_undefined);
+        CATCH_REQUIRE_THROWS_AS( opt.get_long("long", 100), advgetopt::getopt_exception_undefined);
         long l(-1);
-        CPPUNIT_ASSERT_THROW( l = opt.get_long("not-specified-and-no-default", 0), advgetopt::getopt_exception_undefined);
-        CPPUNIT_ASSERT(l == -1);
-        CPPUNIT_ASSERT_THROW( l = opt.get_long("not-specified-with-invalid-default", 0), advgetopt::getopt_exception_invalid);
-        CPPUNIT_ASSERT(l == -1);
+        CATCH_REQUIRE_THROWS_AS( l = opt.get_long("not-specified-and-no-default", 0), advgetopt::getopt_exception_undefined);
+        CATCH_REQUIRE(l == -1);
+        CATCH_REQUIRE_THROWS_AS( l = opt.get_long("not-specified-with-invalid-default", 0), advgetopt::getopt_exception_invalid);
+        CATCH_REQUIRE(l == -1);
 #ifdef ADVGETOPT_THROW_FOR_EXIT
-        CPPUNIT_ASSERT_THROW( l = opt.get_long("long"), advgetopt::getopt_exception_exiting);
-        CPPUNIT_ASSERT(l == -1);
-        CPPUNIT_ASSERT_THROW( l = opt.get_long("out-of-bounds", 0, 1, 9), advgetopt::getopt_exception_exiting);
-        CPPUNIT_ASSERT(l == -1);
+        CATCH_REQUIRE_THROWS_AS( l = opt.get_long("long"), advgetopt::getopt_exception_exiting);
+        CATCH_REQUIRE(l == -1);
+        CATCH_REQUIRE_THROWS_AS( l = opt.get_long("out-of-bounds", 0, 1, 9), advgetopt::getopt_exception_exiting);
+        CATCH_REQUIRE(l == -1);
 #endif
         std::string s;
-        CPPUNIT_ASSERT_THROW( s = opt.get_string("not-specified-string-without-default", 0), advgetopt::getopt_exception_undefined);
-        CPPUNIT_ASSERT(s.empty());
-        CPPUNIT_ASSERT_THROW( s = opt.get_string("string", 100), advgetopt::getopt_exception_undefined);
-        CPPUNIT_ASSERT(s.empty());
+        CATCH_REQUIRE_THROWS_AS( s = opt.get_string("not-specified-string-without-default", 0), advgetopt::getopt_exception_undefined);
+        CATCH_REQUIRE(s.empty());
+        CATCH_REQUIRE_THROWS_AS( s = opt.get_string("string", 100), advgetopt::getopt_exception_undefined);
+        CATCH_REQUIRE(s.empty());
 
         // reuse all those invalid options with the reset() function
         // and expect the same result
         // (the constructor is expected to call reset() the exact same way)
-        CPPUNIT_ASSERT_THROW( opt.reset(argc, argv, options_empty_list, confs, NULL), advgetopt::getopt_exception_invalid);
-        CPPUNIT_ASSERT_THROW( opt.reset(argc, argv, options_no_name_list, confs, NULL), advgetopt::getopt_exception_invalid);
-        CPPUNIT_ASSERT_THROW( opt.reset(argc, argv, options_2chars_minimum, confs, NULL), advgetopt::getopt_exception_invalid);
-        CPPUNIT_ASSERT_THROW( opt.reset(argc, argv, options_2chars_minimum2, confs, NULL), advgetopt::getopt_exception_invalid);
-        CPPUNIT_ASSERT_THROW( opt.reset(argc, argv, options_defined_twice, confs, "ADVGETOPT_TEST_OPTIONS"), advgetopt::getopt_exception_invalid);
-        CPPUNIT_ASSERT_THROW( opt.reset(argc, argv, options_short_defined_twice, confs, NULL), advgetopt::getopt_exception_invalid);
-        CPPUNIT_ASSERT_THROW( opt.reset(argc, argv, options_two_default_multiple_arguments, confs, NULL), advgetopt::getopt_exception_default);
-        CPPUNIT_ASSERT_THROW( opt.reset(argc, argv, options_two_default_arguments, confs, "ADVGETOPT_TEST_OPTIONS"), advgetopt::getopt_exception_default);
-        CPPUNIT_ASSERT_THROW( opt.reset(argc, argv, options_mix_of_default, confs, NULL), advgetopt::getopt_exception_default);
+        CATCH_REQUIRE_THROWS_AS( opt.reset(argc, argv, options_empty_list, confs, NULL), advgetopt::getopt_exception_invalid);
+        CATCH_REQUIRE_THROWS_AS( opt.reset(argc, argv, options_no_name_list, confs, NULL), advgetopt::getopt_exception_invalid);
+        CATCH_REQUIRE_THROWS_AS( opt.reset(argc, argv, options_2chars_minimum, confs, NULL), advgetopt::getopt_exception_invalid);
+        CATCH_REQUIRE_THROWS_AS( opt.reset(argc, argv, options_2chars_minimum2, confs, NULL), advgetopt::getopt_exception_invalid);
+        CATCH_REQUIRE_THROWS_AS( opt.reset(argc, argv, options_defined_twice, confs, "ADVGETOPT_TEST_OPTIONS"), advgetopt::getopt_exception_invalid);
+        CATCH_REQUIRE_THROWS_AS( opt.reset(argc, argv, options_short_defined_twice, confs, NULL), advgetopt::getopt_exception_invalid);
+        CATCH_REQUIRE_THROWS_AS( opt.reset(argc, argv, options_two_default_multiple_arguments, confs, NULL), advgetopt::getopt_exception_default);
+        CATCH_REQUIRE_THROWS_AS( opt.reset(argc, argv, options_two_default_arguments, confs, "ADVGETOPT_TEST_OPTIONS"), advgetopt::getopt_exception_default);
+        CATCH_REQUIRE_THROWS_AS( opt.reset(argc, argv, options_mix_of_default, confs, NULL), advgetopt::getopt_exception_default);
     }
 
     // valid initialization + usage calls
@@ -1179,7 +1180,7 @@ void AdvGetOptUnitTests::invalid_parameters()
 #ifdef ADVGETOPT_THROW_FOR_EXIT
         for(int i(static_cast<int>(advgetopt::getopt::no_error)); i <= static_cast<int>(advgetopt::getopt::fatal); ++i)
         {
-            CPPUNIT_ASSERT_THROW( opt.usage(static_cast<advgetopt::getopt::status_t>(i), "test no error, warnings, errors..."), advgetopt::getopt_exception_exiting);
+            CATCH_REQUIRE_THROWS_AS( opt.usage(static_cast<advgetopt::getopt::status_t>(i), "test no error, warnings, errors..."), advgetopt::getopt_exception_exiting);
         }
 #endif
     }
@@ -1311,7 +1312,7 @@ void AdvGetOptUnitTests::invalid_parameters()
             const int argc2 = sizeof(cargv2) / sizeof(cargv2[0]) - 1;
             char **argv2 = const_cast<char **>(cargv2);
 
-            CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc2, argv2, options, confs, NULL); }, advgetopt::getopt_exception_exiting);
+            CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc2, argv2, options, confs, NULL); }, advgetopt::getopt_exception_exiting);
         }
         {
             // again with the lone -l (no long name)
@@ -1329,7 +1330,7 @@ void AdvGetOptUnitTests::invalid_parameters()
             const int argc2 = sizeof(cargv2) / sizeof(cargv2[0]) - 1;
             char **argv2 = const_cast<char **>(cargv2);
 
-            CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc2, argv2, options, confs, NULL); }, advgetopt::getopt_exception_exiting);
+            CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc2, argv2, options, confs, NULL); }, advgetopt::getopt_exception_exiting);
         }
 #endif
         {
@@ -1355,7 +1356,7 @@ void AdvGetOptUnitTests::invalid_parameters()
 #ifdef ADVGETOPT_THROW_FOR_EXIT
             for(int i(static_cast<int>(advgetopt::getopt::no_error)); i <= static_cast<int>(advgetopt::getopt::fatal); ++i)
             {
-                CPPUNIT_ASSERT_THROW( opt.usage(static_cast<advgetopt::getopt::status_t>(i), "test no error, warnings, errors..."), advgetopt::getopt_exception_exiting);
+                CATCH_REQUIRE_THROWS_AS( opt.usage(static_cast<advgetopt::getopt::status_t>(i), "test no error, warnings, errors..."), advgetopt::getopt_exception_exiting);
             }
 #endif
         }
@@ -1413,7 +1414,7 @@ void AdvGetOptUnitTests::invalid_parameters()
             // all of the following have the exiting exception
             for(int i(static_cast<int>(advgetopt::getopt::no_error)); i <= static_cast<int>(advgetopt::getopt::fatal); ++i)
             {
-                CPPUNIT_ASSERT_THROW( opt.usage(static_cast<advgetopt::getopt::status_t>(i), "test no error, warnings, errors..."), advgetopt::getopt_exception_invalid);
+                CATCH_REQUIRE_THROWS_AS( opt.usage(static_cast<advgetopt::getopt::status_t>(i), "test no error, warnings, errors..."), advgetopt::getopt_exception_invalid);
             }
         }
     }
@@ -1458,7 +1459,7 @@ void AdvGetOptUnitTests::invalid_parameters()
             const int argc2 = sizeof(cargv2) / sizeof(cargv2[0]) - 1;
             char **argv2 = const_cast<char **>(cargv2);
 
-            CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc2, argv2, options, confs, NULL); }, advgetopt::getopt_exception_exiting);
+            CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc2, argv2, options, confs, NULL); }, advgetopt::getopt_exception_exiting);
         }
         {
             // second with --filenames
@@ -1471,7 +1472,7 @@ void AdvGetOptUnitTests::invalid_parameters()
             const int argc2 = sizeof(cargv2) / sizeof(cargv2[0]) - 1;
             char **argv2 = const_cast<char **>(cargv2);
 
-            CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc2, argv2, options, confs, NULL); }, advgetopt::getopt_exception_exiting);
+            CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc2, argv2, options, confs, NULL); }, advgetopt::getopt_exception_exiting);
         }
     }
 
@@ -1515,14 +1516,13 @@ void AdvGetOptUnitTests::invalid_parameters()
             const int argc2 = sizeof(cargv2) / sizeof(cargv2[0]) - 1;
             char **argv2 = const_cast<char **>(cargv2);
 
-            CPPUNIT_ASSERT_THROW( { advgetopt::getopt opt(argc2, argv2, options, confs, NULL); }, advgetopt::getopt_exception_exiting);
+            CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc2, argv2, options, confs, NULL); }, advgetopt::getopt_exception_exiting);
         }
     }
 }
 
 
-
-void AdvGetOptUnitTests::valid_config_files()
+CATCH_TEST_CASE( "AdvGetOptUnitTests::valid_config_files", "AdvGetOptUnitTests" )
 {
     // default arguments
     const char *cargv[] =
@@ -1626,52 +1626,52 @@ void AdvGetOptUnitTests::valid_config_files()
         // check that the result is valid
 
         // an invalid parameter, MUST NOT EXIST
-        CPPUNIT_ASSERT(!opt.is_defined("invalid-parameter"));
+        CATCH_REQUIRE(!opt.is_defined("invalid-parameter"));
 
         // the valid parameter
-        CPPUNIT_ASSERT(opt.is_defined("valid-parameter"));
-        CPPUNIT_ASSERT(opt.get_default("valid-parameter") == NULL);
-        CPPUNIT_ASSERT(opt.size("valid-parameter") == 1);
+        CATCH_REQUIRE(opt.is_defined("valid-parameter"));
+        CATCH_REQUIRE(opt.get_default("valid-parameter") == NULL);
+        CATCH_REQUIRE(opt.size("valid-parameter") == 1);
 
         // a valid number
-        CPPUNIT_ASSERT(opt.is_defined("number"));
-        CPPUNIT_ASSERT(opt.get_long("number") == 5);
-        CPPUNIT_ASSERT(strcmp(opt.get_default("number"), "111") == 0);
-        CPPUNIT_ASSERT(opt.size("number") == 1);
+        CATCH_REQUIRE(opt.is_defined("number"));
+        CATCH_REQUIRE(opt.get_long("number") == 5);
+        CATCH_REQUIRE(strcmp(opt.get_default("number"), "111") == 0);
+        CATCH_REQUIRE(opt.size("number") == 1);
 
         // a valid string
-        CPPUNIT_ASSERT(opt.is_defined("string"));
-        CPPUNIT_ASSERT(opt.get_string("string") == "strange");
-        CPPUNIT_ASSERT(strcmp(opt.get_default("string"), "the default string") == 0);
-        CPPUNIT_ASSERT(opt.size("string") == 1);
+        CATCH_REQUIRE(opt.is_defined("string"));
+        CATCH_REQUIRE(opt.get_string("string") == "strange");
+        CATCH_REQUIRE(strcmp(opt.get_default("string"), "the default string") == 0);
+        CATCH_REQUIRE(opt.size("string") == 1);
 
         // verbosity
-        CPPUNIT_ASSERT(opt.is_defined("verbose"));
-        CPPUNIT_ASSERT(opt.get_string("verbose") == "");
-        CPPUNIT_ASSERT(opt.get_default("verbose") == NULL);
-        CPPUNIT_ASSERT(opt.size("verbose") == 1);
+        CATCH_REQUIRE(opt.is_defined("verbose"));
+        CATCH_REQUIRE(opt.get_string("verbose") == "");
+        CATCH_REQUIRE(opt.get_default("verbose") == NULL);
+        CATCH_REQUIRE(opt.size("verbose") == 1);
 
         // filenames
-        CPPUNIT_ASSERT(opt.is_defined("filenames"));
-        CPPUNIT_ASSERT(opt.get_string("filenames") == "foo"); // same as index = 0
-        CPPUNIT_ASSERT(opt.get_string("filenames", 0) == "foo");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 1) == "bar");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 2) == "blah");
-        CPPUNIT_ASSERT(strcmp(opt.get_default("filenames"), "a.out") == 0);
-        CPPUNIT_ASSERT(opt.size("filenames") == 3);
+        CATCH_REQUIRE(opt.is_defined("filenames"));
+        CATCH_REQUIRE(opt.get_string("filenames") == "foo"); // same as index = 0
+        CATCH_REQUIRE(opt.get_string("filenames", 0) == "foo");
+        CATCH_REQUIRE(opt.get_string("filenames", 1) == "bar");
+        CATCH_REQUIRE(opt.get_string("filenames", 2) == "blah");
+        CATCH_REQUIRE(strcmp(opt.get_default("filenames"), "a.out") == 0);
+        CATCH_REQUIRE(opt.size("filenames") == 3);
 
         // as we're at it, make sure that indices out of bounds generate an exception
         for(int i(-100); i <= 100; ++i)
         {
             if(i != 0 && i != 1 && i != 2)
             {
-                CPPUNIT_ASSERT_THROW( opt.get_string("filenames", i), advgetopt::getopt_exception_undefined);
+                CATCH_REQUIRE_THROWS_AS( opt.get_string("filenames", i), advgetopt::getopt_exception_undefined);
             }
         }
 
         // other parameters
-        CPPUNIT_ASSERT(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
-        CPPUNIT_ASSERT(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
+        CATCH_REQUIRE(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
+        CATCH_REQUIRE(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
     }
 
     // make sure that command line options have priority or are cumulative
@@ -1707,46 +1707,46 @@ void AdvGetOptUnitTests::valid_config_files()
         // check that the result is valid
 
         // an invalid parameter, MUST NOT EXIST
-        CPPUNIT_ASSERT(!opt.is_defined("invalid-parameter"));
+        CATCH_REQUIRE(!opt.is_defined("invalid-parameter"));
 
         // the valid parameter
-        CPPUNIT_ASSERT(opt.is_defined("valid-parameter"));
-        CPPUNIT_ASSERT(opt.get_default("valid-parameter") == NULL);
-        CPPUNIT_ASSERT(opt.size("valid-parameter") == 1);
+        CATCH_REQUIRE(opt.is_defined("valid-parameter"));
+        CATCH_REQUIRE(opt.get_default("valid-parameter") == NULL);
+        CATCH_REQUIRE(opt.size("valid-parameter") == 1);
 
         // a valid number
-        CPPUNIT_ASSERT(opt.is_defined("number"));
-        CPPUNIT_ASSERT(opt.get_long("number") == 66);
-        CPPUNIT_ASSERT(strcmp(opt.get_default("number"), "111") == 0);
-        CPPUNIT_ASSERT(opt.size("number") == 1);
+        CATCH_REQUIRE(opt.is_defined("number"));
+        CATCH_REQUIRE(opt.get_long("number") == 66);
+        CATCH_REQUIRE(strcmp(opt.get_default("number"), "111") == 0);
+        CATCH_REQUIRE(opt.size("number") == 1);
 
         // a valid string
-        CPPUNIT_ASSERT(opt.is_defined("string"));
-        CPPUNIT_ASSERT(opt.get_string("string") == "strange");
-        CPPUNIT_ASSERT(strcmp(opt.get_default("string"), "the default string") == 0);
-        CPPUNIT_ASSERT(opt.size("string") == 1);
+        CATCH_REQUIRE(opt.is_defined("string"));
+        CATCH_REQUIRE(opt.get_string("string") == "strange");
+        CATCH_REQUIRE(strcmp(opt.get_default("string"), "the default string") == 0);
+        CATCH_REQUIRE(opt.size("string") == 1);
 
         // verbosity
-        CPPUNIT_ASSERT(opt.is_defined("verbose"));
-        CPPUNIT_ASSERT(opt.get_string("verbose") == "");
-        CPPUNIT_ASSERT(opt.get_default("verbose") == NULL);
-        CPPUNIT_ASSERT(opt.size("verbose") == 1);
+        CATCH_REQUIRE(opt.is_defined("verbose"));
+        CATCH_REQUIRE(opt.get_string("verbose") == "");
+        CATCH_REQUIRE(opt.get_default("verbose") == NULL);
+        CATCH_REQUIRE(opt.size("verbose") == 1);
 
         // filenames
-        CPPUNIT_ASSERT(opt.is_defined("filenames"));
-        CPPUNIT_ASSERT(opt.get_string("filenames") == "foo"); // same as index = 0
-        CPPUNIT_ASSERT(opt.get_string("filenames", 0) == "foo");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 1) == "bar");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 2) == "blah");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 3) == "extra");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 4) == "file");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 5) == "names");
-        CPPUNIT_ASSERT(strcmp(opt.get_default("filenames"), "a.out") == 0);
-        CPPUNIT_ASSERT(opt.size("filenames") == 6);
+        CATCH_REQUIRE(opt.is_defined("filenames"));
+        CATCH_REQUIRE(opt.get_string("filenames") == "foo"); // same as index = 0
+        CATCH_REQUIRE(opt.get_string("filenames", 0) == "foo");
+        CATCH_REQUIRE(opt.get_string("filenames", 1) == "bar");
+        CATCH_REQUIRE(opt.get_string("filenames", 2) == "blah");
+        CATCH_REQUIRE(opt.get_string("filenames", 3) == "extra");
+        CATCH_REQUIRE(opt.get_string("filenames", 4) == "file");
+        CATCH_REQUIRE(opt.get_string("filenames", 5) == "names");
+        CATCH_REQUIRE(strcmp(opt.get_default("filenames"), "a.out") == 0);
+        CATCH_REQUIRE(opt.size("filenames") == 6);
 
         // other parameters
-        CPPUNIT_ASSERT(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
-        CPPUNIT_ASSERT(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
+        CATCH_REQUIRE(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
+        CATCH_REQUIRE(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
     }
 
     // repeat with ADVGETOPT_TEST_OPTIONS instead of a configuration file
@@ -1759,43 +1759,43 @@ void AdvGetOptUnitTests::valid_config_files()
         // check that the result is valid
 
         // an invalid parameter, MUST NOT EXIST
-        CPPUNIT_ASSERT(!opt.is_defined("invalid-parameter"));
+        CATCH_REQUIRE(!opt.is_defined("invalid-parameter"));
 
         // the valid parameter
-        CPPUNIT_ASSERT(opt.is_defined("valid-parameter"));
-        CPPUNIT_ASSERT(opt.get_default("valid-parameter") == NULL);
-        CPPUNIT_ASSERT(opt.size("valid-parameter") == 1);
+        CATCH_REQUIRE(opt.is_defined("valid-parameter"));
+        CATCH_REQUIRE(opt.get_default("valid-parameter") == NULL);
+        CATCH_REQUIRE(opt.size("valid-parameter") == 1);
 
         // a valid number
-        CPPUNIT_ASSERT(opt.is_defined("number"));
-        CPPUNIT_ASSERT(opt.get_long("number") == 15);
-        CPPUNIT_ASSERT(strcmp(opt.get_default("number"), "111") == 0);
-        CPPUNIT_ASSERT(opt.size("number") == 1);
+        CATCH_REQUIRE(opt.is_defined("number"));
+        CATCH_REQUIRE(opt.get_long("number") == 15);
+        CATCH_REQUIRE(strcmp(opt.get_default("number"), "111") == 0);
+        CATCH_REQUIRE(opt.size("number") == 1);
 
         // a valid string
-        CPPUNIT_ASSERT(opt.is_defined("string"));
-        CPPUNIT_ASSERT(opt.get_string("string") == "weird");
-        CPPUNIT_ASSERT(strcmp(opt.get_default("string"), "the default string") == 0);
-        CPPUNIT_ASSERT(opt.size("string") == 1);
+        CATCH_REQUIRE(opt.is_defined("string"));
+        CATCH_REQUIRE(opt.get_string("string") == "weird");
+        CATCH_REQUIRE(strcmp(opt.get_default("string"), "the default string") == 0);
+        CATCH_REQUIRE(opt.size("string") == 1);
 
         // verbosity
-        CPPUNIT_ASSERT(opt.is_defined("verbose"));
-        CPPUNIT_ASSERT(opt.get_string("verbose") == "");
-        CPPUNIT_ASSERT(opt.get_default("verbose") == NULL);
-        CPPUNIT_ASSERT(opt.size("verbose") == 1);
+        CATCH_REQUIRE(opt.is_defined("verbose"));
+        CATCH_REQUIRE(opt.get_string("verbose") == "");
+        CATCH_REQUIRE(opt.get_default("verbose") == NULL);
+        CATCH_REQUIRE(opt.size("verbose") == 1);
 
         // filenames
-        CPPUNIT_ASSERT(opt.is_defined("filenames"));
-        CPPUNIT_ASSERT(opt.get_string("filenames") == "foo"); // same as index = 0
-        CPPUNIT_ASSERT(opt.get_string("filenames", 0) == "foo");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 1) == "bar");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 2) == "blah");
-        CPPUNIT_ASSERT(strcmp(opt.get_default("filenames"), "a.out") == 0);
-        CPPUNIT_ASSERT(opt.size("filenames") == 3);
+        CATCH_REQUIRE(opt.is_defined("filenames"));
+        CATCH_REQUIRE(opt.get_string("filenames") == "foo"); // same as index = 0
+        CATCH_REQUIRE(opt.get_string("filenames", 0) == "foo");
+        CATCH_REQUIRE(opt.get_string("filenames", 1) == "bar");
+        CATCH_REQUIRE(opt.get_string("filenames", 2) == "blah");
+        CATCH_REQUIRE(strcmp(opt.get_default("filenames"), "a.out") == 0);
+        CATCH_REQUIRE(opt.size("filenames") == 3);
 
         // other parameters
-        CPPUNIT_ASSERT(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
-        CPPUNIT_ASSERT(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
+        CATCH_REQUIRE(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
+        CATCH_REQUIRE(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
     }
 
     // test that the environment variable has priority over a configuration file
@@ -1816,45 +1816,45 @@ void AdvGetOptUnitTests::valid_config_files()
         // check that the result is valid
 
         // an invalid parameter, MUST NOT EXIST
-        CPPUNIT_ASSERT(!opt.is_defined("invalid-parameter"));
+        CATCH_REQUIRE(!opt.is_defined("invalid-parameter"));
 
         // the valid parameter
-        CPPUNIT_ASSERT(opt.is_defined("valid-parameter"));
-        CPPUNIT_ASSERT(opt.get_default("valid-parameter") == NULL);
-        CPPUNIT_ASSERT(opt.size("valid-parameter") == 1);
+        CATCH_REQUIRE(opt.is_defined("valid-parameter"));
+        CATCH_REQUIRE(opt.get_default("valid-parameter") == NULL);
+        CATCH_REQUIRE(opt.size("valid-parameter") == 1);
 
         // a valid number
-        CPPUNIT_ASSERT(opt.is_defined("number"));
-        CPPUNIT_ASSERT(opt.get_long("number") == 501);
-        CPPUNIT_ASSERT(strcmp(opt.get_default("number"), "111") == 0);
-        CPPUNIT_ASSERT(opt.size("number") == 1);
+        CATCH_REQUIRE(opt.is_defined("number"));
+        CATCH_REQUIRE(opt.get_long("number") == 501);
+        CATCH_REQUIRE(strcmp(opt.get_default("number"), "111") == 0);
+        CATCH_REQUIRE(opt.size("number") == 1);
 
         // a valid string
-        CPPUNIT_ASSERT(opt.is_defined("string"));
-        CPPUNIT_ASSERT(opt.get_string("string") == "strange");
-        CPPUNIT_ASSERT(strcmp(opt.get_default("string"), "the default string") == 0);
-        CPPUNIT_ASSERT(opt.size("string") == 1);
+        CATCH_REQUIRE(opt.is_defined("string"));
+        CATCH_REQUIRE(opt.get_string("string") == "strange");
+        CATCH_REQUIRE(strcmp(opt.get_default("string"), "the default string") == 0);
+        CATCH_REQUIRE(opt.size("string") == 1);
 
         // verbosity
-        CPPUNIT_ASSERT(opt.is_defined("verbose"));
-        CPPUNIT_ASSERT(opt.get_string("verbose") == "");
-        CPPUNIT_ASSERT(opt.get_default("verbose") == NULL);
-        CPPUNIT_ASSERT(opt.size("verbose") == 1);
+        CATCH_REQUIRE(opt.is_defined("verbose"));
+        CATCH_REQUIRE(opt.get_string("verbose") == "");
+        CATCH_REQUIRE(opt.get_default("verbose") == NULL);
+        CATCH_REQUIRE(opt.size("verbose") == 1);
 
         // filenames
-        CPPUNIT_ASSERT(opt.is_defined("filenames"));
-        CPPUNIT_ASSERT(opt.get_string("filenames") == "foo"); // same as index = 0
-        CPPUNIT_ASSERT(opt.get_string("filenames", 0) == "foo");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 1) == "bar");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 2) == "blah");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 3) == "more");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 4) == "files");
-        CPPUNIT_ASSERT(strcmp(opt.get_default("filenames"), "a.out") == 0);
-        CPPUNIT_ASSERT(opt.size("filenames") == 5);
+        CATCH_REQUIRE(opt.is_defined("filenames"));
+        CATCH_REQUIRE(opt.get_string("filenames") == "foo"); // same as index = 0
+        CATCH_REQUIRE(opt.get_string("filenames", 0) == "foo");
+        CATCH_REQUIRE(opt.get_string("filenames", 1) == "bar");
+        CATCH_REQUIRE(opt.get_string("filenames", 2) == "blah");
+        CATCH_REQUIRE(opt.get_string("filenames", 3) == "more");
+        CATCH_REQUIRE(opt.get_string("filenames", 4) == "files");
+        CATCH_REQUIRE(strcmp(opt.get_default("filenames"), "a.out") == 0);
+        CATCH_REQUIRE(opt.size("filenames") == 5);
 
         // other parameters
-        CPPUNIT_ASSERT(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
-        CPPUNIT_ASSERT(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
+        CATCH_REQUIRE(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
+        CATCH_REQUIRE(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
     }
 
     // test order: conf files, environment var, command line
@@ -1891,48 +1891,48 @@ void AdvGetOptUnitTests::valid_config_files()
         // check that the result is valid
 
         // an invalid parameter, MUST NOT EXIST
-        CPPUNIT_ASSERT(!opt.is_defined("invalid-parameter"));
+        CATCH_REQUIRE(!opt.is_defined("invalid-parameter"));
 
         // the valid parameter
-        CPPUNIT_ASSERT(opt.is_defined("valid-parameter"));
-        CPPUNIT_ASSERT(opt.get_default("valid-parameter") == NULL);
-        CPPUNIT_ASSERT(opt.size("valid-parameter") == 1);
+        CATCH_REQUIRE(opt.is_defined("valid-parameter"));
+        CATCH_REQUIRE(opt.get_default("valid-parameter") == NULL);
+        CATCH_REQUIRE(opt.size("valid-parameter") == 1);
 
         // a valid number
-        CPPUNIT_ASSERT(opt.is_defined("number"));
-        CPPUNIT_ASSERT(opt.get_long("number") == 501);
-        CPPUNIT_ASSERT(strcmp(opt.get_default("number"), "111") == 0);
-        CPPUNIT_ASSERT(opt.size("number") == 1);
+        CATCH_REQUIRE(opt.is_defined("number"));
+        CATCH_REQUIRE(opt.get_long("number") == 501);
+        CATCH_REQUIRE(strcmp(opt.get_default("number"), "111") == 0);
+        CATCH_REQUIRE(opt.size("number") == 1);
 
         // a valid string
-        CPPUNIT_ASSERT(opt.is_defined("string"));
-        CPPUNIT_ASSERT(opt.get_string("string") == "hard work");
-        CPPUNIT_ASSERT(strcmp(opt.get_default("string"), "the default string") == 0);
-        CPPUNIT_ASSERT(opt.size("string") == 1);
+        CATCH_REQUIRE(opt.is_defined("string"));
+        CATCH_REQUIRE(opt.get_string("string") == "hard work");
+        CATCH_REQUIRE(strcmp(opt.get_default("string"), "the default string") == 0);
+        CATCH_REQUIRE(opt.size("string") == 1);
 
         // verbosity
-        CPPUNIT_ASSERT(opt.is_defined("verbose"));
-        CPPUNIT_ASSERT(opt.get_string("verbose") == "");
-        CPPUNIT_ASSERT(opt.get_default("verbose") == NULL);
-        CPPUNIT_ASSERT(opt.size("verbose") == 1);
+        CATCH_REQUIRE(opt.is_defined("verbose"));
+        CATCH_REQUIRE(opt.get_string("verbose") == "");
+        CATCH_REQUIRE(opt.get_default("verbose") == NULL);
+        CATCH_REQUIRE(opt.size("verbose") == 1);
 
         // filenames
-        CPPUNIT_ASSERT(opt.is_defined("filenames"));
-        CPPUNIT_ASSERT(opt.get_string("filenames") == "foo"); // same as index = 0
-        CPPUNIT_ASSERT(opt.get_string("filenames", 0) == "foo");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 1) == "bar");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 2) == "blah");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 3) == "more");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 4) == "files");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 5) == "extra");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 6) == "file");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 7) == "names");
-        CPPUNIT_ASSERT(strcmp(opt.get_default("filenames"), "a.out") == 0);
-        CPPUNIT_ASSERT(opt.size("filenames") == 8);
+        CATCH_REQUIRE(opt.is_defined("filenames"));
+        CATCH_REQUIRE(opt.get_string("filenames") == "foo"); // same as index = 0
+        CATCH_REQUIRE(opt.get_string("filenames", 0) == "foo");
+        CATCH_REQUIRE(opt.get_string("filenames", 1) == "bar");
+        CATCH_REQUIRE(opt.get_string("filenames", 2) == "blah");
+        CATCH_REQUIRE(opt.get_string("filenames", 3) == "more");
+        CATCH_REQUIRE(opt.get_string("filenames", 4) == "files");
+        CATCH_REQUIRE(opt.get_string("filenames", 5) == "extra");
+        CATCH_REQUIRE(opt.get_string("filenames", 6) == "file");
+        CATCH_REQUIRE(opt.get_string("filenames", 7) == "names");
+        CATCH_REQUIRE(strcmp(opt.get_default("filenames"), "a.out") == 0);
+        CATCH_REQUIRE(opt.size("filenames") == 8);
 
         // other parameters
-        CPPUNIT_ASSERT(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
-        CPPUNIT_ASSERT(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
+        CATCH_REQUIRE(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
+        CATCH_REQUIRE(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
     }
 
     // test again, just in case: conf files, environment var, command line
@@ -1967,49 +1967,59 @@ void AdvGetOptUnitTests::valid_config_files()
         // check that the result is valid
 
         // an invalid parameter, MUST NOT EXIST
-        CPPUNIT_ASSERT(!opt.is_defined("invalid-parameter"));
+        CATCH_REQUIRE(!opt.is_defined("invalid-parameter"));
 
         // the valid parameter
-        CPPUNIT_ASSERT(opt.is_defined("valid-parameter"));
-        CPPUNIT_ASSERT(opt.get_default("valid-parameter") == NULL);
-        CPPUNIT_ASSERT(opt.size("valid-parameter") == 1);
+        CATCH_REQUIRE(opt.is_defined("valid-parameter"));
+        CATCH_REQUIRE(opt.get_default("valid-parameter") == NULL);
+        CATCH_REQUIRE(opt.size("valid-parameter") == 1);
 
         // a valid number
-        CPPUNIT_ASSERT(opt.is_defined("number"));
-        CPPUNIT_ASSERT(opt.get_long("number") == 709);
-        CPPUNIT_ASSERT(strcmp(opt.get_default("number"), "111") == 0);
-        CPPUNIT_ASSERT(opt.size("number") == 1);
+        CATCH_REQUIRE(opt.is_defined("number"));
+        CATCH_REQUIRE(opt.get_long("number") == 709);
+        CATCH_REQUIRE(strcmp(opt.get_default("number"), "111") == 0);
+        CATCH_REQUIRE(opt.size("number") == 1);
 
         // a valid string
-        CPPUNIT_ASSERT(opt.is_defined("string"));
-        CPPUNIT_ASSERT(opt.get_string("string") == "hard work in env");
-        CPPUNIT_ASSERT(strcmp(opt.get_default("string"), "the default string") == 0);
-        CPPUNIT_ASSERT(opt.size("string") == 1);
+        CATCH_REQUIRE(opt.is_defined("string"));
+        CATCH_REQUIRE(opt.get_string("string") == "hard work in env");
+        CATCH_REQUIRE(strcmp(opt.get_default("string"), "the default string") == 0);
+        CATCH_REQUIRE(opt.size("string") == 1);
 
         // verbosity
-        CPPUNIT_ASSERT(opt.is_defined("verbose"));
-        CPPUNIT_ASSERT(opt.get_string("verbose") == "");
-        CPPUNIT_ASSERT(opt.get_default("verbose") == NULL);
-        CPPUNIT_ASSERT(opt.size("verbose") == 1);
+        CATCH_REQUIRE(opt.is_defined("verbose"));
+        CATCH_REQUIRE(opt.get_string("verbose") == "");
+        CATCH_REQUIRE(opt.get_default("verbose") == NULL);
+        CATCH_REQUIRE(opt.size("verbose") == 1);
 
         // filenames
-        CPPUNIT_ASSERT(opt.is_defined("filenames"));
-        CPPUNIT_ASSERT(opt.get_string("filenames") == "foo"); // same as index = 0
-        CPPUNIT_ASSERT(opt.get_string("filenames", 0) == "foo");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 1) == "bar");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 2) == "blah");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 3) == "more");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 4) == "files");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 5) == "extra");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 6) == "file");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 7) == "names");
-        CPPUNIT_ASSERT(strcmp(opt.get_default("filenames"), "a.out") == 0);
-        CPPUNIT_ASSERT(opt.size("filenames") == 8);
+        CATCH_REQUIRE(opt.is_defined("filenames"));
+        CATCH_REQUIRE(opt.get_string("filenames") == "foo"); // same as index = 0
+        CATCH_REQUIRE(opt.get_string("filenames", 0) == "foo");
+        CATCH_REQUIRE(opt.get_string("filenames", 1) == "bar");
+        CATCH_REQUIRE(opt.get_string("filenames", 2) == "blah");
+        CATCH_REQUIRE(opt.get_string("filenames", 3) == "more");
+        CATCH_REQUIRE(opt.get_string("filenames", 4) == "files");
+        CATCH_REQUIRE(opt.get_string("filenames", 5) == "extra");
+        CATCH_REQUIRE(opt.get_string("filenames", 6) == "file");
+        CATCH_REQUIRE(opt.get_string("filenames", 7) == "names");
+        CATCH_REQUIRE(strcmp(opt.get_default("filenames"), "a.out") == 0);
+        CATCH_REQUIRE(opt.size("filenames") == 8);
 
         // other parameters
-        CPPUNIT_ASSERT(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
-        CPPUNIT_ASSERT(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
+        CATCH_REQUIRE(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
+        CATCH_REQUIRE(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
     }
+}
+
+
+CATCH_TEST_CASE( "AdvGetOptUnitTests::valid_config_files_extra", "AdvGetOptUnitTests" )
+{
+    std::vector<std::string> empty_confs;
+
+    wpkg_filename::uri_filename config_filename(wpkg_filename::uri_filename::tmpdir(".config").append_child("wpkg.config"));
+    std::vector<std::string> confs;
+    confs.push_back(config_filename.full_path());
 
     // new set of options to test the special "--" option
     const advgetopt::getopt::option valid_options_with_multiple[] =
@@ -2112,52 +2122,52 @@ void AdvGetOptUnitTests::valid_config_files()
         // check that the result is valid
 
         // an invalid parameter, MUST NOT EXIST
-        CPPUNIT_ASSERT(!opt.is_defined("invalid-parameter"));
+        CATCH_REQUIRE(!opt.is_defined("invalid-parameter"));
 
         // the valid parameter
-        CPPUNIT_ASSERT(opt.is_defined("valid-parameter"));
-        CPPUNIT_ASSERT(opt.get_default("valid-parameter") == NULL);
-        CPPUNIT_ASSERT(opt.size("valid-parameter") == 1);
+        CATCH_REQUIRE(opt.is_defined("valid-parameter"));
+        CATCH_REQUIRE(opt.get_default("valid-parameter") == NULL);
+        CATCH_REQUIRE(opt.size("valid-parameter") == 1);
 
         // a valid number
-        CPPUNIT_ASSERT(opt.is_defined("number"));
-        CPPUNIT_ASSERT(opt.get_long("number") == 1111);
-        CPPUNIT_ASSERT(strcmp(opt.get_default("number"), "111") == 0);
-        CPPUNIT_ASSERT(opt.size("number") == 1);
+        CATCH_REQUIRE(opt.is_defined("number"));
+        CATCH_REQUIRE(opt.get_long("number") == 1111);
+        CATCH_REQUIRE(strcmp(opt.get_default("number"), "111") == 0);
+        CATCH_REQUIRE(opt.size("number") == 1);
 
         // a valid string
-        CPPUNIT_ASSERT(opt.is_defined("string"));
-        CPPUNIT_ASSERT(opt.get_string("string") == "strange");
-        CPPUNIT_ASSERT(strcmp(opt.get_default("string"), "the default string") == 0);
-        CPPUNIT_ASSERT(opt.size("string") == 1);
+        CATCH_REQUIRE(opt.is_defined("string"));
+        CATCH_REQUIRE(opt.get_string("string") == "strange");
+        CATCH_REQUIRE(strcmp(opt.get_default("string"), "the default string") == 0);
+        CATCH_REQUIRE(opt.size("string") == 1);
 
         // verbosity
-        CPPUNIT_ASSERT(opt.is_defined("verbose"));
-        CPPUNIT_ASSERT(opt.get_string("verbose") == "");
-        CPPUNIT_ASSERT(opt.get_default("verbose") == NULL);
-        CPPUNIT_ASSERT(opt.size("verbose") == 1);
+        CATCH_REQUIRE(opt.is_defined("verbose"));
+        CATCH_REQUIRE(opt.get_string("verbose") == "");
+        CATCH_REQUIRE(opt.get_default("verbose") == NULL);
+        CATCH_REQUIRE(opt.size("verbose") == 1);
 
         // filenames
-        CPPUNIT_ASSERT(opt.is_defined("filenames"));
-        CPPUNIT_ASSERT(opt.get_string("filenames") == "foo"); // same as index = 0
-        CPPUNIT_ASSERT(opt.get_string("filenames",  0) == "foo");
-        CPPUNIT_ASSERT(opt.get_string("filenames",  1) == "bar");
-        CPPUNIT_ASSERT(opt.get_string("filenames",  2) == "blah");
-        CPPUNIT_ASSERT(opt.get_string("filenames",  3) == "-");
-        CPPUNIT_ASSERT(opt.get_string("filenames",  4) == "more");
-        CPPUNIT_ASSERT(opt.get_string("filenames",  5) == "files");
-        CPPUNIT_ASSERT(opt.get_string("filenames",  6) == "--string");
-        CPPUNIT_ASSERT(opt.get_string("filenames",  7) == "hard work in env");
-        CPPUNIT_ASSERT(opt.get_string("filenames",  8) == "extra");
-        CPPUNIT_ASSERT(opt.get_string("filenames",  9) == "-file");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 10) == "names");
-        CPPUNIT_ASSERT(opt.get_string("filenames", 11) == "-");
-        CPPUNIT_ASSERT(strcmp(opt.get_default("filenames"), "a.out") == 0);
-        CPPUNIT_ASSERT(opt.size("filenames") == 12);
+        CATCH_REQUIRE(opt.is_defined("filenames"));
+        CATCH_REQUIRE(opt.get_string("filenames") == "foo"); // same as index = 0
+        CATCH_REQUIRE(opt.get_string("filenames",  0) == "foo");
+        CATCH_REQUIRE(opt.get_string("filenames",  1) == "bar");
+        CATCH_REQUIRE(opt.get_string("filenames",  2) == "blah");
+        CATCH_REQUIRE(opt.get_string("filenames",  3) == "-");
+        CATCH_REQUIRE(opt.get_string("filenames",  4) == "more");
+        CATCH_REQUIRE(opt.get_string("filenames",  5) == "files");
+        CATCH_REQUIRE(opt.get_string("filenames",  6) == "--string");
+        CATCH_REQUIRE(opt.get_string("filenames",  7) == "hard work in env");
+        CATCH_REQUIRE(opt.get_string("filenames",  8) == "extra");
+        CATCH_REQUIRE(opt.get_string("filenames",  9) == "-file");
+        CATCH_REQUIRE(opt.get_string("filenames", 10) == "names");
+        CATCH_REQUIRE(opt.get_string("filenames", 11) == "-");
+        CATCH_REQUIRE(strcmp(opt.get_default("filenames"), "a.out") == 0);
+        CATCH_REQUIRE(opt.size("filenames") == 12);
 
         // other parameters
-        CPPUNIT_ASSERT(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
-        CPPUNIT_ASSERT(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
+        CATCH_REQUIRE(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
+        CATCH_REQUIRE(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
     }
 
     // check that multiple flags can be used one after another
@@ -2240,43 +2250,43 @@ void AdvGetOptUnitTests::valid_config_files()
         // check that the result is valid
 
         // an invalid parameter, MUST NOT EXIST
-        CPPUNIT_ASSERT(!opt.is_defined("invalid-parameter"));
+        CATCH_REQUIRE(!opt.is_defined("invalid-parameter"));
 
         // 2x 'a' in cafard, but we only keep the last entry
-        CPPUNIT_ASSERT(opt.is_defined("a"));
-        CPPUNIT_ASSERT(opt.get_string("a") == "-");
-        CPPUNIT_ASSERT(opt.get_string("a", 0) == "-");
-        CPPUNIT_ASSERT(opt.get_default("a") == NULL);
-        CPPUNIT_ASSERT(opt.size("a") == 1);
+        CATCH_REQUIRE(opt.is_defined("a"));
+        CATCH_REQUIRE(opt.get_string("a") == "-");
+        CATCH_REQUIRE(opt.get_string("a", 0) == "-");
+        CATCH_REQUIRE(opt.get_default("a") == NULL);
+        CATCH_REQUIRE(opt.size("a") == 1);
 
         // c
-        CPPUNIT_ASSERT(opt.is_defined("c"));
-        CPPUNIT_ASSERT(opt.get_string("c") == "");
-        CPPUNIT_ASSERT(opt.get_default("c") == NULL);
-        CPPUNIT_ASSERT(opt.size("c") == 1);
+        CATCH_REQUIRE(opt.is_defined("c"));
+        CATCH_REQUIRE(opt.get_string("c") == "");
+        CATCH_REQUIRE(opt.get_default("c") == NULL);
+        CATCH_REQUIRE(opt.size("c") == 1);
 
         // d
-        CPPUNIT_ASSERT(opt.is_defined("d"));
-        CPPUNIT_ASSERT(opt.get_string("d") == "");
-        CPPUNIT_ASSERT(opt.get_default("d") == NULL);
-        CPPUNIT_ASSERT(opt.size("d") == 1);
+        CATCH_REQUIRE(opt.is_defined("d"));
+        CATCH_REQUIRE(opt.get_string("d") == "");
+        CATCH_REQUIRE(opt.get_default("d") == NULL);
+        CATCH_REQUIRE(opt.size("d") == 1);
 
         // f
-        CPPUNIT_ASSERT(opt.is_defined("f"));
-        CPPUNIT_ASSERT(opt.get_string("f") == "");
-        CPPUNIT_ASSERT(opt.get_default("f") == NULL);
-        CPPUNIT_ASSERT(opt.size("f") == 1);
+        CATCH_REQUIRE(opt.is_defined("f"));
+        CATCH_REQUIRE(opt.get_string("f") == "");
+        CATCH_REQUIRE(opt.get_default("f") == NULL);
+        CATCH_REQUIRE(opt.size("f") == 1);
 
         // r
-        CPPUNIT_ASSERT(opt.is_defined("r"));
-        CPPUNIT_ASSERT(opt.get_string("r") == "recurse");
-        CPPUNIT_ASSERT(opt.get_string("r", 0) == "recurse");
-        CPPUNIT_ASSERT(opt.get_default("r") == NULL);
-        CPPUNIT_ASSERT(opt.size("r") == 1);
+        CATCH_REQUIRE(opt.is_defined("r"));
+        CATCH_REQUIRE(opt.get_string("r") == "recurse");
+        CATCH_REQUIRE(opt.get_string("r", 0) == "recurse");
+        CATCH_REQUIRE(opt.get_default("r") == NULL);
+        CATCH_REQUIRE(opt.size("r") == 1);
 
         // other parameters
-        CPPUNIT_ASSERT(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
-        CPPUNIT_ASSERT(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
+        CATCH_REQUIRE(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
+        CATCH_REQUIRE(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
     }
 
     // check that an optional option gets its default value if no arguments
@@ -2345,25 +2355,25 @@ void AdvGetOptUnitTests::valid_config_files()
             // check that the result is valid
 
             // an invalid parameter, MUST NOT EXIST
-            CPPUNIT_ASSERT(!opt.is_defined("invalid-parameter"));
+            CATCH_REQUIRE(!opt.is_defined("invalid-parameter"));
 
             // valid parameter
-            CPPUNIT_ASSERT(opt.is_defined("valid-parameter"));
-            CPPUNIT_ASSERT(opt.get_string("valid-parameter") == "optional argument"); // same as index = 0
-            CPPUNIT_ASSERT(opt.get_string("valid-parameter", 0) == "optional argument");
-            CPPUNIT_ASSERT(opt.get_default("valid-parameter") == NULL);
-            CPPUNIT_ASSERT(opt.size("valid-parameter") == 1);
+            CATCH_REQUIRE(opt.is_defined("valid-parameter"));
+            CATCH_REQUIRE(opt.get_string("valid-parameter") == "optional argument"); // same as index = 0
+            CATCH_REQUIRE(opt.get_string("valid-parameter", 0) == "optional argument");
+            CATCH_REQUIRE(opt.get_default("valid-parameter") == NULL);
+            CATCH_REQUIRE(opt.size("valid-parameter") == 1);
 
             // filenames
-            CPPUNIT_ASSERT(opt.is_defined("filenames"));
-            CPPUNIT_ASSERT(opt.get_string("filenames") == "a.out"); // same as index = 0
-            CPPUNIT_ASSERT(opt.get_string("filenames", 0) == "a.out");
-            CPPUNIT_ASSERT(strcmp(opt.get_default("filenames"), "a.out") == 0);
-            CPPUNIT_ASSERT(opt.size("filenames") == 1);
+            CATCH_REQUIRE(opt.is_defined("filenames"));
+            CATCH_REQUIRE(opt.get_string("filenames") == "a.out"); // same as index = 0
+            CATCH_REQUIRE(opt.get_string("filenames", 0) == "a.out");
+            CATCH_REQUIRE(strcmp(opt.get_default("filenames"), "a.out") == 0);
+            CATCH_REQUIRE(opt.size("filenames") == 1);
 
             // other parameters
-            CPPUNIT_ASSERT(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
-            CPPUNIT_ASSERT(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
+            CATCH_REQUIRE(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
+            CATCH_REQUIRE(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
         }
         {
             // try again with a -v after the --filenames without filenames
@@ -2382,18 +2392,18 @@ void AdvGetOptUnitTests::valid_config_files()
             // check that the result is valid
 
             // an invalid parameter, MUST NOT EXIST
-            CPPUNIT_ASSERT(!opt.is_defined("invalid-parameter"));
+            CATCH_REQUIRE(!opt.is_defined("invalid-parameter"));
 
             // filenames
-            CPPUNIT_ASSERT(opt.is_defined("filenames"));
-            CPPUNIT_ASSERT(opt.get_string("filenames") == "a.out"); // same as index = 0
-            CPPUNIT_ASSERT(opt.get_string("filenames", 0) == "a.out");
-            CPPUNIT_ASSERT(strcmp(opt.get_default("filenames"), "a.out") == 0);
-            CPPUNIT_ASSERT(opt.size("filenames") == 1);
+            CATCH_REQUIRE(opt.is_defined("filenames"));
+            CATCH_REQUIRE(opt.get_string("filenames") == "a.out"); // same as index = 0
+            CATCH_REQUIRE(opt.get_string("filenames", 0) == "a.out");
+            CATCH_REQUIRE(strcmp(opt.get_default("filenames"), "a.out") == 0);
+            CATCH_REQUIRE(opt.size("filenames") == 1);
 
             // other parameters
-            CPPUNIT_ASSERT(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
-            CPPUNIT_ASSERT(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
+            CATCH_REQUIRE(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
+            CATCH_REQUIRE(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
         }
     }
 
@@ -2451,28 +2461,27 @@ void AdvGetOptUnitTests::valid_config_files()
             // check that the result is valid
 
             // an invalid parameter, MUST NOT EXIST
-            CPPUNIT_ASSERT(!opt.is_defined("invalid-parameter"));
+            CATCH_REQUIRE(!opt.is_defined("invalid-parameter"));
 
             // verbose
-            CPPUNIT_ASSERT(opt.is_defined("verbose"));
-            CPPUNIT_ASSERT(opt.get_string("verbose") == ""); // same as index = 0
-            CPPUNIT_ASSERT(opt.get_string("verbose", 0) == "");
-            CPPUNIT_ASSERT(opt.get_default("verbose") == NULL);
-            CPPUNIT_ASSERT(opt.size("verbose") == 1);
+            CATCH_REQUIRE(opt.is_defined("verbose"));
+            CATCH_REQUIRE(opt.get_string("verbose") == ""); // same as index = 0
+            CATCH_REQUIRE(opt.get_string("verbose", 0) == "");
+            CATCH_REQUIRE(opt.get_default("verbose") == NULL);
+            CATCH_REQUIRE(opt.size("verbose") == 1);
 
             // the no name parameter!?
-            CPPUNIT_ASSERT(opt.is_defined("--"));
-            CPPUNIT_ASSERT(opt.get_string("--") == "wpkg.cpp"); // same as index = 0
-            CPPUNIT_ASSERT(opt.get_string("--", 0) == "wpkg.cpp");
-            CPPUNIT_ASSERT(strcmp(opt.get_default("--"), "README") == 0);
-            CPPUNIT_ASSERT(opt.size("--") == 1);
+            CATCH_REQUIRE(opt.is_defined("--"));
+            CATCH_REQUIRE(opt.get_string("--") == "wpkg.cpp"); // same as index = 0
+            CATCH_REQUIRE(opt.get_string("--", 0) == "wpkg.cpp");
+            CATCH_REQUIRE(strcmp(opt.get_default("--"), "README") == 0);
+            CATCH_REQUIRE(opt.size("--") == 1);
 
             // other parameters
-            CPPUNIT_ASSERT(opt.get_program_name() == "no-name-arg-defaults-to-dash-dash");
-            CPPUNIT_ASSERT(opt.get_program_fullname() == "tests/unittests/unittest_advgetopt/AdvGetOptUnitTests::invalid_parameters/no-name-arg-defaults-to-dash-dash");
+            CATCH_REQUIRE(opt.get_program_name() == "no-name-arg-defaults-to-dash-dash");
+            CATCH_REQUIRE(opt.get_program_fullname() == "tests/unittests/unittest_advgetopt/AdvGetOptUnitTests::invalid_parameters/no-name-arg-defaults-to-dash-dash");
         }
     }
-
 }
 
 

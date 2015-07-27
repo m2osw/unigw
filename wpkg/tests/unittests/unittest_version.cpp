@@ -19,65 +19,66 @@
  *    Alexis Wilke   alexis@m2osw.com
  */
 
-#include "unittest_version.h"
 #include "libdebpackages/debian_version.h"
+
 #include <stdexcept>
 #include <cstring>
+#include <catch.hpp>
 
-CPPUNIT_TEST_SUITE_REGISTRATION( VersionUnitTests );
-
-void VersionUnitTests::setUp()
-{
-}
+#define ASSERT_MESSAGE( M, T ) \
+    { \
+        CATCH_INFO( (M) ); \
+        CATCH_REQUIRE( (T) ); \
+    }
 
 namespace
 {
-
-std::string print_version(const std::string& version)
-{
-    std::stringstream result;
-    for(const char *s(version.c_str()); *s != '\0'; ++s) {
-        if(static_cast<unsigned char>(*s) < ' ') result << "^" << static_cast<char>(*s + '@');
-        else if(static_cast<unsigned char>(*s) >= 0x80) result << "\\x" << std::hex << static_cast<int>(static_cast<unsigned char>(*s));
-        else if(*s == 0x7F) result << "<DEL>";
-        else if(*s == '^') result << "^^";
-        else if(*s == '@') result << "@@";
-        else result << *s;
-    }
-    return result.str();
-}
-
-void check_version(char const * const version, char const * const error_msg)
-{
-    // validate_debian_version()
+    std::string print_version(const std::string& version)
     {
-        char error_string[256];
-        strcpy(error_string, "no errors");
-        int valid(validate_debian_version(version, error_string, sizeof(error_string) / sizeof(error_string[0])));
-//printf("from {%s} result = %d [%s] [%s]\n", print_version(version).c_str(), valid, error_string, error_msg);
-        if(error_msg == 0)
-        {
-            // in this case it must be valid
-            CPPUNIT_ASSERT(valid == 1);
-            CPPUNIT_ASSERT(strcmp(error_string, "no errors") == 0); // err buffer unchanged
+        std::stringstream result;
+        for(const char *s(version.c_str()); *s != '\0'; ++s) {
+            if(static_cast<unsigned char>(*s) < ' ') result << "^" << static_cast<char>(*s + '@');
+            else if(static_cast<unsigned char>(*s) >= 0x80) result << "\\x" << std::hex << static_cast<int>(static_cast<unsigned char>(*s));
+            else if(*s == 0x7F) result << "<DEL>";
+            else if(*s == '^') result << "^^";
+            else if(*s == '@') result << "@@";
+            else result << *s;
         }
-        else
+        return result.str();
+    }
+
+    void check_version(char const * const version, char const * const error_msg)
+    {
+        // validate_debian_version()
         {
-            CPPUNIT_ASSERT(valid == 0);
-            CPPUNIT_ASSERT_MESSAGE(error_msg, strcmp(error_msg, error_string) == 0);
+            char error_string[256];
+            strcpy(error_string, "no errors");
+            int valid(validate_debian_version(version, error_string, sizeof(error_string) / sizeof(error_string[0])));
+            //printf("from {%s} result = %d [%s] [%s]\n", print_version(version).c_str(), valid, error_string, error_msg);
+            if(error_msg == 0)
+            {
+                // in this case it must be valid
+                CATCH_REQUIRE(valid == 1);
+                CATCH_REQUIRE(strcmp(error_string, "no errors") == 0); // err buffer unchanged
+            }
+            else
+            {
+                CATCH_REQUIRE(valid == 0);
+                ASSERT_MESSAGE(error_msg, strcmp(error_msg, error_string) == 0);
+            }
         }
     }
+
+    //DEBIAN_PACKAGE_EXPORT int validate_debian_version(const char *string, char *error_string, size_t error_size);
+    //DEBIAN_PACKAGE_EXPORT debian_version_handle_t string_to_debian_version(const char *string, char *error_string, size_t error_size);
+    //DEBIAN_PACKAGE_EXPORT int debian_version_to_string(const debian_version_handle_t debian_version, char *string, size_t string_size);
+    //DEBIAN_PACKAGE_EXPORT int debian_versions_compare(const debian_version_handle_t left, const debian_version_handle_t right);
+    //DEBIAN_PACKAGE_EXPORT void delete_debian_version(debian_version_handle_t debian_version);
 }
-
-//DEBIAN_PACKAGE_EXPORT int validate_debian_version(const char *string, char *error_string, size_t error_size);
-//DEBIAN_PACKAGE_EXPORT debian_version_handle_t string_to_debian_version(const char *string, char *error_string, size_t error_size);
-//DEBIAN_PACKAGE_EXPORT int debian_version_to_string(const debian_version_handle_t debian_version, char *string, size_t string_size);
-//DEBIAN_PACKAGE_EXPORT int debian_versions_compare(const debian_version_handle_t left, const debian_version_handle_t right);
-//DEBIAN_PACKAGE_EXPORT void delete_debian_version(debian_version_handle_t debian_version);
-}
+// unnamed namespace
 
 
-void VersionUnitTests::valid_versions()
+CATCH_TEST_CASE("VersionUnitTests::valid_versions","VersionUnitTests")
 {
     check_version("1.0", NULL);
 
@@ -178,7 +179,7 @@ void VersionUnitTests::valid_versions()
 }
 
 
-void VersionUnitTests::invalid_versions()
+CATCH_TEST_CASE("VersionUnitTests::invalid_versions","VersionUnitTests")
 {
     // empty
     check_version("", "invalid version, digit expected as first character");

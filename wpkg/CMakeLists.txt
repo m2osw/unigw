@@ -43,6 +43,8 @@ set(WPKG_VERSION_PATCH 11)
 
 cmake_minimum_required(VERSION 2.8.4)
 
+enable_testing()
+
 project( wpkg_project )
 
 # Look in our local module dir
@@ -155,8 +157,10 @@ set( WPKG_ROOT "${ENV_ROOT_PATH}" CACHE PATH "Root of wpkg installation." )
 if( DEFINED ENV{CONTROLLED_VARS_DEBUG} )
     add_definitions( -DCONTROLLED_VARS_DEBUG )
 endif()
-if( DEFINED ENV{ADVGETOPT_THROW_FOR_EXIT} )
-    add_definitions( -DADVGETOPT_THROW_FOR_EXIT )
+
+set( ADVGETOPT_THROW_FOR_EXIT $ENV{ADVGETOPT_THROW_FOR_EXIT} CACHE BOOL "Throw on exit for testing." )
+if( ADVGETOPT_THROW_FOR_EXIT )
+	add_definitions( -DADVGETOPT_THROW_FOR_EXIT )
 endif()
 
 
@@ -196,9 +200,7 @@ add_subdirectory( libdebpackages     )
 
 ## Tools and others
 add_subdirectory( tools )
-if( NOT MO_MINGW32 AND NOT MO_MINGW64 )
-    add_subdirectory( tests/unittests )
-endif()
+add_subdirectory( tests/unittests )
 add_subdirectory( documentation )
 
 ## Make sure we have "_d" for debug binaries

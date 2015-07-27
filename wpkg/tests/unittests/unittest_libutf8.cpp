@@ -19,22 +19,13 @@
  *    Alexis Wilke   alexis@m2osw.com
  */
 
-#include "unittest_libutf8.h"
 #include "libutf8/libutf8.h"
 
 #include <cctype>
-
-CPPUNIT_TEST_SUITE_REGISTRATION( LibUtf8UnitTests );
-
+#include <catch.hpp>
 
 
-void LibUtf8UnitTests::setUp()
-{
-}
-
-
-
-void LibUtf8UnitTests::conversions()
+CATCH_TEST_CASE("LibUtf8UnitTests::conversions","LibUtf8UnitTests")
 {
     std::string str;
     std::wstring wstr, back;
@@ -57,26 +48,26 @@ void LibUtf8UnitTests::conversions()
     const char *s(str.c_str());
     for(i = 1; i < 0x080; ++i)
     {
-        CPPUNIT_ASSERT(*s++ == static_cast<char>(i));
+        CATCH_REQUIRE(*s++ == static_cast<char>(i));
     }
     for(; i < 0x0800; ++i)
     {
-        CPPUNIT_ASSERT(*s++ == static_cast<char>((i >> 6) | 0xC0));
-        CPPUNIT_ASSERT(*s++ == static_cast<char>((i & 0x3F) | 0x80));
+        CATCH_REQUIRE(*s++ == static_cast<char>((i >> 6) | 0xC0));
+        CATCH_REQUIRE(*s++ == static_cast<char>((i & 0x3F) | 0x80));
     }
     for(; i < 0x0FFFE; ++i)
     {
         if(i < 0xD800 || i > 0xDFFF)
         {
-            CPPUNIT_ASSERT(*s++ == static_cast<char>((i >> 12) | 0xE0));
-            CPPUNIT_ASSERT(*s++ == static_cast<char>(((i >> 6) & 0x3F) | 0x80));
-            CPPUNIT_ASSERT(*s++ == static_cast<char>((i & 0x3F) | 0x80));
+            CATCH_REQUIRE(*s++ == static_cast<char>((i >> 12) | 0xE0));
+            CATCH_REQUIRE(*s++ == static_cast<char>(((i >> 6) & 0x3F) | 0x80));
+            CATCH_REQUIRE(*s++ == static_cast<char>((i & 0x3F) | 0x80));
         }
     }
 
     // verify the UTF-8 to wchar_t
     back = libutf8::mbstowcs(str);
-    CPPUNIT_ASSERT(back == wstr);
+    CATCH_REQUIRE(back == wstr);
 }
 
 
@@ -92,7 +83,7 @@ wchar_t rand_char()
     return wc;
 }
 
-void LibUtf8UnitTests::compare()
+CATCH_TEST_CASE("LibUtf8UnitTests::compare","LibUtf8UnitTests")
 {
     for(int i(1); i < 0x10000; ++i)
     {
@@ -100,19 +91,19 @@ void LibUtf8UnitTests::compare()
         std::wstring in;
         in += static_cast<wchar_t>(i);
         std::string mb(libutf8::wcstombs(in));
-        CPPUNIT_ASSERT(libutf8::mbscasecmp(mb, mb) == 0);
+        CATCH_REQUIRE(libutf8::mbscasecmp(mb, mb) == 0);
 
         // as is against uppercase
         std::wstring uin;
         uin += std::toupper(static_cast<wchar_t>(i));
         std::string umb(libutf8::wcstombs(uin));
-        CPPUNIT_ASSERT(libutf8::mbscasecmp(mb, umb) == 0);
+        CATCH_REQUIRE(libutf8::mbscasecmp(mb, umb) == 0);
 
         // as is against lowercase
         std::wstring lin;
         lin += std::tolower(static_cast<wchar_t>(i));
         std::string lmb(libutf8::wcstombs(lin));
-        CPPUNIT_ASSERT(libutf8::mbscasecmp(mb, lmb) == 0);
+        CATCH_REQUIRE(libutf8::mbscasecmp(mb, lmb) == 0);
 
         // random
         for(int j(0); j < 3; ++j)
@@ -123,19 +114,19 @@ void LibUtf8UnitTests::compare()
             lin += std::tolower(rwc);
 
             std::string rmb(libutf8::wcstombs(in));
-            CPPUNIT_ASSERT(libutf8::mbscasecmp(rmb, rmb) == 0);
+            CATCH_REQUIRE(libutf8::mbscasecmp(rmb, rmb) == 0);
             std::string rumb(libutf8::wcstombs(uin));
-            CPPUNIT_ASSERT(libutf8::mbscasecmp(rmb, rumb) == 0);
+            CATCH_REQUIRE(libutf8::mbscasecmp(rmb, rumb) == 0);
             std::string rlmb(libutf8::wcstombs(lin));
-            CPPUNIT_ASSERT(libutf8::mbscasecmp(rmb, rlmb) == 0);
+            CATCH_REQUIRE(libutf8::mbscasecmp(rmb, rlmb) == 0);
         }
 
         wchar_t wc(rand_char() & 0x0FFFF);
         in += wc;
         std::string emb(libutf8::wcstombs(in));
-        CPPUNIT_ASSERT(libutf8::mbscasecmp(emb, emb) == 0);
-        CPPUNIT_ASSERT(libutf8::mbscasecmp(emb, umb) == 1);
-        CPPUNIT_ASSERT(libutf8::mbscasecmp(emb, lmb) == 1);
+        CATCH_REQUIRE(libutf8::mbscasecmp(emb, emb) == 0);
+        CATCH_REQUIRE(libutf8::mbscasecmp(emb, umb) == 1);
+        CATCH_REQUIRE(libutf8::mbscasecmp(emb, lmb) == 1);
 
         {
             wchar_t uwc(rand_char() & 0x0FFFF);
@@ -145,17 +136,17 @@ void LibUtf8UnitTests::compare()
 //printf(" result: [%d]\n", libutf8::mbscasecmp(emb, eumb));
             if(std::toupper(wc) == std::toupper(uwc))
             {
-                CPPUNIT_ASSERT(libutf8::mbscasecmp(emb, eumb) == 0);
+                CATCH_REQUIRE(libutf8::mbscasecmp(emb, eumb) == 0);
             }
             else if(std::toupper(wc) < std::toupper(uwc))
             {
-                CPPUNIT_ASSERT(libutf8::mbscasecmp(emb, eumb) == -1);
+                CATCH_REQUIRE(libutf8::mbscasecmp(emb, eumb) == -1);
             }
             else
             {
-                CPPUNIT_ASSERT(libutf8::mbscasecmp(emb, eumb) == 1);
+                CATCH_REQUIRE(libutf8::mbscasecmp(emb, eumb) == 1);
             }
-            CPPUNIT_ASSERT(libutf8::mbscasecmp(lmb, eumb) == -1);
+            CATCH_REQUIRE(libutf8::mbscasecmp(lmb, eumb) == -1);
         }
 
         // here we check with a lowercase character, but notice that the
@@ -168,15 +159,15 @@ void LibUtf8UnitTests::compare()
 //printf(" result: [%d]\n", libutf8::mbscasecmp(emb, elmb));
             if(std::toupper(wc) == std::toupper(lwc))
             {
-                CPPUNIT_ASSERT(libutf8::mbscasecmp(emb, elmb) == 0);
+                CATCH_REQUIRE(libutf8::mbscasecmp(emb, elmb) == 0);
             }
             else if(std::toupper(wc) < std::toupper(lwc))
             {
-                CPPUNIT_ASSERT(libutf8::mbscasecmp(emb, elmb) == -1);
+                CATCH_REQUIRE(libutf8::mbscasecmp(emb, elmb) == -1);
             }
             else
             {
-                CPPUNIT_ASSERT(libutf8::mbscasecmp(emb, elmb) == 1);
+                CATCH_REQUIRE(libutf8::mbscasecmp(emb, elmb) == 1);
             }
         }
     }
