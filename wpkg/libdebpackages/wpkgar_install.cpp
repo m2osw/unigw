@@ -1017,11 +1017,7 @@ void wpkgar_install::validate_package_names()
                 case wpkgar_manager::installed:
                     // perfect -- the type remains explicit
                     {
-                        wpkg_control::control_file::field_xselection_t::selection_t selection(wpkg_control::control_file::field_xselection_t::selection_normal);
-                        if(f_manager->field_is_defined(it->get_filename(), wpkg_control::control_file::field_xselection_factory_t::canonicalized_name()))
-                        {
-                            selection = wpkg_control::control_file::field_xselection_t::validate_selection(f_manager->get_field(it->get_filename(), wpkg_control::control_file::field_xselection_factory_t::canonicalized_name()));
-                        }
+                        wpkg_control::control_file::field_xselection_t::selection_t selection( wpkgar_install::get_xselection( it->get_filename() ) );
                         if(selection == wpkg_control::control_file::field_xselection_t::selection_hold)
                         {
                             if(get_parameter(wpkgar_install_force_hold, false))
@@ -1192,11 +1188,7 @@ void wpkgar_install::validate_package_names()
 
                 case wpkgar_manager::unpacked:
                     {
-                        wpkg_control::control_file::field_xselection_t::selection_t selection(wpkg_control::control_file::field_xselection_t::selection_normal);
-                        if(f_manager->field_is_defined(it->get_filename(), wpkg_control::control_file::field_xselection_factory_t::canonicalized_name()))
-                        {
-                            selection = wpkg_control::control_file::field_xselection_t::validate_selection(f_manager->get_field(it->get_filename(), wpkg_control::control_file::field_xselection_factory_t::canonicalized_name()));
-                        }
+                        wpkg_control::control_file::field_xselection_t::selection_t selection( wpkgar_install::get_xselection( it->get_filename() ) );
                         if(selection == wpkg_control::control_file::field_xselection_t::selection_hold)
                         {
                             if(get_parameter(wpkgar_install_force_hold, false))
@@ -1502,7 +1494,7 @@ void wpkgar_install::validate_installed_packages()
                     // sure it is not marked as a "Reject" (X-Selection)
                     if(f_manager->field_is_defined(*it, wpkg_control::control_file::field_xselection_factory_t::canonicalized_name()))
                     {
-                        wpkg_control::control_file::field_xselection_t::selection_t selection(wpkg_control::control_file::field_xselection_t::validate_selection(f_manager->get_field(*it, wpkg_control::control_file::field_xselection_factory_t::canonicalized_name())));
+                        wpkg_control::control_file::field_xselection_t::selection_t selection( wpkgar_install::get_xselection( *it ) );
                         wpkgar_package_list_t::iterator item(find_package_item_by_name(*it));
                         if(item != f_packages.end()
                         && item->get_type() == package_item_t::package_type_explicit
@@ -1582,11 +1574,7 @@ void wpkgar_install::validate_installed_packages()
                         {
                             // Note: using f_manager directly since the package is not
                             //       yet in the f_packages vector
-                            wpkg_control::control_file::field_xselection_t::selection_t selection(wpkg_control::control_file::field_xselection_t::selection_normal);
-                            if(f_manager->field_is_defined(*it, wpkg_control::control_file::field_xselection_factory_t::canonicalized_name()))
-                            {
-                                selection = wpkg_control::control_file::field_xselection_t::validate_selection(f_manager->get_field(*it, wpkg_control::control_file::field_xselection_factory_t::canonicalized_name()));
-                            }
+                            wpkg_control::control_file::field_xselection_t::selection_t selection( wpkgar_install::get_xselection( *it ) );
                             std::string vi(f_manager->get_field(*it, wpkg_control::control_file::field_version_factory_t::canonicalized_name()));
                             std::string vo(item->get_version());
                             const int c(wpkg_util::versioncmp(vi, vo));
@@ -3284,21 +3272,43 @@ bool wpkgar_install::check_implicit_for_upgrade(wpkgar_package_list_t& tree, con
 }
 
 
+/** \brief Return XSelection if defined in the package status.
+ *
+ * This method checks if XSelection is defined in the package status. If so, then it returns the selection.
+ *
+ * \return selection, or "selection_normal" if not defined.
+ *
+ */
+wpkg_control::control_file::field_xselection_t::selection_t wpkgar_install::get_xselection( const wpkg_filename::uri_filename& filename ) const
+{
+    return get_xselection( filename.os_filename().get_utf8() );
+}
+
+wpkg_control::control_file::field_xselection_t::selection_t wpkgar_install::get_xselection( const std::string& filename ) const
+{
+    wpkg_control::control_file::field_xselection_t::selection_t
+        selection( wpkg_control::control_file::field_xselection_t::selection_normal );
+
+    if( f_manager->field_is_defined( filename,
+                wpkg_control::control_file::field_xselection_factory_t::canonicalized_name()) )
+    {
+        selection = wpkg_control::control_file::field_xselection_t::validate_selection(
+                f_manager->get_field( filename,
+                    wpkg_control::control_file::field_xselection_factory_t::canonicalized_name())
+                );
+    }
+
+    return selection;
+}
+
+
 /** \brief Find all dependencies of all the packages in the tree.
  *
  * This function recursively finds the dependencies for a given package.
  * If necessary and the user specified a repository, it promotes packages
  * that are available to implicit status when found.
- *
- * \bug
- * The dependency values pointed-to by the missing list are invalid,
- * because they reference an internal variable that will be
- * destroyed when this function returns. The most you can get
- * out of the \c missing list right now is how many dependencies
- * you are missing, as their details have been freed and the list
- * now points to garbage (if you're lucky...)
  */
-void wpkgar_install::find_dependencies(wpkgar_package_list_t& tree, const wpkgar_package_list_t::size_type idx, wpkgar_dependency_list_t& missing)
+void wpkgar_install::find_dependencies( wpkgar_package_list_t& tree, const wpkgar_package_list_t::size_type idx, wpkgar_dependency_list_t& missing, wpkgar_dependency_list_t& held )
 {
     const wpkg_filename::uri_filename filename(tree[idx].get_filename());
 
@@ -3327,8 +3337,11 @@ void wpkgar_install::find_dependencies(wpkgar_package_list_t& tree, const wpkgar
             wpkgar_package_list_t::size_type unpacked_idx(0);
             validation_return_t found(validation_return_missing);
             for(wpkgar_package_list_t::size_type tree_idx(0);
-                                                 found != validation_return_success && tree_idx < tree.size();
-                                                 ++tree_idx)
+                (found != validation_return_success)
+                    && (found != validation_return_held)
+                    && (tree_idx < tree.size());
+                ++tree_idx
+                )
             {
                 f_manager->check_interrupt();
 
@@ -3364,7 +3377,7 @@ void wpkgar_install::find_dependencies(wpkgar_package_list_t& tree, const wpkgar
                                 found = validation_return_success;
 
                                 tree_item.set_type(package_item_t::package_type_implicit);
-                                find_dependencies(tree, tree_idx, missing);
+                                find_dependencies(tree, tree_idx, missing, held);
                             }
                             break;
 
@@ -3377,7 +3390,17 @@ void wpkgar_install::find_dependencies(wpkgar_package_list_t& tree, const wpkgar
                         case package_item_t::package_type_downgrade:
                             if(match_dependency_version(temp_d, tree_item) == 1)
                             {
-                                found = validation_return_success;
+                                wpkg_control::control_file::field_xselection_t::selection_t
+                                        selection( wpkgar_install::get_xselection( tree_item.get_filename() ) );
+
+                                if( selection == wpkg_control::control_file::field_xselection_t::selection_hold )
+                                {
+                                    found = validation_return_held;
+                                }
+                                else
+                                {
+                                    found = validation_return_success;
+                                }
                             }
                             break;
 
@@ -3431,16 +3454,20 @@ void wpkgar_install::find_dependencies(wpkgar_package_list_t& tree, const wpkgar
                     .action("install-validation");
             }
 
-            if(found == validation_return_missing)
+            if( found == validation_return_missing )
             {
                 missing.push_back(d);
+            }
+            else if( found == validation_return_held )
+            {
+                held.push_back(d);
             }
         }
     }
 }
 
 
-bool wpkgar_install::verify_tree(wpkgar_package_list_t& tree, wpkgar_dependency_list_t& missing)
+bool wpkgar_install::verify_tree( wpkgar_package_list_t& tree, wpkgar_dependency_list_t& missing, wpkgar_dependency_list_t& held )
 {
     // if reconfiguring we have a good tree (i.e. the existing installation
     // tree is supposed to be proper)
@@ -3451,6 +3478,7 @@ bool wpkgar_install::verify_tree(wpkgar_package_list_t& tree, wpkgar_dependency_
 
     // save so we know whether any dependencies are missing
     wpkgar_dependency_list_t::size_type missing_count(missing.size());
+    wpkgar_dependency_list_t::size_type held_count(held.size());
 
     // verifying means checking that all dependencies are satisfied
     // also, in this case "available" dependencies that are required
@@ -3462,11 +3490,11 @@ bool wpkgar_install::verify_tree(wpkgar_package_list_t& tree, wpkgar_dependency_
     {
         if(tree[idx].get_type() == package_item_t::package_type_explicit)
         {
-            find_dependencies(tree, idx, missing);
+            find_dependencies(tree, idx, missing, held );
         }
     }
 
-    return missing_count == missing.size();
+    return missing_count == missing.size() && held_count == held.size();
 }
 
 
@@ -3847,7 +3875,8 @@ void wpkgar_install::validate_dependencies()
     if(!f_install_includes_choices)
     {
         wpkgar_dependency_list_t missing;
-        if(!verify_tree(f_packages, missing))
+        wpkgar_dependency_list_t held;
+        if(!verify_tree(f_packages, missing, held))
         {
             std::stringstream ss;
             if( missing.size() > 0 )
@@ -3862,7 +3891,21 @@ void wpkgar_install::validate_dependencies()
 					ss << dep.f_name << " (" << dep.f_version << ")";
                     comma = ", ";
                 });
-                ss << "]";
+                ss << "]. Package not installed!";
+            }
+            else if( held.size() > 0 )
+            {
+                // Tell the user which dependencies are missing...
+                //
+                ss << "The following dependencies are in a held state: [";
+                std::string comma;
+                std::for_each( held.begin(), held.end(), [&ss,&comma]( wpkg_dependencies::dependencies::dependency_t dep )
+                {
+                    ss << comma;
+                    ss << dep.f_name << " (" << dep.f_version << ")";
+                    comma = ", ";
+                });
+                ss << "]. Package not installed!";
             }
             else
             {
@@ -3904,7 +3947,8 @@ void wpkgar_install::validate_dependencies()
         }
 
         wpkgar_dependency_list_t missing;
-        bool verified(verify_tree(tree, missing));
+        wpkgar_dependency_list_t held;
+        bool verified(verify_tree(tree, missing, held));
 
         if((wpkg_output::get_output_debug_flags() & wpkg_output::debug_flags::debug_depends_graph) != 0)
         {

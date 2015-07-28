@@ -220,6 +220,7 @@ private:
         validation_return_success,
         validation_return_error,
         validation_return_missing,
+        validation_return_held,
         validation_return_unpacked
     };
 
@@ -269,8 +270,8 @@ private:
     validation_return_t validate_installed_dependencies();
     void find_best_dependency(const std::string& package_name, const wpkg_dependencies::dependencies::dependency_t& d);
     bool check_implicit_for_upgrade(wpkgar_package_list_t& tree, const wpkgar_package_list_t::size_type idx);
-    void find_dependencies(wpkgar_package_list_t& tree, const wpkgar_package_list_t::size_type idx, wpkgar_dependency_list_t& missing);
-    bool verify_tree(wpkgar_package_list_t& tree, wpkgar_dependency_list_t& missing);
+    void find_dependencies( wpkgar_package_list_t& tree, const wpkgar_package_list_t::size_type idx, wpkgar_dependency_list_t& missing, wpkgar_dependency_list_t& held );
+    bool verify_tree( wpkgar_package_list_t& tree, wpkgar_dependency_list_t& missing, wpkgar_dependency_list_t& held );
     bool trees_are_practically_identical(const wpkgar_package_list_t& left, const wpkgar_package_list_t& right) const;
     int compare_trees(const wpkgar_package_list_t& left, const wpkgar_package_list_t& right) const;
     void output_tree(int count, const wpkgar_package_list_t& tree, const std::string& sub_title);
@@ -281,6 +282,9 @@ private:
     void validate_scripts();
     void sort_package_dependencies(const std::string& name, wpkgar_package_listed_t& listed);
     void sort_packages();
+
+    wpkg_control::control_file::field_xselection_t::selection_t get_xselection( const wpkg_filename::uri_filename& filename ) const;
+    wpkg_control::control_file::field_xselection_t::selection_t get_xselection( const std::string& filename ) const;
 
     // unpack sub-functions
     bool preupgrade_scripts(package_item_t *item, package_item_t *upgrade);
