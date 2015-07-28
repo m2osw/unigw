@@ -1826,8 +1826,9 @@ public:
 
 
 
-
-        ctrl_pa->set_variable("INSTALL_PREOPTIONS", "--repository " + wpkg_util::make_safe_console_string(repository.path_only()));
+        // If you specify the repository here, wpkg will automatically install all dependencies,
+        // thus breaking the test.
+        //ctrl_pa->set_variable("INSTALL_PREOPTIONS", "--repository " + wpkg_util::make_safe_console_string(repository.path_only()));
         install_package("pa", ctrl_pa, 1);
 
         verify_purged_files("pa", ctrl_pa);
