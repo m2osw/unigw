@@ -7,4 +7,5 @@ This is my TO DO list which is hardly exhaustive...
   4. add support for zip files (instead of ar+tar)
   5. add support for lzma and xz formats
   6. complete tests to have better coverage
+  7. add more tests of the current version of wpkg in various files
 

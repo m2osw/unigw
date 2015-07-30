@@ -3543,7 +3543,8 @@ bool uri_filename::os_unlink_rf(bool dryrun) const
                 r = unlink(unlink_filename.os_filename().get_os_string().c_str());
                 f_errno = errno;
                 // Under MS-Windows we may get an EACCESS error instead of EISDIR
-                if(r != 0 && (f_errno == EISDIR || f_errno == EACCES))
+                // Under Darwin, we get an EPERM error when it is a directory
+                if(r != 0 && (f_errno == EISDIR || f_errno == EACCES || f_errno == EPERM))
                 {
                     // we need an rmdir() for a directory
                     r = rmdir(unlink_filename.os_filename().get_os_string().c_str());
