@@ -3390,12 +3390,20 @@ void wpkgar_install::find_dependencies( wpkgar_package_list_t& tree, const wpkga
                         case package_item_t::package_type_downgrade:
                             if(match_dependency_version(temp_d, tree_item) == 1)
                             {
-                                wpkg_control::control_file::field_xselection_t::selection_t
-                                        selection( wpkgar_install::get_xselection( tree_item.get_filename() ) );
-
-                                if( selection == wpkg_control::control_file::field_xselection_t::selection_hold )
+                                auto the_file( tree_item.get_filename() );
+                                if( the_file.is_deb() )
                                 {
-                                    found = validation_return_held;
+                                    wpkg_control::control_file::field_xselection_t::selection_t
+                                            selection( wpkgar_install::get_xselection( tree_item.get_filename() ) );
+
+                                    if( selection == wpkg_control::control_file::field_xselection_t::selection_hold )
+                                    {
+                                        found = validation_return_held;
+                                    }
+                                    else
+                                    {
+                                        found = validation_return_success;
+                                    }
                                 }
                                 else
                                 {
