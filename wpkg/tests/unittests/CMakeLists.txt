@@ -92,7 +92,12 @@ if( CATCH_FOUND )
 	if( NOT EXISTS ${TMPDIR} )
 		file( MAKE_DIRECTORY ${TMPDIR} )
 	endif()
-	add_test( unittests ${PROJECT_NAME} --tmp ${TMPDIR} --wpkg ${CMAKE_BINARY_DIR}/tools/wpkg_static${CMAKE_EXECUTABLE_SUFFIX} )
+
+	unset( DEBUG_WORD )
+	if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
+		set( DEBUG_WORD "_d" )
+	endif()
+	add_test( unittests ${PROJECT_NAME} --tmp ${TMPDIR} --wpkg ${CMAKE_BINARY_DIR}/tools/wpkg_static${DEBUG_WORD}${CMAKE_EXECUTABLE_SUFFIX} )
 
 endif( CATCH_FOUND )
 

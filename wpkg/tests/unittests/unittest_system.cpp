@@ -49,52 +49,8 @@
 // by installing a "special" package with an integration test.
 //
 
-
-CATCH_TEST_CASE("SystemUnitTests::setUp","SystemUnitTests")
-{
-    // make sure that the temporary directory is not empty, may be relative
-    if(unittest::tmp_dir.empty())
-    {
-        fprintf(stderr, "\nerror:unittest_system: a temporary directory is required to run the system unit tests.\n");
-        throw std::runtime_error("--tmp <directory> missing");
-    }
-
-    // path to the wpkg tool must not be empty either, may be relative
-    if(unittest::wpkg_tool.empty())
-    {
-        fprintf(stderr, "\nerror:unittest_system: the path to the wpkg tool is required; we do not use chdir() so a relative path will do.\n");
-        throw std::runtime_error("--wpkg <path-to-wpkg> missing");
-    }
-
-    // delete everything before running ANY ONE TEST
-    // (i.e. the setUp() function is called before each and every test)
-    wpkg_filename::uri_filename root(unittest::tmp_dir);
-    try
-    {
-        root.os_unlink_rf();
-    }
-    catch(const wpkg_filename::wpkg_filename_exception_io&)
-    {
-#ifdef MO_WINDOWS
-        // at times MS-Windows needs a little pause...
-        fprintf(stderr, "\n+++ Pause Between Package Tests +++\n");
-        Sleep(200);
-        root.os_unlink_rf();
-#else
-        // otherwise just rethrow
-        throw;
-#endif
-    }
-
-    printf("\n");
-    fflush(stdout);
-}
-
-
-
 namespace
 {
-
 
 struct project_info
 {
@@ -104,7 +60,6 @@ struct project_info
 };
 
 typedef std::vector<project_info> project_list_t;
-
 
 const char * const g_projects[] =
 {
@@ -346,10 +301,65 @@ const char * const g_projects[] =
 };
 
 
-} // no name namespace
+}
+// namespace
 
 
-void create_projects(project_list_t& list)
+class SystemUnitTests
+{
+    public:
+        SystemUnitTests();
+
+        void manual_builds();
+        void automated_builds();
+
+    private:
+        void create_projects(project_list_t& list);
+        void create_target();
+};
+
+SystemUnitTests::SystemUnitTests()
+{
+    // make sure that the temporary directory is not empty, may be relative
+    if(unittest::tmp_dir.empty())
+    {
+        fprintf(stderr, "\nerror:unittest_system: a temporary directory is required to run the system unit tests.\n");
+        throw std::runtime_error("--tmp <directory> missing");
+    }
+
+    // path to the wpkg tool must not be empty either, may be relative
+    if(unittest::wpkg_tool.empty())
+    {
+        fprintf(stderr, "\nerror:unittest_system: the path to the wpkg tool is required; we do not use chdir() so a relative path will do.\n");
+        throw std::runtime_error("--wpkg <path-to-wpkg> missing");
+    }
+
+    // delete everything before running ANY ONE TEST
+    // (i.e. the setUp() function is called before each and every test)
+    wpkg_filename::uri_filename root(unittest::tmp_dir);
+    try
+    {
+        root.os_unlink_rf();
+    }
+    catch(const wpkg_filename::wpkg_filename_exception_io&)
+    {
+#ifdef MO_WINDOWS
+        // at times MS-Windows needs a little pause...
+        fprintf(stderr, "\n+++ Pause Between Package Tests +++\n");
+        Sleep(200);
+        root.os_unlink_rf();
+#else
+        // otherwise just rethrow
+        throw;
+#endif
+    }
+
+    printf("\n");
+    fflush(stdout);
+}
+
+
+void SystemUnitTests::create_projects(project_list_t& list)
 {
     wpkg_filename::uri_filename root(unittest::tmp_dir);
 
@@ -416,7 +426,7 @@ void create_projects(project_list_t& list)
 }
 
 
-void create_target()
+void SystemUnitTests::create_target()
 {
     wpkg_filename::uri_filename root(unittest::tmp_dir);
     wpkg_filename::uri_filename repository(root.append_child("repository"));
@@ -440,8 +450,7 @@ void create_target()
 }
 
 
-
-CATCH_TEST_CASE("SystemUnitTests::manual_builds","SystemUnitTests")
+void SystemUnitTests::manual_builds()
 {
     wpkg_filename::uri_filename root(unittest::tmp_dir);
     root.os_mkdir_p();
@@ -460,13 +469,11 @@ CATCH_TEST_CASE("SystemUnitTests::manual_builds","SystemUnitTests")
     project_list_t project_list;
     create_projects(project_list);
 
-    for(project_list_t::const_iterator it(project_list.begin());
-                                       it != project_list.end();
-                                       ++it)
+    for( auto project : project_list )
     {
         // to build projects, we need to be inside the project directory
         std::string cd_cmd("cd ");
-        cd_cmd += root.append_child("projects").append_child(it->f_name).full_path();
+        cd_cmd += root.append_child("projects").append_child(project.f_name).full_path();
         cd_cmd += " && ";
 
         // build source package
@@ -488,14 +495,14 @@ CATCH_TEST_CASE("SystemUnitTests::manual_builds","SystemUnitTests")
         // build binary package
         {
             wpkg_filename::uri_filename source_path(repository);
-            source_path = source_path.append_child("sources").append_child(it->f_component).append_child(it->f_name);
+            source_path = source_path.append_child("sources").append_child(project.f_component).append_child(project.f_name);
             std::string cmd = cd_cmd + wpkg.full_path();
             cmd += " --root ";
             cmd += target_path.full_path();
             cmd += " --build ";
             cmd += source_path.full_path();
             cmd += "-src_";
-            cmd += it->f_version;
+            cmd += project.f_version;
             cmd += ".deb";
             cmd += " --output-repository-dir ";
             cmd += repository.full_path();
@@ -514,7 +521,7 @@ CATCH_TEST_CASE("SystemUnitTests::manual_builds","SystemUnitTests")
 
 
 
-CATCH_TEST_CASE("SystemUnitTests::automated_builds","SystemUnitTests")
+void SystemUnitTests::automated_builds()
 {
     wpkg_filename::uri_filename root(unittest::tmp_dir);
     root.os_mkdir_p();
@@ -533,13 +540,11 @@ CATCH_TEST_CASE("SystemUnitTests::automated_builds","SystemUnitTests")
     project_list_t project_list;
     create_projects(project_list);
 
-    for(project_list_t::const_iterator it(project_list.begin());
-                                       it != project_list.end();
-                                       ++it)
+    for( auto project : project_list )
     {
         // to build projects, we need to be inside the project directory
         std::string cd_cmd("cd ");
-        cd_cmd += root.append_child("projects").append_child(it->f_name).full_path();
+        cd_cmd += root.append_child("projects").append_child(project.f_name).full_path();
         cd_cmd += " && ";
 
         // build source package
@@ -578,6 +583,20 @@ CATCH_TEST_CASE("SystemUnitTests::automated_builds","SystemUnitTests")
         printf(" Build command returned %d (expected 0)\n", WEXITSTATUS(r));
         CATCH_REQUIRE(WEXITSTATUS(r) == 0);
     }
+}
+
+
+CATCH_TEST_CASE("SystemUnitTests::manual_builds","SystemUnitTests")
+{
+    SystemUnitTests sut;
+    sut.manual_builds();
+}
+
+
+CATCH_TEST_CASE("SystemUnitTests::automated_builds","SystemUnitTests")
+{
+    SystemUnitTests sut;
+    sut.automated_builds();
 }
 
 
