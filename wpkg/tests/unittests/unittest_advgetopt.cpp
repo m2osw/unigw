@@ -29,31 +29,38 @@
 
 #include <catch.hpp>
 
-
-namespace
+class AdvGetOptUnitTests
 {
-    void setUp()
+public:
+    AdvGetOptUnitTests();
+
+    void invalid_parameters();
+    void valid_config_files();
+    void valid_config_files_extra();
+};
+
+
+AdvGetOptUnitTests::AdvGetOptUnitTests()
+{
+    //wpkg_filename::uri_filename config("~/.config/wpkg/wpkg.conf");
+    //if(config.exists())
+    //{
+    //    fprintf(stderr, "\nerror:unittest_advgetopt: ~/.config/wpkg/wpkg.conf already exists, the advgetopt tests would not work as expected with such. Please delete or rename that file.\n");
+    //    throw std::runtime_error("~/.config/wpkg/wpkg.conf already exists");
+    //}
+    const char *options(getenv("ADVGETOPT_TEST_OPTIONS"));
+    if(options != NULL && *options != '\0')
     {
-        //wpkg_filename::uri_filename config("~/.config/wpkg/wpkg.conf");
-        //if(config.exists())
-        //{
-        //    fprintf(stderr, "\nerror:unittest_advgetopt: ~/.config/wpkg/wpkg.conf already exists, the advgetopt tests would not work as expected with such. Please delete or rename that file.\n");
-        //    throw std::runtime_error("~/.config/wpkg/wpkg.conf already exists");
-        //}
-        const char *options(getenv("ADVGETOPT_TEST_OPTIONS"));
-        if(options != NULL && *options != '\0')
-        {
-            fprintf(stderr, "\nerror:unittest_advgetopt: ADVGETOPT_TEST_OPTIONS already exists, the advgetopt tests would not work as expected with such. Please unset that environment variable.\n");
-            throw std::runtime_error("ADVGETOPT_TEST_OPTIONS already exists");
-        }
-#ifndef ADVGETOPT_THROW_FOR_EXIT
-        fprintf(stderr, "\nwarning:unittest_advgetopt: the ADVGETOPT_THROW_FOR_EXIT flag is not defined, usage() calls will not be tested.\n");
-#endif
+        fprintf(stderr, "\nerror:unittest_advgetopt: ADVGETOPT_TEST_OPTIONS already exists, the advgetopt tests would not work as expected with such. Please unset that environment variable.\n");
+        throw std::runtime_error("ADVGETOPT_TEST_OPTIONS already exists");
     }
+#ifndef ADVGETOPT_THROW_FOR_EXIT
+    fprintf(stderr, "\nwarning:unittest_advgetopt: the ADVGETOPT_THROW_FOR_EXIT flag is not defined, usage() calls will not be tested.\n");
+#endif
 }
 
 
-CATCH_TEST_CASE( "AdvGetOptUnitTests::invalid_parameters", "AdvGetOptUnitTests" )
+void AdvGetOptUnitTests::invalid_parameters()
 {
     printf("\nAdvanced GetOpt Output:\n");
     // default arguments
@@ -420,7 +427,7 @@ CATCH_TEST_CASE( "AdvGetOptUnitTests::invalid_parameters", "AdvGetOptUnitTests" 
         // a filename by itself is a problem when there is no default
         const char *sub_cargv[] =
         {
-            "tests/unittests/AdvGetOptUnitTests::valid_config_files",
+            "tests/unittests/AdvGetOptUnitTests::invalid_parameters",
             "--verbose",
             "this",
             "filename",
@@ -436,7 +443,7 @@ CATCH_TEST_CASE( "AdvGetOptUnitTests::invalid_parameters", "AdvGetOptUnitTests" 
         // is expected to represent a filename (stdin)
         const char *sub_cargv[] =
         {
-            "tests/unittests/AdvGetOptUnitTests::valid_config_files",
+            "tests/unittests/AdvGetOptUnitTests::invalid_parameters",
             "--verbose",
             "-",
             NULL
@@ -453,7 +460,7 @@ CATCH_TEST_CASE( "AdvGetOptUnitTests::invalid_parameters", "AdvGetOptUnitTests" 
         // no default options are accepted
         const char *sub_cargv[] =
         {
-            "tests/unittests/AdvGetOptUnitTests::valid_config_files",
+            "tests/unittests/AdvGetOptUnitTests::invalid_parameters",
             "--verbose",
             "--", // already just by itself it causes problems
             NULL
@@ -466,7 +473,7 @@ CATCH_TEST_CASE( "AdvGetOptUnitTests::invalid_parameters", "AdvGetOptUnitTests" 
     {
         const char *sub_cargv[] =
         {
-            "tests/unittests/AdvGetOptUnitTests::valid_config_files",
+            "tests/unittests/AdvGetOptUnitTests::invalid_parameters",
             "--verbose",
             "--",
             "66",
@@ -485,7 +492,7 @@ CATCH_TEST_CASE( "AdvGetOptUnitTests::invalid_parameters", "AdvGetOptUnitTests" 
         // check that -v, that does not exist, generates a usage error
         const char *sub_cargv[] =
         {
-            "tests/unittests/AdvGetOptUnitTests::valid_config_files",
+            "tests/unittests/AdvGetOptUnitTests::invalid_parameters",
             "-v",
             NULL
         };
@@ -537,7 +544,7 @@ CATCH_TEST_CASE( "AdvGetOptUnitTests::invalid_parameters", "AdvGetOptUnitTests" 
         unittest::obj_setenv env("ADVGETOPT_TEST_OPTIONS=--verbose - no default here");
         const char *sub_cargv[] =
         {
-            "tests/unittests/AdvGetOptUnitTests::valid_config_files",
+            "tests/unittests/AdvGetOptUnitTests::invalid_parameters",
             "--verbose",
             "-",
             "here",
@@ -554,7 +561,7 @@ CATCH_TEST_CASE( "AdvGetOptUnitTests::invalid_parameters", "AdvGetOptUnitTests" 
         unittest::obj_setenv env("ADVGETOPT_TEST_OPTIONS=--verbose no default here");
         const char *sub_cargv[] =
         {
-            "tests/unittests/AdvGetOptUnitTests::valid_config_files",
+            "tests/unittests/AdvGetOptUnitTests::invalid_parameters",
             "--verbose",
             "-",
             "here",
@@ -571,7 +578,7 @@ CATCH_TEST_CASE( "AdvGetOptUnitTests::invalid_parameters", "AdvGetOptUnitTests" 
         unittest::obj_setenv env("ADVGETOPT_TEST_OPTIONS=--verbose -- foo bar blah");
         const char *sub_cargv[] =
         {
-            "tests/unittests/AdvGetOptUnitTests::valid_config_files",
+            "tests/unittests/AdvGetOptUnitTests::invalid_parameters",
             "--verbose",
             "here",
             "it",
@@ -623,7 +630,7 @@ CATCH_TEST_CASE( "AdvGetOptUnitTests::invalid_parameters", "AdvGetOptUnitTests" 
     {
         const char *sub_cargv[] =
         {
-            "tests/unittests/AdvGetOptUnitTests::valid_config_files",
+            "tests/unittests/AdvGetOptUnitTests::invalid_parameters",
             "--verbose",
             NULL
         };
@@ -1522,7 +1529,7 @@ CATCH_TEST_CASE( "AdvGetOptUnitTests::invalid_parameters", "AdvGetOptUnitTests" 
 }
 
 
-CATCH_TEST_CASE( "AdvGetOptUnitTests::valid_config_files", "AdvGetOptUnitTests" )
+void AdvGetOptUnitTests::valid_config_files()
 {
     // default arguments
     const char *cargv[] =
@@ -2013,7 +2020,7 @@ CATCH_TEST_CASE( "AdvGetOptUnitTests::valid_config_files", "AdvGetOptUnitTests" 
 }
 
 
-CATCH_TEST_CASE( "AdvGetOptUnitTests::valid_config_files_extra", "AdvGetOptUnitTests" )
+void AdvGetOptUnitTests::valid_config_files_extra()
 {
     std::vector<std::string> empty_confs;
 
@@ -2105,7 +2112,7 @@ CATCH_TEST_CASE( "AdvGetOptUnitTests::valid_config_files_extra", "AdvGetOptUnitT
 
         const char *sub_cargv[] =
         {
-            "tests/unittests/AdvGetOptUnitTests::valid_config_files",
+            "tests/unittests/AdvGetOptUnitTests::valid_config_files_extra",
             "--valid-parameter",
             "--",
             "extra",
@@ -2166,8 +2173,8 @@ CATCH_TEST_CASE( "AdvGetOptUnitTests::valid_config_files_extra", "AdvGetOptUnitT
         CATCH_REQUIRE(opt.size("filenames") == 12);
 
         // other parameters
-        CATCH_REQUIRE(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
-        CATCH_REQUIRE(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
+        CATCH_REQUIRE(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files_extra");
+        CATCH_REQUIRE(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files_extra");
     }
 
     // check that multiple flags can be used one after another
@@ -2235,7 +2242,7 @@ CATCH_TEST_CASE( "AdvGetOptUnitTests::valid_config_files_extra", "AdvGetOptUnitT
     {
         const char *sub_cargv[] =
         {
-            "tests/unittests/AdvGetOptUnitTests::valid_config_files",
+            "tests/unittests/AdvGetOptUnitTests::valid_config_files_extra",
             "-cafard",
             "alpha",
             "-",
@@ -2285,8 +2292,8 @@ CATCH_TEST_CASE( "AdvGetOptUnitTests::valid_config_files_extra", "AdvGetOptUnitT
         CATCH_REQUIRE(opt.size("r") == 1);
 
         // other parameters
-        CATCH_REQUIRE(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
-        CATCH_REQUIRE(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
+        CATCH_REQUIRE(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files_extra");
+        CATCH_REQUIRE(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files_extra");
     }
 
     // check that an optional option gets its default value if no arguments
@@ -2341,7 +2348,7 @@ CATCH_TEST_CASE( "AdvGetOptUnitTests::valid_config_files_extra", "AdvGetOptUnitT
             // first try with that option by itself
             const char *sub_cargv[] =
             {
-                "tests/unittests/AdvGetOptUnitTests::valid_config_files",
+                "tests/unittests/AdvGetOptUnitTests::valid_config_files_extra",
                 "--valid-parameter",
                 "optional argument",
                 "--filenames",
@@ -2372,14 +2379,14 @@ CATCH_TEST_CASE( "AdvGetOptUnitTests::valid_config_files_extra", "AdvGetOptUnitT
             CATCH_REQUIRE(opt.size("filenames") == 1);
 
             // other parameters
-            CATCH_REQUIRE(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
-            CATCH_REQUIRE(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
+            CATCH_REQUIRE(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files_extra");
+            CATCH_REQUIRE(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files_extra");
         }
         {
             // try again with a -v after the --filenames without filenames
             const char *sub_cargv[] =
             {
-                "tests/unittests/AdvGetOptUnitTests::valid_config_files",
+                "tests/unittests/AdvGetOptUnitTests::valid_config_files_extra",
                 "--filenames",
                 "-v",
                 NULL
@@ -2402,8 +2409,8 @@ CATCH_TEST_CASE( "AdvGetOptUnitTests::valid_config_files_extra", "AdvGetOptUnitT
             CATCH_REQUIRE(opt.size("filenames") == 1);
 
             // other parameters
-            CATCH_REQUIRE(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files");
-            CATCH_REQUIRE(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files");
+            CATCH_REQUIRE(opt.get_program_name() == "AdvGetOptUnitTests::valid_config_files_extra");
+            CATCH_REQUIRE(opt.get_program_fullname() == "tests/unittests/AdvGetOptUnitTests::valid_config_files_extra");
         }
     }
 
@@ -2484,6 +2491,26 @@ CATCH_TEST_CASE( "AdvGetOptUnitTests::valid_config_files_extra", "AdvGetOptUnitT
     }
 }
 
+
+CATCH_TEST_CASE( "AdvGetOptUnitTests::invalid_parameters", "AdvGetOptUnitTests" )
+{
+    AdvGetOptUnitTests advgetopt;
+    advgetopt.invalid_parameters();
+}
+
+
+CATCH_TEST_CASE( "AdvGetOptUnitTests::valid_config_files", "AdvGetOptUnitTests" )
+{
+    AdvGetOptUnitTests advgetopt;
+    advgetopt.valid_config_files();
+}
+
+
+CATCH_TEST_CASE( "AdvGetOptUnitTests::valid_config_files_extra", "AdvGetOptUnitTests" )
+{
+    AdvGetOptUnitTests advgetopt;
+    advgetopt.valid_config_files_extra();
+}
 
 
 // vim: ts=4 sw=4 et
