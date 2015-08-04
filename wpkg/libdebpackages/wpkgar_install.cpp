@@ -1737,13 +1737,11 @@ void wpkgar_install::validate_distribution()
     }
 
     const std::string distribution(f_manager->get_field("core", "Distribution"));
-    for(wpkgar_package_list_t::size_type idx(0);
-                                         idx < f_packages.size();
-                                         ++idx)
+    for( auto package : f_packages )
     {
         f_manager->check_interrupt();
 
-        switch(f_packages[idx].get_type())
+        switch(package.get_type())
         {
         case package_item_t::package_type_explicit:
         case package_item_t::package_type_implicit:
@@ -1754,13 +1752,13 @@ void wpkgar_install::validate_distribution()
             {
                 // note that the Distribution field restriction does not
                 // apply to source packages
-                const std::string architecture(f_packages[idx].get_architecture());
+                const std::string architecture(package.get_architecture());
                 if(architecture != "source" && architecture != "src")
                 {
-                    const wpkg_filename::uri_filename filename(f_packages[idx].get_filename());
+                    const wpkg_filename::uri_filename filename(package.get_filename());
 
                     // is the Distribution field defined?
-                    if(!f_packages[idx].field_is_defined("Distribution"))
+                    if(!package.field_is_defined("Distribution"))
                     {
                         if(get_parameter(wpkgar_install_force_distribution, false))
                         {
@@ -1784,7 +1782,7 @@ void wpkgar_install::validate_distribution()
                     }
 
                     // match the distribution
-                    const std::string d(f_packages[idx].get_field("Distribution"));
+                    const std::string d(package.get_field("Distribution"));
                     if(d != distribution)
                     {
                         if(get_parameter(wpkgar_install_force_distribution, false))
