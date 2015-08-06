@@ -323,12 +323,25 @@ public:
             fflush(stdout);
             CATCH_REQUIRE(system(core_cmd.c_str()) == 0);
         }
+        else
+        {
+            // In case we are running after creation of root and repository, update the index
+            //
+            wpkg_filename::uri_filename index_file(repository.append_child("index.tar.gz"));
+            std::string cmd;
+            cmd = unittest::wpkg_tool;
+            cmd += " --create-index " + wpkg_util::make_safe_console_string(index_file.path_only());
+            cmd += " --repository "   + wpkg_util::make_safe_console_string(repository.path_only());
+            std::cout << "Build index command: \"" << cmd << "\"" << std::endl << std::flush;
+            const int r(system(cmd.c_str()));
+            std::cout << "  Build index result = " << WEXITSTATUS(r) << std::endl << std::flush;
+            CATCH_REQUIRE(WEXITSTATUS(r) == 0);
+        }
 
         std::string cmd;
         if(ctrl->field_is_defined("PRE_COMMAND"))
         {
-            cmd += ctrl->get_field("PRE_COMMAND");
-            cmd += " && ";
+            cmd += ctrl->get_field("PRE_COMMAND") + " ";
         }
         cmd += unittest::wpkg_tool;
         if(ctrl->variable_is_defined("INSTALL_PREOPTIONS"))
@@ -346,7 +359,7 @@ public:
         }
         printf("Install Command: \"%s\"\n", cmd.c_str());
         fflush(stdout);
-        int r(system(cmd.c_str()));
+        const int r(system(cmd.c_str()));
         printf("  Install result = %d (expected %d)\n", WEXITSTATUS(r), expected_return_value);
         CATCH_REQUIRE(WEXITSTATUS(r) == expected_return_value);
     }
@@ -1335,15 +1348,9 @@ public:
         // ?!?! WORKS WITH THE WRONG DISTRIBUTION ?!?!
         // This is because there is an index and all the validations count on the
         // index to be valid! (here we have a sync. problem too!)
-        install_package("t2", ctrl_t2);
-        verify_installed_files("t2");
-        verify_installed_files("t1");
-
-        purge_package("t2", ctrl_t2);
-        verify_purged_files("t2", ctrl_t2);
-
-        purge_package("t1", ctrl_t1);
-        verify_purged_files("t1", ctrl_t1);
+        install_package("t2", ctrl_t2, 1);
+        verify_purged_files( "t2", ctrl_t2 );
+        verify_purged_files( "t1", ctrl_t1 );
 
         // So now we reset the index and try again
         wpkg_filename::uri_filename index(repository.append_child("index.tar.gz"));
@@ -3179,7 +3186,7 @@ public:
 #if defined(MO_WINDOWS)
         ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"f=/opt/wpkg|/m2osw/packages|/only/one/pipe/allowed:h=usr/local/bin/wpkg\"");
 #else
-        ctrl_t1->set_field("PRE_COMMAND", "export WPKG_SUBST='f=/opt/wpkg|/m2osw/packages|/only/one/pipe/allowed:h=usr/local/bin/wpkg'");
+        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='f=/opt/wpkg|/m2osw/packages|/only/one/pipe/allowed:h=usr/local/bin/wpkg'");
 #endif
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
@@ -3189,7 +3196,7 @@ public:
 #if defined(MO_WINDOWS)
         ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"f=/opt/wpkg|/m2osw*/packages:h=usr/local/bin/wpkg\"");
 #else
-        ctrl_t1->set_field("PRE_COMMAND", "export WPKG_SUBST='f=/opt/wpkg|/m2osw*/packages:h=usr/local/bin/wpkg'");
+        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='f=/opt/wpkg|/m2osw*/packages:h=usr/local/bin/wpkg'");
 #endif
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
@@ -3199,7 +3206,7 @@ public:
 #if defined(MO_WINDOWS)
         ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"f=/opt/wpkg*|/m2osw/packages:h=usr/local/bin/wpkg\"");
 #else
-        ctrl_t1->set_field("PRE_COMMAND", "export WPKG_SUBST='f=/opt/wpkg*|/m2osw/packages:h=usr/local/bin/wpkg'");
+        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='f=/opt/wpkg*|/m2osw/packages:h=usr/local/bin/wpkg'");
 #endif
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
@@ -3209,7 +3216,7 @@ public:
 #if defined(MO_WINDOWS)
         ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"f=/opt/wpkg///|/m2osw/pack?ages:h=usr/local/bin/wpkg\"");
 #else
-        ctrl_t1->set_field("PRE_COMMAND", "export WPKG_SUBST='f=/opt/wpkg/\\/|/m2osw/pack?ages:h=usr/local/bin/wpkg'");
+        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='f=/opt/wpkg/\\/|/m2osw/pack?ages:h=usr/local/bin/wpkg'");
 #endif
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
@@ -3219,7 +3226,7 @@ public:
 #if defined(MO_WINDOWS)
         ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"f=///opt///wp?kg|/m2osw/packages:h=usr/local/bin/wpkg\"");
 #else
-        ctrl_t1->set_field("PRE_COMMAND", "export WPKG_SUBST='f=/opt/wp?kg|/m2osw/packages:h=usr/local/bin/wpkg'");
+        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='f=/opt/wp?kg|/m2osw/packages:h=usr/local/bin/wpkg'");
 #endif
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
@@ -3229,7 +3236,7 @@ public:
 #if defined(MO_WINDOWS)
         ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"f=/opt/wpkg|/m2osw\\\\packages\"\":h=usr/local/bin/wpkg\"");
 #else
-        ctrl_t1->set_field("PRE_COMMAND", "export WPKG_SUBST='f=/opt/wpkg|/m2osw\\\\packages\":h=usr/local/bin/wpkg'");
+        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='f=/opt/wpkg|/m2osw\\\\packages\":h=usr/local/bin/wpkg'");
 #endif
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
@@ -3239,7 +3246,7 @@ public:
 #if defined(MO_WINDOWS)
         ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"f=/opt\\\\wpkg\"\"|/m2osw/packages:h=usr/local/bin/wpkg\"");
 #else
-        ctrl_t1->set_field("PRE_COMMAND", "export WPKG_SUBST='f=/opt\\\\wpkg\"|/m2osw/packages:h=usr/local/bin/wpkg'");
+        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='f=/opt\\\\wpkg\"|/m2osw/packages:h=usr/local/bin/wpkg'");
 #endif
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
@@ -3249,7 +3256,7 @@ public:
 #if defined(MO_WINDOWS)
         ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"f=/opt/wpkg|</m2osw/packages:h=usr/local/bin/wpkg\"");
 #else
-        ctrl_t1->set_field("PRE_COMMAND", "export WPKG_SUBST='f=/opt/wpkg|</m2osw/packages:h=usr/local/bin/wpkg'");
+        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='f=/opt/wpkg|</m2osw/packages:h=usr/local/bin/wpkg'");
 #endif
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
@@ -3259,7 +3266,7 @@ public:
 #if defined(MO_WINDOWS)
         ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"f=</opt/wpkg|/m2osw/packages:h=usr/local/bin/wpkg\"");
 #else
-        ctrl_t1->set_field("PRE_COMMAND", "export WPKG_SUBST='f=</opt/wpkg|/m2osw/packages:h=usr/local/bin/wpkg'");
+        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='f=</opt/wpkg|/m2osw/packages:h=usr/local/bin/wpkg'");
 #endif
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
@@ -3269,7 +3276,7 @@ public:
 #if defined(MO_WINDOWS)
         ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"f=/opt//wpkg|/>m2osw/packages:h=usr/local/bin/wpkg\"");
 #else
-        ctrl_t1->set_field("PRE_COMMAND", "export WPKG_SUBST='f=/opt//wpkg|/>m2osw/packages:h=usr/local/bin/wpkg'");
+        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='f=/opt//wpkg|/>m2osw/packages:h=usr/local/bin/wpkg'");
 #endif
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
@@ -3279,7 +3286,7 @@ public:
 #if defined(MO_WINDOWS)
         ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"F=/>opt/wpkg|/m2osw/packages:h=usr/local/bin/wpkg\"");
 #else
-        ctrl_t1->set_field("PRE_COMMAND", "export WPKG_SUBST='F=/>opt/wpkg|/m2osw/packages:h=usr/local/bin/wpkg'");
+        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='F=/>opt/wpkg|/m2osw/packages:h=usr/local/bin/wpkg'");
 #endif
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
@@ -3289,7 +3296,7 @@ public:
 #if defined(MO_WINDOWS)
         ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"g=/valid/path/|good/dir:::f:/opt/wpkg\"");
 #else
-        ctrl_t1->set_field("PRE_COMMAND", "export WPKG_SUBST='g=/valid/path/|good/dir:::f:/opt/wpkg'");
+        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='g=/valid/path/|good/dir:::f:/opt/wpkg'");
 #endif
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
@@ -3299,7 +3306,7 @@ public:
 #if defined(MO_WINDOWS)
         ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"f=/valid/path/:3=/opt/wpkg\"");
 #else
-        ctrl_t1->set_field("PRE_COMMAND", "export WPKG_SUBST='f=/valid/path/:3=/opt/wpkg'");
+        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='f=/valid/path/:3=/opt/wpkg'");
 #endif
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
@@ -4011,229 +4018,238 @@ public:
 
     void complex_tree_in_repository()
     {
+        // Installing t02 with --repository works
+        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename repository(root.append_child("repository"));
+
         // IMPORTANT: remember that all files are deleted between tests
 
         ////////////////////////// cpp-utils
-        // t1       version 1.0 //
+        // t01       version 1.0 //
         //////////////////////////
-        std::shared_ptr<wpkg_control::control_file> ctrl_t1_0(get_new_control_file(__FUNCTION__));
-        ctrl_t1_0->set_field("Files", "conffiles\n"
-                "/etc/t1.conf 0123456789abcdef0123456789abcdef\n"
-                "/usr/bin/t1 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t1/copyright 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t1/info 0123456789abcdef0123456789abcdef\n"
+        std::shared_ptr<wpkg_control::control_file> ctrl_t01_0(get_new_control_file(__FUNCTION__));
+        ctrl_t01_0->set_field("Files", "conffiles\n"
+                "/etc/t01.conf 0123456789abcdef0123456789abcdef\n"
+                "/usr/bin/t01 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t01/copyright 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t01/info 0123456789abcdef0123456789abcdef\n"
                 );
-        ctrl_t1_0->set_field("Version", "1.0");
-        ctrl_t1_0->set_field("Depends", "t5 (= 1.3), t3 (= 1.2), t4 (= 1.1), t7 (= 1.1)");
-        create_package("t1", ctrl_t1_0);
+        ctrl_t01_0->set_field("Version", "1.0");
+        ctrl_t01_0->set_field("Depends", "t05 (= 1.3), t03 (= 1.2), t04 (= 1.1), t07 (= 1.1)");
+        create_package("t01", ctrl_t01_0);
 
 
         ////////////////////////// lp-utils-workspace
-        // t2       version 1.0 //
+        // t02       version 1.0 //
         //////////////////////////
-        std::shared_ptr<wpkg_control::control_file> ctrl_t2(get_new_control_file(__FUNCTION__));
-        ctrl_t2->set_field("Files", "conffiles\n"
-                "/etc/t2.conf 0123456789abcdef0123456789abcdef\n"
-                "/usr/bin/t2 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t2/copyright 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t2/info 0123456789abcdef0123456789abcdef\n"
+        std::shared_ptr<wpkg_control::control_file> ctrl_t02(get_new_control_file(__FUNCTION__));
+        ctrl_t02->set_field("Files", "conffiles\n"
+                "/etc/t02.conf 0123456789abcdef0123456789abcdef\n"
+                "/usr/bin/t02 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t02/copyright 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t02/info 0123456789abcdef0123456789abcdef\n"
                 );
-        ctrl_t2->set_field("Version", "1.0");
-        ctrl_t2->set_field("Depends", "t1 (= 1.0), t5 (= 1.3), t10 (= 1.1), t4 (= 1.1), t11 (= 1.0)");
-        create_package("t2", ctrl_t2);
+        ctrl_t02->set_field("Version", "1.0");
+        ctrl_t02->set_field("Depends", "t01 (= 1.0), t05 (= 1.3), t10 (= 1.1), t04 (= 1.1), t11 (= 1.0)");
+        create_package("t02", ctrl_t02);
+
+        // This should fail because required dependencies are not met yet.
+        //
+        ctrl_t02->set_variable("INSTALL_PREOPTIONS", "--repository " + wpkg_util::make_safe_console_string(repository.path_only()) + " -D 07777");
+        install_package("t02", ctrl_t02, 1);
 
 
         ////////////////////////////////////
-        // t3       version 1.0, 1.1, 1.2 //
+        // t03       version 1.0, 1.1, 1.2 //
         ////////////////////////////////////
-        std::shared_ptr<wpkg_control::control_file> ctrl_t3_0(get_new_control_file(__FUNCTION__));
-        ctrl_t3_0->set_field("Files", "conffiles\n"
-                "/etc/t3.conf 0123456789abcdef0123456789abcdef\n"
-                "/usr/bin/t3 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t3/copyright 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t3/info 0123456789abcdef0123456789abcdef\n"
+        std::shared_ptr<wpkg_control::control_file> ctrl_t03_0(get_new_control_file(__FUNCTION__));
+        ctrl_t03_0->set_field("Files", "conffiles\n"
+                "/etc/t03.conf 0123456789abcdef0123456789abcdef\n"
+                "/usr/bin/t03 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t03/copyright 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t03/info 0123456789abcdef0123456789abcdef\n"
                 );
-        ctrl_t3_0->set_field("Version", "1.0");
-        create_package("t3", ctrl_t3_0);
+        ctrl_t03_0->set_field("Version", "1.0");
+        create_package("t03", ctrl_t03_0);
 
-        std::shared_ptr<wpkg_control::control_file> ctrl_t3_1(get_new_control_file(__FUNCTION__));
-        ctrl_t3_1->set_field("Files", "conffiles\n"
-                "/etc/t3.conf 0123456789abcdef0123456789abcdef\n"
-                "/usr/bin/t3 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t3/copyright 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t3/info 0123456789abcdef0123456789abcdef\n"
+        std::shared_ptr<wpkg_control::control_file> ctrl_t03_1(get_new_control_file(__FUNCTION__));
+        ctrl_t03_1->set_field("Files", "conffiles\n"
+                "/etc/t03.conf 0123456789abcdef0123456789abcdef\n"
+                "/usr/bin/t03 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t03/copyright 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t03/info 0123456789abcdef0123456789abcdef\n"
                 );
-        ctrl_t3_1->set_field("Version", "1.1");
-        create_package("t3", ctrl_t3_1);
+        ctrl_t03_1->set_field("Version", "1.1");
+        create_package("t03", ctrl_t03_1);
 
-        std::shared_ptr<wpkg_control::control_file> ctrl_t3_2(get_new_control_file(__FUNCTION__));
-        ctrl_t3_2->set_field("Files", "conffiles\n"
-                "/etc/t3.conf 0123456789abcdef0123456789abcdef\n"
-                "/usr/bin/t3 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t3/copyright 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t3/info 0123456789abcdef0123456789abcdef\n"
+        std::shared_ptr<wpkg_control::control_file> ctrl_t03_2(get_new_control_file(__FUNCTION__));
+        ctrl_t03_2->set_field("Files", "conffiles\n"
+                "/etc/t03.conf 0123456789abcdef0123456789abcdef\n"
+                "/usr/bin/t03 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t03/copyright 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t03/info 0123456789abcdef0123456789abcdef\n"
                 );
-        ctrl_t3_2->set_field("Version", "1.2");
-        create_package("t3", ctrl_t3_2);
+        ctrl_t03_2->set_field("Version", "1.2");
+        create_package("t03", ctrl_t03_2);
 
         /////////////////////////////// liblog4cplus
-        // t4       version 1.0, 1.1 //
+        // t04       version 1.0, 1.1 //
         ///////////////////////////////
-        std::shared_ptr<wpkg_control::control_file> ctrl_t4_0(get_new_control_file(__FUNCTION__));
-        ctrl_t4_0->set_field("Files", "conffiles\n"
-                "/etc/t4.conf 0123456789abcdef0123456789abcdef\n"
-                "/usr/bin/t4 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t4/copyright 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t4/info 0123456789abcdef0123456789abcdef\n"
+        std::shared_ptr<wpkg_control::control_file> ctrl_t04_0(get_new_control_file(__FUNCTION__));
+        ctrl_t04_0->set_field("Files", "conffiles\n"
+                "/etc/t04.conf 0123456789abcdef0123456789abcdef\n"
+                "/usr/bin/t04 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t04/copyright 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t04/info 0123456789abcdef0123456789abcdef\n"
                 );
-        ctrl_t4_0->set_field("Version", "1.0");
-        create_package("t4", ctrl_t4_0);
+        ctrl_t04_0->set_field("Version", "1.0");
+        create_package("t04", ctrl_t04_0);
 
-        std::shared_ptr<wpkg_control::control_file> ctrl_t4_1(get_new_control_file(__FUNCTION__));
-        ctrl_t4_1->set_field("Files", "conffiles\n"
-                "/etc/t4.conf 0123456789abcdef0123456789abcdef\n"
-                "/usr/bin/t4 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t4/copyright 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t4/info 0123456789abcdef0123456789abcdef\n"
+        std::shared_ptr<wpkg_control::control_file> ctrl_t04_1(get_new_control_file(__FUNCTION__));
+        ctrl_t04_1->set_field("Files", "conffiles\n"
+                "/etc/t04.conf 0123456789abcdef0123456789abcdef\n"
+                "/usr/bin/t04 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t04/copyright 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t04/info 0123456789abcdef0123456789abcdef\n"
                 );
-        ctrl_t4_1->set_field("Version", "1.1");
-        create_package("t4", ctrl_t4_1);
+        ctrl_t04_1->set_field("Version", "1.1");
+        create_package("t04", ctrl_t04_1);
 
 
         /////////////////////////////// libboost
-        // t5       version 1.2, 1.3 //
+        // t05       version 1.2, 1.3 //
         ///////////////////////////////
-        std::shared_ptr<wpkg_control::control_file> ctrl_t5_2(get_new_control_file(__FUNCTION__));
-        ctrl_t5_2->set_field("Files", "conffiles\n"
-                "/etc/t5.conf 0123456789abcdef0123456789abcdef\n"
-                "/usr/bin/t5 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t5/copyright 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t5/info 0123456789abcdef0123456789abcdef\n"
+        std::shared_ptr<wpkg_control::control_file> ctrl_t05_2(get_new_control_file(__FUNCTION__));
+        ctrl_t05_2->set_field("Files", "conffiles\n"
+                "/etc/t05.conf 0123456789abcdef0123456789abcdef\n"
+                "/usr/bin/t05 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t05/copyright 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t05/info 0123456789abcdef0123456789abcdef\n"
                 );
-        ctrl_t5_2->set_field("Version", "1.2");
-        ctrl_t5_2->set_field("Depends", "t8 (= 1.2)");
-        create_package("t5", ctrl_t5_2);
+        ctrl_t05_2->set_field("Version", "1.2");
+        ctrl_t05_2->set_field("Depends", "t08 (= 1.2)");
+        create_package("t05", ctrl_t05_2);
 
-        std::shared_ptr<wpkg_control::control_file> ctrl_t5_3(get_new_control_file(__FUNCTION__));
-        ctrl_t5_3->set_field("Files", "conffiles\n"
-                "/etc/t5.conf 0123456789abcdef0123456789abcdef\n"
-                "/usr/bin/t5 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t5/copyright 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t5/info 0123456789abcdef0123456789abcdef\n"
+        std::shared_ptr<wpkg_control::control_file> ctrl_t05_3(get_new_control_file(__FUNCTION__));
+        ctrl_t05_3->set_field("Files", "conffiles\n"
+                "/etc/t05.conf 0123456789abcdef0123456789abcdef\n"
+                "/usr/bin/t05 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t05/copyright 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t05/info 0123456789abcdef0123456789abcdef\n"
                 );
-        ctrl_t5_3->set_field("Version", "1.3");
-        ctrl_t5_3->set_field("Depends", "t8 (= 1.3)");
-        create_package("t5", ctrl_t5_3);
+        ctrl_t05_3->set_field("Version", "1.3");
+        ctrl_t05_3->set_field("Depends", "t08 (= 1.3)");
+        create_package("t05", ctrl_t05_3);
 
 
         /////////////////////////////// libboost-log
-        // t6       version 1.2, 1.3 //
+        // t06       version 1.2, 1.3 //
         ///////////////////////////////
-        std::shared_ptr<wpkg_control::control_file> ctrl_t6_2(get_new_control_file(__FUNCTION__));
-        ctrl_t6_2->set_field("Files", "conffiles\n"
-                "/etc/t6.conf 0123456789abcdef0123456789abcdef\n"
-                "/usr/bin/t6 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t6/copyright 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t6/info 0123456789abcdef0123456789abcdef\n"
+        std::shared_ptr<wpkg_control::control_file> ctrl_t06_2(get_new_control_file(__FUNCTION__));
+        ctrl_t06_2->set_field("Files", "conffiles\n"
+                "/etc/t06.conf 0123456789abcdef0123456789abcdef\n"
+                "/usr/bin/t06 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t06/copyright 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t06/info 0123456789abcdef0123456789abcdef\n"
                 );
-        ctrl_t6_2->set_field("Version", "1.2");
-        ctrl_t6_2->set_field("Depends", "t8 (= 1.2), t5 (= 1.2)");
-        create_package("t6", ctrl_t6_2);
+        ctrl_t06_2->set_field("Version", "1.2");
+        ctrl_t06_2->set_field("Depends", "t08 (= 1.2), t05 (= 1.2)");
+        create_package("t06", ctrl_t06_2);
 
-        std::shared_ptr<wpkg_control::control_file> ctrl_t6_3(get_new_control_file(__FUNCTION__));
-        ctrl_t6_3->set_field("Files", "conffiles\n"
-                "/etc/t6.conf 0123456789abcdef0123456789abcdef\n"
-                "/usr/bin/t6 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t6/copyright 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t6/info 0123456789abcdef0123456789abcdef\n"
+        std::shared_ptr<wpkg_control::control_file> ctrl_t06_3(get_new_control_file(__FUNCTION__));
+        ctrl_t06_3->set_field("Files", "conffiles\n"
+                "/etc/t06.conf 0123456789abcdef0123456789abcdef\n"
+                "/usr/bin/t06 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t06/copyright 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t06/info 0123456789abcdef0123456789abcdef\n"
                 );
-        ctrl_t6_3->set_field("Version", "1.3");
-        ctrl_t6_3->set_field("Depends", "t8 (= 1.3), t5 (= 1.3)");
-        create_package("t6", ctrl_t6_3);
+        ctrl_t06_3->set_field("Version", "1.3");
+        ctrl_t06_3->set_field("Depends", "t08 (= 1.3), t05 (= 1.3)");
+        create_package("t06", ctrl_t06_3);
 
 
         /////////////////////////////// libgdal
-        // t7       version 1.0, 1.1 //
+        // t07       version 1.0, 1.1 //
         ///////////////////////////////
-        std::shared_ptr<wpkg_control::control_file> ctrl_t7_0(get_new_control_file(__FUNCTION__));
-        ctrl_t7_0->set_field("Files", "conffiles\n"
-                "/etc/t7.conf 0123456789abcdef0123456789abcdef\n"
-                "/usr/bin/t7 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t7/copyright 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t7/info 0123456789abcdef0123456789abcdef\n"
+        std::shared_ptr<wpkg_control::control_file> ctrl_t07_0(get_new_control_file(__FUNCTION__));
+        ctrl_t07_0->set_field("Files", "conffiles\n"
+                "/etc/t07.conf 0123456789abcdef0123456789abcdef\n"
+                "/usr/bin/t07 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t07/copyright 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t07/info 0123456789abcdef0123456789abcdef\n"
                 );
-        ctrl_t7_0->set_field("Version", "1.0");
-        ctrl_t7_0->set_field("Depends", "t9 (= 1.1)");
-        create_package("t7", ctrl_t7_0);
+        ctrl_t07_0->set_field("Version", "1.0");
+        ctrl_t07_0->set_field("Depends", "t09 (= 1.1)");
+        create_package("t07", ctrl_t07_0);
 
-        std::shared_ptr<wpkg_control::control_file> ctrl_t7_1(get_new_control_file(__FUNCTION__));
-        ctrl_t7_1->set_field("Files", "conffiles\n"
-                "/etc/t7.conf 0123456789abcdef0123456789abcdef\n"
-                "/usr/bin/t7 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t7/copyright 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t7/info 0123456789abcdef0123456789abcdef\n"
+        std::shared_ptr<wpkg_control::control_file> ctrl_t07_1(get_new_control_file(__FUNCTION__));
+        ctrl_t07_1->set_field("Files", "conffiles\n"
+                "/etc/t07.conf 0123456789abcdef0123456789abcdef\n"
+                "/usr/bin/t07 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t07/copyright 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t07/info 0123456789abcdef0123456789abcdef\n"
                 );
-        ctrl_t7_1->set_field("Version", "1.1");
-        ctrl_t7_1->set_field("Depends", "t9 (= 1.2)");
-        create_package("t7", ctrl_t7_1);
+        ctrl_t07_1->set_field("Version", "1.1");
+        ctrl_t07_1->set_field("Depends", "t09 (= 1.2)");
+        create_package("t07", ctrl_t07_1);
 
 
         /////////////////////////////// libboost-headers
-        // t8       version 1.2, 1.3 //
+        // t08       version 1.2, 1.3 //
         ///////////////////////////////
-        std::shared_ptr<wpkg_control::control_file> ctrl_t8_2(get_new_control_file(__FUNCTION__));
-        ctrl_t8_2->set_field("Files", "conffiles\n"
-                "/etc/t8.conf 0123456789abcdef0123456789abcdef\n"
-                "/usr/bin/t8 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t8/copyright 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t8/info 0123456789abcdef0123456789abcdef\n"
+        std::shared_ptr<wpkg_control::control_file> ctrl_t08_2(get_new_control_file(__FUNCTION__));
+        ctrl_t08_2->set_field("Files", "conffiles\n"
+                "/etc/t08.conf 0123456789abcdef0123456789abcdef\n"
+                "/usr/bin/t08 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t08/copyright 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t08/info 0123456789abcdef0123456789abcdef\n"
                 );
-        ctrl_t8_2->set_field("Version", "1.2");
-        create_package("t8", ctrl_t8_2);
+        ctrl_t08_2->set_field("Version", "1.2");
+        create_package("t08", ctrl_t08_2);
 
-        std::shared_ptr<wpkg_control::control_file> ctrl_t8_3(get_new_control_file(__FUNCTION__));
-        ctrl_t8_3->set_field("Files", "conffiles\n"
-                "/etc/t8.conf 0123456789abcdef0123456789abcdef\n"
-                "/usr/bin/t8 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t8/copyright 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t8/info 0123456789abcdef0123456789abcdef\n"
+        std::shared_ptr<wpkg_control::control_file> ctrl_t08_3(get_new_control_file(__FUNCTION__));
+        ctrl_t08_3->set_field("Files", "conffiles\n"
+                "/etc/t08.conf 0123456789abcdef0123456789abcdef\n"
+                "/usr/bin/t08 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t08/copyright 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t08/info 0123456789abcdef0123456789abcdef\n"
                 );
-        ctrl_t8_3->set_field("Version", "1.3");
-        create_package("t8", ctrl_t8_3);
+        ctrl_t08_3->set_field("Version", "1.3");
+        create_package("t08", ctrl_t08_3);
 
 
         //////////////////////////////////// libgeos
-        // t9       version 1.0, 1.1, 1.2 //
+        // t09       version 1.0, 1.1, 1.2 //
         ////////////////////////////////////
-        std::shared_ptr<wpkg_control::control_file> ctrl_t9_0(get_new_control_file(__FUNCTION__));
-        ctrl_t9_0->set_field("Files", "conffiles\n"
-                "/etc/t9.conf 0123456789abcdef0123456789abcdef\n"
-                "/usr/bin/t9 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t9/copyright 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t9/info 0123456789abcdef0123456789abcdef\n"
+        std::shared_ptr<wpkg_control::control_file> ctrl_t09_0(get_new_control_file(__FUNCTION__));
+        ctrl_t09_0->set_field("Files", "conffiles\n"
+                "/etc/t09.conf 0123456789abcdef0123456789abcdef\n"
+                "/usr/bin/t09 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t09/copyright 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t09/info 0123456789abcdef0123456789abcdef\n"
                 );
-        ctrl_t9_0->set_field("Version", "1.0");
-        create_package("t9", ctrl_t9_0);
+        ctrl_t09_0->set_field("Version", "1.0");
+        create_package("t09", ctrl_t09_0);
 
-        std::shared_ptr<wpkg_control::control_file> ctrl_t9_1(get_new_control_file(__FUNCTION__));
-        ctrl_t9_1->set_field("Files", "conffiles\n"
-                "/etc/t9.conf 0123456789abcdef0123456789abcdef\n"
-                "/usr/bin/t9 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t9/copyright 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t9/info 0123456789abcdef0123456789abcdef\n"
+        std::shared_ptr<wpkg_control::control_file> ctrl_t09_1(get_new_control_file(__FUNCTION__));
+        ctrl_t09_1->set_field("Files", "conffiles\n"
+                "/etc/t09.conf 0123456789abcdef0123456789abcdef\n"
+                "/usr/bin/t09 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t09/copyright 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t09/info 0123456789abcdef0123456789abcdef\n"
                 );
-        ctrl_t9_1->set_field("Version", "1.1");
-        create_package("t9", ctrl_t9_1);
+        ctrl_t09_1->set_field("Version", "1.1");
+        create_package("t09", ctrl_t09_1);
 
-        std::shared_ptr<wpkg_control::control_file> ctrl_t9_2(get_new_control_file(__FUNCTION__));
-        ctrl_t9_2->set_field("Files", "conffiles\n"
-                "/etc/t9.conf 0123456789abcdef0123456789abcdef\n"
-                "/usr/bin/t9 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t9/copyright 0123456789abcdef0123456789abcdef\n"
-                "/usr/share/doc/t9/info 0123456789abcdef0123456789abcdef\n"
+        std::shared_ptr<wpkg_control::control_file> ctrl_t09_2(get_new_control_file(__FUNCTION__));
+        ctrl_t09_2->set_field("Files", "conffiles\n"
+                "/etc/t09.conf 0123456789abcdef0123456789abcdef\n"
+                "/usr/bin/t09 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t09/copyright 0123456789abcdef0123456789abcdef\n"
+                "/usr/share/doc/t09/info 0123456789abcdef0123456789abcdef\n"
                 );
-        ctrl_t9_2->set_field("Version", "1.2");
-        create_package("t9", ctrl_t9_2);
+        ctrl_t09_2->set_field("Version", "1.2");
+        create_package("t09", ctrl_t09_2);
 
 
         /////////////////////////////// mongoose-2001
@@ -4263,25 +4279,33 @@ public:
         /////////////////////////////// wpkg-venv
         // t11           version 1.0 //
         ///////////////////////////////
-        std::shared_ptr<wpkg_control::control_file> ctrl_t11_0(get_new_control_file(__FUNCTION__));
-        ctrl_t11_0->set_field("Files", "conffiles\n"
+        std::shared_ptr<wpkg_control::control_file> ctrl_t11(get_new_control_file(__FUNCTION__));
+        ctrl_t11->set_field("Files", "conffiles\n"
                 "/etc/t11.conf 0123456789abcdef0123456789abcdef\n"
                 "/usr/bin/t11 0123456789abcdef0123456789abcdef\n"
                 "/usr/share/doc/t11/copyright 0123456789abcdef0123456789abcdef\n"
                 "/usr/share/doc/t11/info 0123456789abcdef0123456789abcdef\n"
                 );
-        ctrl_t11_0->set_field("Version", "1.0");
-        create_package("t11", ctrl_t11_0);
+        ctrl_t11->set_field("Version", "1.0");
+        create_package("t11", ctrl_t11);
 
 
-        // Installing t2 without --repository fails
-        install_package("t2", ctrl_t2, 1);
+        // Installing t02 without --repository fails
+        ctrl_t02->set_variable("INSTALL_PREOPTIONS", " -D 07777");
+        install_package("t02", ctrl_t02, 1);
 
-        // Installing t2 with --repository works
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
-        wpkg_filename::uri_filename repository(root.append_child("repository"));
-        ctrl_t2->set_variable("INSTALL_PREOPTIONS", "--repository " + wpkg_util::make_safe_console_string(repository.path_only()) + " -D 07777");
-        install_package("t2", ctrl_t2, 0);
+        // Install lower version of t05 and t10
+        //
+        ctrl_t05_2->set_variable("INSTALL_PREOPTIONS", "--repository " + wpkg_util::make_safe_console_string(repository.path_only()) + " -D 07777");
+        install_package("t05", ctrl_t05_2, 0);
+        //
+        ctrl_t10_0->set_variable("INSTALL_PREOPTIONS", "--repository " + wpkg_util::make_safe_console_string(repository.path_only()) + " -D 07777");
+        install_package("t10", ctrl_t10_0, 0);
+
+        // Now install t02, which should implicitly install better versions of t05 and t10
+        //
+        ctrl_t02->set_variable("INSTALL_PREOPTIONS", "--repository " + wpkg_util::make_safe_console_string(repository.path_only()) + " -D 07777");
+        install_package("t02", ctrl_t02, 0);
     }
 
 };
