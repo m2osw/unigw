@@ -31,6 +31,7 @@
  * The class also includes support for displaying error messages and help
  * information about all the command line arguments.
  */
+#include    <algorithm>
 #include    "libdebpackages/advgetopt.h"
 #include    "libdebpackages/compatibility.h"
 #include    "libdebpackages/memfile.h"

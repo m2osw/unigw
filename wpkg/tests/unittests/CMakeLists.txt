@@ -43,6 +43,13 @@ if( NOT CMAKE_MODULE_PATH )
     set( CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake )
 endif()
 
+# The version of Catch that these tests are keyed to is from git: 1e2fld1
+# Find it at https://github.com/philsquared/Catch.git
+# For Ubuntu Linux, just use the catch package version 1.0+m10git1e2f1d16-1
+#
+# If you use the tip, you will get errors complaining that the "Clara" class
+# doesn't exist.
+#
 find_package( Catch )
 
 if( CATCH_FOUND )

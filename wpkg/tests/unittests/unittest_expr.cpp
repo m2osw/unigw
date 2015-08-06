@@ -22,54 +22,20 @@
 #include "libexpr/expr.h"
 
 #include <string.h>
-#include <math.h>
 #include <time.h>
+#include <math.h>
 
+// Disable warning C4805, which is generated in the Catch headers.
+//
+#pragma warning( push )
+#pragma warning( disable: 4805 )
 #include <catch.hpp>
+#pragma warning( pop )
 
 // warning C4554: '<<' : check operator precedence for possible error; use parentheses to clarify precedence
 #pragma warning(disable: 4554)
 // warning C4805: '==' : unsafe mix of type 'long' and type 'bool' in operation
 #pragma warning(disable: 4805)
-
-#ifdef _MSC_VER
-namespace
-{
-long lrint(double f)
-{
-    // XXX at some point libexpr may check for over/under-flow...
-    return static_cast<long>(f < 0.0 ? ceil(f - 0.5) : floor(f + 0.5));
-}
-
-double acosh(double flt)
-{
-	return log(flt + sqrt(flt * flt - 1.0));
-}
-
-double asinh(double flt)
-{
-	return log(flt + sqrt(flt * flt + 1.0));
-}
-
-double atanh(double flt)
-{
-	return log((1.0 + flt) / (1.0 - flt)) / 2.0;
-}
-
-double rint(double flt)
-{
-	if(flt < 0.0)
-	{
-		return ceil(flt - 0.5);
-	}
-	else
-	{
-		return floor(flt + 0.5);
-	}
-}
-
-} // noname namespace
-#endif
 
 
 long compute_long(const char *op)
@@ -601,67 +567,67 @@ CATCH_TEST_CASE("ExprUnitTests::functions","ExprUnitTests")
     const char *s;
 
     // acos
-    ASSERT_DOUBLE_OPERATION((a = 0.0, acos(a)));
-    ASSERT_DOUBLE_OPERATION((a = 0.03, acos(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.0,   acos(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.03,  acos(a)));
     ASSERT_DOUBLE_OPERATION((a = 0.123, acos(a)));
     ASSERT_DOUBLE_OPERATION((a = 0.245, acos(a)));
 
     // acosh
-    ASSERT_DOUBLE_OPERATION((a = 1.0, acosh(a)));
-    ASSERT_DOUBLE_OPERATION((a = pi, acosh(a)));
-    ASSERT_DOUBLE_OPERATION((a = pi / 2.0, acosh(a)));
-    ASSERT_DOUBLE_OPERATION((a = 2.45, acosh(a)));
+    ASSERT_DOUBLE_OPERATION((a = 1.0,    acosh(a)));
+    ASSERT_DOUBLE_OPERATION((a = pi,     acosh(a)));
+    ASSERT_DOUBLE_OPERATION((a = pi/2.0, acosh(a)));
+    ASSERT_DOUBLE_OPERATION((a = 2.45,   acosh(a)));
 
     // asin
-    ASSERT_DOUBLE_OPERATION((a = 0.0, asin(a)));
-    ASSERT_DOUBLE_OPERATION((a = 0.03, asin(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.0,   asin(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.03,  asin(a)));
     ASSERT_DOUBLE_OPERATION((a = 0.123, asin(a)));
     ASSERT_DOUBLE_OPERATION((a = 0.245, asin(a)));
 
     // asinh
-    ASSERT_DOUBLE_OPERATION((a = 0.0, asinh(a)));
-    ASSERT_DOUBLE_OPERATION((a = pi, asinh(a)));
-    ASSERT_DOUBLE_OPERATION((a = pi / 2.0, asinh(a)));
-    ASSERT_DOUBLE_OPERATION((a = 0.245, asinh(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.0,    asinh(a)));
+    ASSERT_DOUBLE_OPERATION((a = pi,     asinh(a)));
+    ASSERT_DOUBLE_OPERATION((a = pi/2.0, asinh(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.245,  asinh(a)));
 
     // atan
-    ASSERT_DOUBLE_OPERATION((a = 0.0, atan(a)));
-    ASSERT_DOUBLE_OPERATION((a = pi, atan(a)));
-    ASSERT_DOUBLE_OPERATION((a = pi / 2.0, atan(a)));
-    ASSERT_DOUBLE_OPERATION((a = 0.245, atan(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.0,    atan(a)));
+    ASSERT_DOUBLE_OPERATION((a = pi,     atan(a)));
+    ASSERT_DOUBLE_OPERATION((a = pi/2.0, atan(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.245,  atan(a)));
 
     // atan2
-    ASSERT_DOUBLE_OPERATION((a = 0.0, b = 0.0, atan2(a, b)));
-    ASSERT_DOUBLE_OPERATION((a = 10.0, b = 0.0, atan2(a, b)));
-    ASSERT_DOUBLE_OPERATION((a = 0.0, b = 10.0, atan2(a, b)));
+    ASSERT_DOUBLE_OPERATION((a = 0.0,  b = 0.0,  atan2(a, b)));
+    ASSERT_DOUBLE_OPERATION((a = 10.0, b = 0.0,  atan2(a, b)));
+    ASSERT_DOUBLE_OPERATION((a = 0.0,  b = 10.0, atan2(a, b)));
     ASSERT_DOUBLE_OPERATION((a = 10.0, b = 10.0, atan2(a, b)));
 
     // atanh
-    ASSERT_DOUBLE_OPERATION((a = 0.0, atanh(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.0,   atanh(a)));
     ASSERT_DOUBLE_OPERATION((a = 0.999, atanh(a)));
-    ASSERT_DOUBLE_OPERATION((a = 0.5, atanh(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.5,   atanh(a)));
     ASSERT_DOUBLE_OPERATION((a = 0.245, atanh(a)));
 
     // ceil
-    ASSERT_DOUBLE_OPERATION((a = 0.0, ceil(a)));
-    ASSERT_DOUBLE_OPERATION((a = 3.245, ceil(a)));
-    ASSERT_DOUBLE_OPERATION((a = -3.245, ceil(a)));
-    ASSERT_DOUBLE_OPERATION((a = 3.6245, ceil(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.0,     ceil(a)));
+    ASSERT_DOUBLE_OPERATION((a = 3.245,   ceil(a)));
+    ASSERT_DOUBLE_OPERATION((a = -3.245,  ceil(a)));
+    ASSERT_DOUBLE_OPERATION((a = 3.6245,  ceil(a)));
     ASSERT_DOUBLE_OPERATION((a = -3.6245, ceil(a)));
-    ASSERT_DOUBLE_OPERATION((a = 3.5, ceil(a)));
-    ASSERT_DOUBLE_OPERATION((a = -3.5, ceil(a)));
+    ASSERT_DOUBLE_OPERATION((a = 3.5,     ceil(a)));
+    ASSERT_DOUBLE_OPERATION((a = -3.5,    ceil(a)));
 
     // cos
-    ASSERT_DOUBLE_OPERATION((a = 0.0, cos(a)));
-    ASSERT_DOUBLE_OPERATION((a = pi, cos(a)));
-    ASSERT_DOUBLE_OPERATION((a = pi / 2.0, cos(a)));
-    ASSERT_DOUBLE_OPERATION((a = 0.245, cos(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.0,    cos(a)));
+    ASSERT_DOUBLE_OPERATION((a = pi,     cos(a)));
+    ASSERT_DOUBLE_OPERATION((a = pi/2.0, cos(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.245,  cos(a)));
 
     // cosh
-    ASSERT_DOUBLE_OPERATION((a = 0.0, cosh(a)));
-    ASSERT_DOUBLE_OPERATION((a = pi, cosh(a)));
-    ASSERT_DOUBLE_OPERATION((a = pi / 2.0, cosh(a)));
-    ASSERT_DOUBLE_OPERATION((a = 0.245, cosh(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.0,    cosh(a)));
+    ASSERT_DOUBLE_OPERATION((a = pi,     cosh(a)));
+    ASSERT_DOUBLE_OPERATION((a = pi/2.0, cosh(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.245,  cosh(a)));
 
     // ctime
 	time_t the_time(1234123412);
@@ -674,52 +640,52 @@ CATCH_TEST_CASE("ExprUnitTests::functions","ExprUnitTests")
     CATCH_REQUIRE(compute_string("a = 1234123412, ctime(a)", the_ctime.c_str()));
 
     // exp
-    ASSERT_DOUBLE_OPERATION((a = 0.0, exp(a)));
-    ASSERT_DOUBLE_OPERATION((a = e, exp(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.0,  exp(a)));
+    ASSERT_DOUBLE_OPERATION((a = e,    exp(a)));
     ASSERT_DOUBLE_OPERATION((a = 10.0, exp(a)));
 
     // fabs
-    ASSERT_DOUBLE_OPERATION((a = 0.0, fabs(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.0,  fabs(a)));
     ASSERT_DOUBLE_OPERATION((a = -0.0, fabs(a)));
-    ASSERT_DOUBLE_OPERATION((a = e, fabs(a)));
-    ASSERT_DOUBLE_OPERATION((a = -pi, fabs(a)));
+    ASSERT_DOUBLE_OPERATION((a = e,    fabs(a)));
+    ASSERT_DOUBLE_OPERATION((a = -pi,  fabs(a)));
 
     // floor
-    ASSERT_DOUBLE_OPERATION((a = 0.0, floor(a)));
-    ASSERT_DOUBLE_OPERATION((a = 3.245, floor(a)));
-    ASSERT_DOUBLE_OPERATION((a = -3.245, floor(a)));
-    ASSERT_DOUBLE_OPERATION((a = 3.6245, floor(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.0,     floor(a)));
+    ASSERT_DOUBLE_OPERATION((a = 3.245,   floor(a)));
+    ASSERT_DOUBLE_OPERATION((a = -3.245,  floor(a)));
+    ASSERT_DOUBLE_OPERATION((a = 3.6245,  floor(a)));
     ASSERT_DOUBLE_OPERATION((a = -3.6245, floor(a)));
-    ASSERT_DOUBLE_OPERATION((a = 3.5, floor(a)));
-    ASSERT_DOUBLE_OPERATION((a = -3.5, floor(a)));
+    ASSERT_DOUBLE_OPERATION((a = 3.5,     floor(a)));
+    ASSERT_DOUBLE_OPERATION((a = -3.5,    floor(a)));
 
     // fmod
-    ASSERT_DOUBLE_OPERATION((a = 0.0, b = 3.0, fmod(a, b)));
-    ASSERT_DOUBLE_OPERATION((a = 10.0, b = 3.0, fmod(a, b)));
-    ASSERT_DOUBLE_OPERATION((a = e * 45, b = 3.0, fmod(a, b)));
-    ASSERT_DOUBLE_OPERATION((a = pi * 143.4, b = 3.0, fmod(a, b)));
+    ASSERT_DOUBLE_OPERATION((a = 0.0,      b = 3.0, fmod(a, b)));
+    ASSERT_DOUBLE_OPERATION((a = 10.0,     b = 3.0, fmod(a, b)));
+    ASSERT_DOUBLE_OPERATION((a = e*45,     b = 3.0, fmod(a, b)));
+    ASSERT_DOUBLE_OPERATION((a = pi*143.4, b = 3.0, fmod(a, b)));
 
     // log
-    ASSERT_DOUBLE_OPERATION((a = 0.00001, log(a)));
-    ASSERT_DOUBLE_OPERATION((a = 10.0, log(a)));
-    ASSERT_DOUBLE_OPERATION((a = e * 45, log(a)));
-    ASSERT_DOUBLE_OPERATION((a = pi * 143.4, log(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.00001,  log(a)));
+    ASSERT_DOUBLE_OPERATION((a = 10.0,     log(a)));
+    ASSERT_DOUBLE_OPERATION((a = e*45,     log(a)));
+    ASSERT_DOUBLE_OPERATION((a = pi*143.4, log(a)));
 
     // log10
-    ASSERT_DOUBLE_OPERATION((a = 0.00005, log10(a)));
-    ASSERT_DOUBLE_OPERATION((a = 10.0, log10(a)));
-    ASSERT_DOUBLE_OPERATION((a = e * 45, log10(a)));
-    ASSERT_DOUBLE_OPERATION((a = pi * 143.4, log10(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.00005,  log10(a)));
+    ASSERT_DOUBLE_OPERATION((a = 10.0,     log10(a)));
+    ASSERT_DOUBLE_OPERATION((a = e*45,     log10(a)));
+    ASSERT_DOUBLE_OPERATION((a = pi*143.4, log10(a)));
 
     // lrint
     ASSERT_LONG_OPERATION((a = 9444.32, lrint(a)));
     ASSERT_LONG_OPERATION((a = -744.66, lrint(a)));
 
     // pow
-    ASSERT_DOUBLE_OPERATION((a = 0.0, b = 3.0, pow(a, b)));
-    ASSERT_DOUBLE_OPERATION((a = 10.0, b = 0.0, pow(a, b)));
-    ASSERT_DOUBLE_OPERATION((a = e * 45, b = 7.0, pow(a, b)));
-    ASSERT_DOUBLE_OPERATION((a = pi * 143.4, b = 23.0, pow(a, b)));
+    ASSERT_DOUBLE_OPERATION((a = 0.0,      b = 3.0,  pow(a, b)));
+    ASSERT_DOUBLE_OPERATION((a = 10.0,     b = 0.0,  pow(a, b)));
+    ASSERT_DOUBLE_OPERATION((a = e*45,     b = 7.0,  pow(a, b)));
+    ASSERT_DOUBLE_OPERATION((a = pi*143.4, b = 23.0, pow(a, b)));
 
     // rint
     ASSERT_DOUBLE_OPERATION((a = 9444.32, rint(a)));
@@ -734,22 +700,22 @@ CATCH_TEST_CASE("ExprUnitTests::functions","ExprUnitTests")
 #endif
 
     // sin
-    ASSERT_DOUBLE_OPERATION((a = 0.0, sin(a)));
-    ASSERT_DOUBLE_OPERATION((a = pi, sin(a)));
-    ASSERT_DOUBLE_OPERATION((a = pi / 2.0, sin(a)));
-    ASSERT_DOUBLE_OPERATION((a = 0.245, sin(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.0,    sin(a)));
+    ASSERT_DOUBLE_OPERATION((a = pi,     sin(a)));
+    ASSERT_DOUBLE_OPERATION((a = pi/2.0, sin(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.245,  sin(a)));
 
     // sinh
-    ASSERT_DOUBLE_OPERATION((a = 0.0, sinh(a)));
-    ASSERT_DOUBLE_OPERATION((a = pi, sinh(a)));
-    ASSERT_DOUBLE_OPERATION((a = pi / 2.0, sinh(a)));
-    ASSERT_DOUBLE_OPERATION((a = 0.245, sinh(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.0,    sinh(a)));
+    ASSERT_DOUBLE_OPERATION((a = pi,     sinh(a)));
+    ASSERT_DOUBLE_OPERATION((a = pi/2.0, sinh(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.245,  sinh(a)));
 
     // sqrt
-    ASSERT_DOUBLE_OPERATION((a = 0.0, sqrt(a)));
-    ASSERT_DOUBLE_OPERATION((a = pi, sqrt(a)));
-    ASSERT_DOUBLE_OPERATION((a = pi / 2.0, sqrt(a)));
-    ASSERT_DOUBLE_OPERATION((a = 0.245, sqrt(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.0,    sqrt(a)));
+    ASSERT_DOUBLE_OPERATION((a = pi,     sqrt(a)));
+    ASSERT_DOUBLE_OPERATION((a = pi/2.0, sqrt(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.245,  sqrt(a)));
 
 #if defined( __GNUC__ )
 #   pragma GCC diagnostic push
@@ -757,24 +723,24 @@ CATCH_TEST_CASE("ExprUnitTests::functions","ExprUnitTests")
 #endif
     // strlen
     // DO NOT USE static_cast<>() for the strlen(), add -W... on the command line in CMakeLists.txt to turn off those warnings
-    ASSERT_LONG_OPERATION((s = "9444.32", strlen(s)));
-    ASSERT_LONG_OPERATION((s = "", strlen(s)));
+    ASSERT_LONG_OPERATION((s = "9444.32",   strlen(s)));
+    ASSERT_LONG_OPERATION((s = "",          strlen(s)));
     ASSERT_LONG_OPERATION((s = "con" "cat", (strlen(s))));
 #if defined( __GNUC__ )
 #   pragma GCC diagnostic pop
 #endif
 
     // tan
-    ASSERT_DOUBLE_OPERATION((a = 0.0, tan(a)));
-    ASSERT_DOUBLE_OPERATION((a = pi, tan(a)));
-    ASSERT_DOUBLE_OPERATION((a = pi / 2.0, tan(a)));
-    ASSERT_DOUBLE_OPERATION((a = 0.245, tan(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.0,    tan(a)));
+    ASSERT_DOUBLE_OPERATION((a = pi,     tan(a)));
+    ASSERT_DOUBLE_OPERATION((a = pi/2.0, tan(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.245,  tan(a)));
 
     // tanh
-    ASSERT_DOUBLE_OPERATION((a = 0.0, tanh(a)));
-    ASSERT_DOUBLE_OPERATION((a = pi, tanh(a)));
-    ASSERT_DOUBLE_OPERATION((a = pi / 2.0, tanh(a)));
-    ASSERT_DOUBLE_OPERATION((a = 0.245, tanh(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.0,    tanh(a)));
+    ASSERT_DOUBLE_OPERATION((a = pi,     tanh(a)));
+    ASSERT_DOUBLE_OPERATION((a = pi/2.0, tanh(a)));
+    ASSERT_DOUBLE_OPERATION((a = 0.245,  tanh(a)));
 
     // time
     time_t now(time(NULL));

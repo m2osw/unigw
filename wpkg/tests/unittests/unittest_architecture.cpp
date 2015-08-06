@@ -24,6 +24,7 @@
 
 #include <stdexcept>
 #include <cstring>
+#include <iostream>
 
 #include <catch.hpp>
 
@@ -215,16 +216,15 @@ CATCH_TEST_CASE( "ArchitectureUnitTests::verify_architecture", "ArchitectureUnit
 
     // test all combos, after all we do not really have any limits...
     {
-        const char *vendors[] =
-        {
-            "any",
-            "m2osw",
-            "m2osw.com",
-            "m2osw+3",
-            "m2osw+3.1",
-            "m2osw.com+31",
-            nullptr
-        };
+        typedef std::vector<std::string> strlist_t;
+        strlist_t vendors;
+        vendors.push_back("any");
+        vendors.push_back("m2osw");
+        vendors.push_back("m2osw.com");
+        vendors.push_back("m2osw+3");
+        vendors.push_back("m2osw+3.1");
+        vendors.push_back("m2osw.com+31");
+
 
         // Note: the loops of loops of loops... represent about
         //       ( 13 x 6 x 24 ) ** 2 so about 3,504,384 iterations
@@ -232,9 +232,12 @@ CATCH_TEST_CASE( "ArchitectureUnitTests::verify_architecture", "ArchitectureUnit
         for(const wpkg_architecture::architecture::os_t *os(wpkg_architecture::architecture::os_list()); os->f_name != nullptr; ++os)
         {
             std::cout << "." << std::flush;
-            for(const char **v(vendors); *v != nullptr; ++v)
+            for( auto vendor : vendors )
             {
-                for(const wpkg_architecture::architecture::processor_t *processor(wpkg_architecture::architecture::processor_list()); processor->f_name != nullptr; ++processor)
+                for(const wpkg_architecture::architecture::processor_t *processor(wpkg_architecture::architecture::processor_list())
+                    ; processor->f_name != nullptr
+                    ; ++processor
+                    )
                 {
                     // No vendor
                     {
@@ -371,12 +374,12 @@ CATCH_TEST_CASE( "ArchitectureUnitTests::verify_architecture", "ArchitectureUnit
                     // With Vendor
                     {
                         std::stringstream ss;
-                        ss << os->f_name << "-" << *v << "-" << processor->f_name;
+                        ss << os->f_name << "-" << vendor << "-" << processor->f_name;
                         wpkg_architecture::architecture arch(ss.str());
 
                         CATCH_REQUIRE(!arch.empty());
                         if(strcmp(os->f_name, "any") == 0
-                        || strcmp(*v, "any") == 0
+                        || vendor == "any"
                         || strcmp(processor->f_name, "any") == 0)
                         {
                             CATCH_REQUIRE(arch.is_pattern());
@@ -403,11 +406,11 @@ CATCH_TEST_CASE( "ArchitectureUnitTests::verify_architecture", "ArchitectureUnit
                             CATCH_REQUIRE(!arch.is_mswindows());
                         }
                         CATCH_REQUIRE(arch.get_os() == os->f_name);
-                        CATCH_REQUIRE(arch.get_vendor() == *v);
+                        CATCH_REQUIRE(arch.get_vendor() == vendor);
                         CATCH_REQUIRE(arch.get_processor() == processor->f_name);
                         CATCH_REQUIRE(!arch.ignore_vendor());
                         if(strcmp(os->f_name, "any") == 0
-                        && strcmp(*v, "any") == 0
+                        && vendor == "any"
                         && strcmp(processor->f_name, "any") == 0)
                         {
                             CATCH_REQUIRE(arch.to_string() == "any");
@@ -421,7 +424,7 @@ CATCH_TEST_CASE( "ArchitectureUnitTests::verify_architecture", "ArchitectureUnit
                         CATCH_REQUIRE(static_cast<bool>(arch));
                         CATCH_REQUIRE(!!arch);
                         if(strcmp(os->f_name, "any") == 0
-                        && strcmp(*v, "any") == 0
+                        && vendor == "any"
                         && strcmp(processor->f_name, "any") == 0)
                         {
                             CATCH_REQUIRE(arch == empty);
@@ -436,7 +439,7 @@ CATCH_TEST_CASE( "ArchitectureUnitTests::verify_architecture", "ArchitectureUnit
 
                         CATCH_REQUIRE(!copy.empty());
                         if(strcmp(os->f_name, "any") == 0
-                        || strcmp(*v, "any") == 0
+                        || vendor == "any"
                         || strcmp(processor->f_name, "any") == 0)
                         {
                             CATCH_REQUIRE(copy.is_pattern());
@@ -463,11 +466,11 @@ CATCH_TEST_CASE( "ArchitectureUnitTests::verify_architecture", "ArchitectureUnit
                             CATCH_REQUIRE(!copy.is_mswindows());
                         }
                         CATCH_REQUIRE(copy.get_os() == os->f_name);
-                        CATCH_REQUIRE(copy.get_vendor() == *v);
+                        CATCH_REQUIRE(copy.get_vendor() == vendor);
                         CATCH_REQUIRE(copy.get_processor() == processor->f_name);
                         CATCH_REQUIRE(!copy.ignore_vendor());
                         if(strcmp(os->f_name, "any") == 0
-                        && strcmp(*v, "any") == 0
+                        && vendor == "any"
                         && strcmp(processor->f_name, "any") == 0)
                         {
                             CATCH_REQUIRE(copy.to_string() == "any");
@@ -481,7 +484,7 @@ CATCH_TEST_CASE( "ArchitectureUnitTests::verify_architecture", "ArchitectureUnit
                         CATCH_REQUIRE(static_cast<bool>(copy));
                         CATCH_REQUIRE(!!copy);
                         if(strcmp(os->f_name, "any") == 0
-                        && strcmp(*v, "any") == 0
+                        && vendor == "any"
                         && strcmp(processor->f_name, "any") == 0)
                         {
                             CATCH_REQUIRE(copy == empty);
@@ -511,7 +514,7 @@ CATCH_TEST_CASE( "ArchitectureUnitTests::verify_architecture", "ArchitectureUnit
 
                         CATCH_REQUIRE(!set.empty());
                         if(strcmp(os->f_name, "any") == 0
-                        || strcmp(*v, "any") == 0
+                        || vendor == "any"
                         || strcmp(processor->f_name, "any") == 0)
                         {
                             CATCH_REQUIRE(set.is_pattern());
@@ -538,11 +541,11 @@ CATCH_TEST_CASE( "ArchitectureUnitTests::verify_architecture", "ArchitectureUnit
                             CATCH_REQUIRE(!set.is_mswindows());
                         }
                         CATCH_REQUIRE(set.get_os() == os->f_name);
-                        CATCH_REQUIRE(set.get_vendor() == *v);
+                        CATCH_REQUIRE(set.get_vendor() == vendor);
                         CATCH_REQUIRE(set.get_processor() == processor->f_name);
                         CATCH_REQUIRE(!set.ignore_vendor());
                         if(strcmp(os->f_name, "any") == 0
-                        && strcmp(*v, "any") == 0
+                        && vendor == "any"
                         && strcmp(processor->f_name, "any") == 0)
                         {
                             CATCH_REQUIRE(set.to_string() == "any");
@@ -556,7 +559,7 @@ CATCH_TEST_CASE( "ArchitectureUnitTests::verify_architecture", "ArchitectureUnit
                         CATCH_REQUIRE(static_cast<bool>(set));
                         CATCH_REQUIRE(!!set);
                         if(strcmp(os->f_name, "any") == 0
-                        && strcmp(*v, "any") == 0
+                        && vendor == "any"
                         && strcmp(processor->f_name, "any") == 0)
                         {
                             CATCH_REQUIRE(set == empty);
@@ -582,12 +585,15 @@ CATCH_TEST_CASE( "ArchitectureUnitTests::verify_architecture", "ArchitectureUnit
 
                         for(const wpkg_architecture::architecture::os_t *sub_os(wpkg_architecture::architecture::os_list()); sub_os->f_name != nullptr; ++sub_os)
                         {
-                            for(const char **sub_v(vendors); *sub_v != nullptr; ++sub_v)
+                            for( auto sub_v : vendors )
                             {
-                                for(const wpkg_architecture::architecture::processor_t *sub_processor(wpkg_architecture::architecture::processor_list()); sub_processor->f_name != nullptr; ++sub_processor)
+                                for(const wpkg_architecture::architecture::processor_t *sub_processor(wpkg_architecture::architecture::processor_list())
+                                        ; sub_processor->f_name != nullptr
+                                        ; ++sub_processor
+                                        )
                                 {
                                     std::stringstream sub_ss;
-                                    sub_ss << sub_os->f_name << "-" << *sub_v << "-" << sub_processor->f_name;
+                                    sub_ss << sub_os->f_name << "-" << sub_v << "-" << sub_processor->f_name;
                                     wpkg_architecture::architecture sub_arch(sub_ss.str());
 
 //std::cerr << "testing " << ss.str() << " against " << sub_ss.str() << "\n";
@@ -605,9 +611,9 @@ CATCH_TEST_CASE( "ArchitectureUnitTests::verify_architecture", "ArchitectureUnit
                                             {
                                                 pattern_equal = strcmp(os->f_name, sub_os->f_name) == 0;
                                             }
-                                            if(pattern_equal && strcmp(*v, "any") != 0)
+                                            if(pattern_equal && vendor == "any")
                                             {
-                                                pattern_equal = strcmp(*v, *sub_v) == 0;
+                                                pattern_equal = (vendor == sub_v) == 0;
                                             }
                                             if(pattern_equal && strcmp(processor->f_name, "any") != 0)
                                             {
@@ -621,9 +627,9 @@ CATCH_TEST_CASE( "ArchitectureUnitTests::verify_architecture", "ArchitectureUnit
                                             {
                                                 pattern_equal = strcmp(os->f_name, sub_os->f_name) == 0;
                                             }
-                                            if(pattern_equal && strcmp(*sub_v, "any") != 0)
+                                            if(pattern_equal && (sub_v == "any"))
                                             {
-                                                pattern_equal = strcmp(*v, *sub_v) == 0;
+                                                pattern_equal = (vendor == sub_v);
                                             }
                                             if(pattern_equal && strcmp(sub_processor->f_name, "any") != 0)
                                             {

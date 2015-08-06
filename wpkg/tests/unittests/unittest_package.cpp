@@ -24,8 +24,11 @@
 #include "libdebpackages/wpkg_control.h"
 #include "libdebpackages/wpkg_architecture.h"
 #include "libdebpackages/wpkg_util.h"
-#include <stdexcept>
+
+#include <iostream>
 #include <cstring>
+#include <stdexcept>
+
 #include <catch.hpp>
 
 // for the WEXITSTATUS()

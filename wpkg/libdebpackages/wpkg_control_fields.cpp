@@ -1824,7 +1824,9 @@ void control_file::field_standardsversion_t::verify_value() const
         }
         else
         {
-            dynamic_cast<control_file *>( f_field_file.operator primary_type_t() )->f_standards_version = sv;
+            // Prevent VC12 compiler from blowing up here.
+            field_file* ptr( f_field_file );
+            dynamic_cast<control_file *>(ptr)->f_standards_version = sv;
         }
     }
     catch(const wpkg_control_exception_invalid& e)
