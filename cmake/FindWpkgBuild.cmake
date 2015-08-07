@@ -162,7 +162,7 @@ function( ConfigureMakeProject )
 
 	add_custom_target(
 		${FULL_PROJECT_NAME}-package
-		COMMAND ${ECHO_CMD} ${BUILD_CMD} package
+		COMMAND ${ECHO_CMD} ${BUILD_CMD} build_packages
 			1>> ${BUILD_DIR}/${FULL_PROJECT_NAME}_make.log
 			2>> ${BUILD_DIR}/${FULL_PROJECT_NAME}_make.err
 		DEPENDS ${FULL_PROJECT_NAME}-make
