@@ -18,6 +18,8 @@
 
 #include "RemoveDialog.h"
 
+#include <QtWidgets>
+
 using namespace wpkgar;
 
 RemoveDialog::RemoveDialog( QWidget *p, QSharedPointer<wpkgar_manager> manager )
@@ -299,7 +301,7 @@ void RemoveDialog::on_f_optionsButton_toggled(bool checked)
                 checked? tr(">> &Options")
                        : tr("<< &Options")
                          );
-    f_optionsFrame->setShown( checked );
+    f_optionsFrame->setVisible( checked );
 }
 
 

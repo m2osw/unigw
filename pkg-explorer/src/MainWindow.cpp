@@ -25,8 +25,7 @@
 #include "SourcesDialog.h"
 #include "LicenseBox.h"
 
-#include <QtCore>
-#include <QtGui>
+#include <QtWidgets>
 
 #include <libdebpackages/wpkgar.h>
 #include <libdebpackages/wpkgar_repository.h>
@@ -115,7 +114,7 @@ MainWindow::MainWindow( const bool showSysTray )
     f_packageModel.setHorizontalHeaderLabels( _headers );
     f_treeView->setModel( static_cast<QAbstractItemModel*>(&f_packageModel) );
     f_treeView->setSelectionModel( &f_selectModel );
-    f_treeView->header()->setResizeMode( QHeaderView::ResizeToContents );
+    f_treeView->header()->setSectionResizeMode( QHeaderView::ResizeToContents );
 
     // Action mapping
     //

@@ -1,12 +1,12 @@
 #include "database.h"
 
-#include <QDesktopServices>
 #include <QDir>
 #include <QFileInfo>
 #include <QProcess>
-#include <QTextStream>
+#include <QStandardPaths>
 #include <QSettings>
 #include <QString>
+#include <QTextStream>
 
 #include <libdebpackages/wpkgar.h>
 
@@ -62,7 +62,7 @@ QString GetCanonalizedArch()
 
 QString GetDefaultDbRoot()
 {
-    return QDesktopServices::storageLocation( QDesktopServices::DataLocation ) + "/WPKG_ROOT";
+    return QStandardPaths::writableLocation( QStandardPaths::AppLocalDataLocation ) + "/WPKG_ROOT";
 }
 
 void InitDatabase()
@@ -76,7 +76,7 @@ void InitDatabase()
     if( !finfo.exists() )
     {
         const QString admindir_init_file =
-           QDir::toNativeSeparators(QDesktopServices::storageLocation( QDesktopServices::TempLocation )
+           QDir::toNativeSeparators( QStandardPaths::writableLocation( QStandardPaths::TempLocation )
                                     + "/admindir_init.txt");
         {
             QFile file( admindir_init_file );

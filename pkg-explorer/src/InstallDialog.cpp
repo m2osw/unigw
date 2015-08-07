@@ -24,6 +24,9 @@
 
 #include <algorithm>
 
+#include <QtWidgets>
+#include <QtGui>
+
 using namespace wpkgar;
 
 InstallDialog::InstallDialog(
@@ -52,7 +55,7 @@ InstallDialog::InstallDialog(
 	//
     f_treeView->setModel( static_cast<QAbstractItemModel*>(&f_model) );
     f_treeView->setSelectionModel( &f_selectModel );
-    f_treeView->header()->setResizeMode( QHeaderView::ResizeToContents );
+    f_treeView->header()->setSectionResizeMode( QHeaderView::ResizeToContents );
 
     QString column_1;
     switch( f_mode )

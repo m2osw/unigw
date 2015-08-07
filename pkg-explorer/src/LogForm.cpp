@@ -18,7 +18,7 @@
 
 #include "LogForm.h"
 
-#include <QtCore>
+#include <QtWidgets>
 #include <libdebpackages/wpkgar.h>
 
 using namespace wpkgar;
@@ -105,11 +105,11 @@ void LogForm::OnDisplayText()
 	//
 	if( message.get_level() >= wpkg_output::level_error )
 	{
-		pTextEdit->insertHtml( "<span style='color: #880000;'>" + Qt::escape(text) + "<br/></span>" );
+        pTextEdit->insertHtml( "<span style='color: #880000;'>" + text.toHtmlEscaped() + "<br/></span>" );
 	}
 	else
 	{
-		pTextEdit->insertHtml( "<span style='color: #000000;'>" + Qt::escape(text) + "<br/></span>" );
+        pTextEdit->insertHtml( "<span style='color: #000000;'>" + text.toHtmlEscaped() + "<br/></span>" );
 	}
 
 	QTextCursor c = pTextEdit->textCursor();

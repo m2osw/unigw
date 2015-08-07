@@ -19,8 +19,7 @@
 #include "PrefsDialog.h"
 #include "database.h"
 
-#include <QtCore>
-#include <QtGui>
+#include <QtWidgets>
 
 #include <libdebpackages/wpkgar.h>
 

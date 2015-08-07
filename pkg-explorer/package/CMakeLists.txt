@@ -43,27 +43,28 @@ if( NOT EXISTS "${WPKG_ROOT}" )
 endif()
 
 if( MO_WINDOWS )
-    unset( QT4_DLL_LIST_RELEASE )
-    foreach( qt_lib ${QT4_REQ_LIBS} )
-        list( APPEND QT4_DLL_LIST_RELEASE ${QT_BINARY_DIR}/${qt_lib}4.dll  )
-    endforeach()
+    #unset( QT5_DLL_LIST_RELEASE )
+    #foreach( qt_lib ${QT5_REQ_LIBS} )
+    #    list( APPEND QT5_DLL_LIST_RELEASE ${QT_BINARY_DIR}/${qt_lib}4.dll  )
+    #endforeach()
+    file( GLOB BINARY_FILES "${QT5_INSTALL_PATH}/bin/*.dll" )
 
-    if( MO_MINGW32 )
-        list( APPEND QT4_DLL_LIST_RELEASE ${QT_BINARY_DIR}/mingwm10.dll  )
-    endif()
+    #if( MO_MINGW32 )
+    #    list( APPEND BINARY_FILES ${QT_BINARY_DIR}/mingwm10.dll  )
+    #endif()
 
     install(
         FILES
-            ${QT4_DLL_LIST_RELEASE}
+            ${BINARY_FILES}
         DESTINATION
             bin
         COMPONENT
-            qt4
+            qt5
        )
 endif()
 
 
-if( ${CMAKE_BUILD_TYPE} STREQUAL "Debug" )
+if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
     message( STATUS "Not building debug packages" )
     return()
 endif()
@@ -73,10 +74,10 @@ set( COMPONENT_LIST runtime documentation )
 set( INSTALL_PACKAGES wpkg-gui wpkggui-doc )
 set( PLATFORM_DEPENDS "Depends/runtime: wpkg (>= 0.9.0), wpkggui-doc (>= ${VERSION})" )
 if( MO_WINDOWS )
-    set( PLATFORM_DEPENDS "${PLATFORM_DEPENDS}, wpkgguiqt4 (>= ${VERSION})" )
-    set( SUBPACKAGES "${SUBPACKAGES}, qt4" )
-    list( APPEND INSTALL_PACKAGES wpkgguiqt4 )
-    list( APPEND COMPONENT_LIST qt4 )
+    set( PLATFORM_DEPENDS "${PLATFORM_DEPENDS}, wpkgguiqt5 (>= ${VERSION})" )
+    set( SUBPACKAGES "${SUBPACKAGES}, qt5" )
+    list( APPEND INSTALL_PACKAGES wpkgguiqt5 )
+    list( APPEND COMPONENT_LIST qt5 )
 endif()
 
 configure_file( control.info.in "${LOCAL_WPKG_ROOT}/control.info" @ONLY )
@@ -100,7 +101,7 @@ foreach( _comp ${COMPONENT_LIST} )
     endif()
 endforeach()
 
-add_custom_target( package
+add_custom_target( build_packages
         COMMAND ${WPKG}
             --verbose
             --compressor gzip
@@ -125,6 +126,6 @@ add_custom_target( package
             "${WPKG_SOURCES_FILE}"
     )
 
-set_property( TARGET package PROPERTY FOLDER ${PACKAGE_FOLDER} )
+set_property( TARGET build_packages PROPERTY FOLDER ${PACKAGE_FOLDER} )
 
 # vim: ts=4 sw=4 et

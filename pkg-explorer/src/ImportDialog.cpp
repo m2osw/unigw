@@ -364,7 +364,7 @@ void ImportDialog::on_f_optionsButton_toggled(bool checked)
                 checked? tr(">> &Options")
                        : tr("<< &Options")
                          );
-    f_optionsFrame->setShown( checked );
+    f_optionsFrame->setVisible( checked );
 }
 
 

@@ -18,6 +18,8 @@
 
 #include "LogOutput.h"
 
+#include <QApplication>
+
 LogOutput::LogOutput()
 	: f_logLevel(wpkg_output::level_info)
 {

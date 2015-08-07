@@ -21,12 +21,26 @@ project( pkg-explorer )
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 add_definitions( -DVERSION=\"${VERSION}\" )
 
+#if( MO_WINDOWS )
+#	list( APPEND QT4_REQ_LIBS phonon )
+#else()
+#	list( APPEND QT4_REQ_LIBS QtDBus )
+#endif()
+
+cmake_policy( SET CMP0020 NEW )
+
+set( QT5_INSTALL_PATH "$ENV{QT5_INSTALL_PATH}" CACHE PATH "Root of qt5 installation." )
+find_package( Qt5 REQUIRED Widgets WebKit WebKitWidgets PATHS ${QT5_INSTALL_PATH}/lib/cmake )
+
 unset( PLATFORM_RESOURCES )
 if( MO_WINDOWS )
 	set( ICON_PATH "${CMAKE_CURRENT_SOURCE_DIR}/icons/logo.ico" )
 	set( VERSION_FULL "${VERSION_MAJOR},${VERSION_MINOR},${VERSION_PATCH},${VERSION_DEVEL}" )
 	set( PLATFORM_RESOURCES ${PROJECT_BINARY_DIR}/resources.rc )
 	configure_file( ${PROJECT_SOURCE_DIR}/resources.rc.in ${PLATFORM_RESOURCES} @ONLY )
+	unset( QT5_LIBS )
+elseif( MO_LINUX )
+	set( QT5_LIBS "Qt5::QtDBus" )
 elseif( MO_DARWIN )
 	set( PLATFORM_RESOURCES "icons/m2osw_logo.icns" )
 	set_source_files_properties(
@@ -34,8 +48,9 @@ elseif( MO_DARWIN )
 		PROPERTIES
 		MACOSX_PACKAGE_LOCATION Resources
 		)
-	list( APPEND QT_LIBRARIES "-framework IOKit" )
+	list( APPEND QT5_LIBS "-framework IOKit" )
 endif()
+list( APPEND QT5_LIBS Qt5::Core Qt5::Widgets Qt5::WebKit Qt5::WebKitWidgets )
 
 include_directories( ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR} ${DEBPACKAGES_INCLUDE} )
 link_directories( ${DIST_ROOT}/lib )
@@ -67,36 +82,19 @@ else()
 	set( WPKG_LIBRARIES ${DEBUG_LIBRARIES} ${RELEASE_LIBRARIES} )
 endif()
 
+add_definitions( ${Qt5Widgets_DEFINITIONS} )
+
 
 ###############################################################################
 ##
 ## pkg-explorer
 
-QT4_WRAP_UI( UIC_FILES
-	ImportDialog.ui
-	InstallDialog.ui
-    LicenseBox.ui
-	LogForm.ui
-    MainWindow.ui
-	PrefsDialog.ui
-	ProcessDialog.ui
-	RemoveDialog.ui
-	SourceInfoDialog.ui
-	SourcesDialog.ui
-    WebForm.ui
-    OPTIONS -n
-    )
-
-QT4_ADD_RESOURCES( RES_FILES
-    resources.qrc
-    )
+set( AUTOUIC_OPTIONS -n )
 
 add_executable(
     ${PROJECT_NAME}
 	WIN32
 	MACOSX_BUNDLE
-	${UIC_FILES}
-    ${RES_FILES}
     ${PLATFORM_RESOURCES}
 	database.h
 	database.cpp
@@ -107,6 +105,7 @@ add_executable(
 	InstallDialog.cpp
 	InstallThread.h
 	InstallThread.cpp
+    LicenseBox.ui
 	LogForm.ui
 	LogForm.cpp
 	LogOutput.cpp
@@ -129,6 +128,7 @@ add_executable(
 	LicenseBox.ui
 	LicenseBox.cpp
 	main.cpp
+    resources.qrc
 	)
 
 if( MSVC )
@@ -138,7 +138,7 @@ if( MSVC )
 endif()
 
 target_link_libraries( ${PROJECT_NAME}
-	${QT_LIBRARIES}
+	${QT5_LIBS}
 	${EXTRA_LIBRARIES}
 	${WPKG_LIBRARIES}
 	)
@@ -203,20 +203,9 @@ endif()
 
 project( pkg-installer )
 
-QT4_WRAP_UI( UIC_FILES
-	ImportDialog.ui
-	OPTIONS -n
-	)
-
-QT4_ADD_RESOURCES( RES_FILES
-	resources.qrc
-	)
-
 add_executable(
 	${PROJECT_NAME}
 	WIN32
-	${UIC_FILES}
-	${RES_FILES}
 	${PLATFORM_RESOURCES}
 	database.h
 	database.cpp
@@ -232,6 +221,7 @@ add_executable(
 	ProcessDialog.cpp
 	ProcessWindow.h
 	pkg-installer-main.cpp
+	resources.qrc
 	)
 
 if( MSVC )
@@ -241,7 +231,7 @@ if( MSVC )
 endif()
 
 target_link_libraries( ${PROJECT_NAME}
-	${QT_LIBRARIES}
+	${QT5_LIBS}
 	${EXTRA_LIBRARIES}
 	${WPKG_LIBRARIES}
 	)

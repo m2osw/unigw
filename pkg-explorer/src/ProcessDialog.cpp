@@ -18,7 +18,7 @@
 
 #include "ProcessDialog.h"
 
-#include <QtCore>
+#include <QtWidgets>
 
 
 bool ProcessDialog::f_cancelClicked = false;
@@ -29,7 +29,7 @@ ProcessDialog::ProcessDialog(QWidget *p)
     : QDialog(p)
 {
     setupUi(this);
-	f_progressBar->setShown( false );
+    f_progressBar->setVisible( false );
 
     setWindowFlags( Qt::Dialog
 			| Qt::CustomizeWindowHint	// Turn off the system menu, title bar, and max/min buttons
@@ -102,7 +102,7 @@ bool ProcessDialog::CancelClicked()
 
 void ProcessDialog::ShowProgressBar( const bool show_it )
 {
-    f_progressBar->setShown( show_it );
+    f_progressBar->setVisible( show_it );
 }
 
 

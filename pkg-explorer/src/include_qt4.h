@@ -37,8 +37,7 @@
 #pragma GCC diagnostic ignored "-pedantic"
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
-#include <QtCore>
-#include <QtGui>
+#include <QtWidgets>
 #include <QtWebKit>
 #pragma GCC diagnostic pop
 #pragma GCC diagnostic pop

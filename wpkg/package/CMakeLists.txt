@@ -36,10 +36,10 @@
 
 ## This project builds the wpkg packages based on component.
 
-if( MSVC AND NOT (${CMAKE_MAKE_PROGRAM} STREQUAL "nmake") AND NOT (${CMAKE_MAKE_PROGRAM} STREQUAL "jom") )
-    message( STATUS "Not building packages due to devenv." )
-    return()
-endif()
+#if( MSVC AND NOT (${CMAKE_MAKE_PROGRAM} STREQUAL "nmake") AND NOT (${CMAKE_MAKE_PROGRAM} STREQUAL "jom") )
+#    message( STATUS "Not building packages due to devenv." )
+#    return()
+#endif()
 
 if( MO_MINGW32 )
     get_filename_component( MINGW32_PATH ${CMAKE_MAKE_PROGRAM} DIRECTORY )
@@ -65,7 +65,7 @@ if( NOT EXISTS "${WPKG_ROOT}" )
     file( MAKE_DIRECTORY "${WPKG_ROOT}" )
 endif()
 
-if( ${CMAKE_BUILD_TYPE} STREQUAL "Debug" )
+if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
     message( WARNING "Debug packging not supported...yet..." )
     return()
 else()
@@ -123,7 +123,7 @@ add_custom_command(
         DEPENDS "${WPKG_CONTROL_FILE}"
     )
 
-add_custom_target( package
+add_custom_target( build_packages
         COMMAND wpkg_static
             --verbose
             --compressor gzip
@@ -148,6 +148,6 @@ add_custom_target( package
             "${WPKG_SOURCES_FILE}"
     )
 
-set_property( TARGET package PROPERTY FOLDER ${PACKAGE_FOLDER} )
+set_property( TARGET build_packages PROPERTY FOLDER ${PACKAGE_FOLDER} )
 
 # vim: ts=4 sw=4 et
