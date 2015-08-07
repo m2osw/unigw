@@ -15,7 +15,7 @@
 ## WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
 ## COMPLETENESS OR PERFORMANCE.
 ##===============================================================================
-cmake_minimum_required (VERSION 2.8.7)
+cmake_minimum_required (VERSION 3.3.0)
 
 project( pkg_explorer_project )
 
@@ -72,7 +72,7 @@ if( UNIX )
     # Feel free to comment out this line if you don't like the warnings
     # HOWEVER: do not submit code to us if it generates warnings!
     #
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wall -Wextra -pedantic -std=c++0x -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-include-dirs -Wnoexcept -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=1 -Wundef -Wno-unused -Wno-variadic-macros -Wno-parentheses -Wno-unknown-pragmas -fdiagnostics-show-option" )
+	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wall -Wextra -pedantic -std=c++11 -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-include-dirs -Wnoexcept -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=1 -Wundef -Wno-unused -Wno-variadic-macros -Wno-parentheses -Wno-unknown-pragmas -fdiagnostics-show-option" )
 	set( CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}  -O0" )
 	set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELASE} -O3" )
 elseif( MSVC )

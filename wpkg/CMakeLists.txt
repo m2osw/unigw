@@ -33,6 +33,7 @@
 #      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 #      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
+cmake_minimum_required(VERSION 3.3.0)
 
 ##
 ## Initialization
@@ -40,8 +41,6 @@
 set(WPKG_VERSION_MAJOR 0)
 set(WPKG_VERSION_MINOR 9)
 set(WPKG_VERSION_PATCH 11)
-
-cmake_minimum_required(VERSION 2.8.4)
 
 enable_testing()
 

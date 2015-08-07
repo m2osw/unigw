@@ -29,9 +29,6 @@ add_definitions( -DVERSION=\"${VERSION}\" )
 
 cmake_policy( SET CMP0020 NEW )
 
-set( QT5_INSTALL_PATH "$ENV{QT5_INSTALL_PATH}" CACHE PATH "Root of qt5 installation." )
-find_package( Qt5 REQUIRED Widgets WebKit WebKitWidgets PATHS ${QT5_INSTALL_PATH}/lib/cmake )
-
 unset( PLATFORM_RESOURCES )
 if( MO_WINDOWS )
 	set( ICON_PATH "${CMAKE_CURRENT_SOURCE_DIR}/icons/logo.ico" )
@@ -40,7 +37,8 @@ if( MO_WINDOWS )
 	configure_file( ${PROJECT_SOURCE_DIR}/resources.rc.in ${PLATFORM_RESOURCES} @ONLY )
 	unset( QT5_LIBS )
 elseif( MO_LINUX )
-	set( QT5_LIBS "Qt5::QtDBus" )
+    set( QT5_LIBS "Qt5::DBus" )
+    set( QT5_SUBLIBS DBus )
 elseif( MO_DARWIN )
 	set( PLATFORM_RESOURCES "icons/m2osw_logo.icns" )
 	set_source_files_properties(
@@ -51,6 +49,9 @@ elseif( MO_DARWIN )
 	list( APPEND QT5_LIBS "-framework IOKit" )
 endif()
 list( APPEND QT5_LIBS Qt5::Core Qt5::Widgets Qt5::WebKit Qt5::WebKitWidgets )
+
+set( QT5_INSTALL_PATH "$ENV{QT5_INSTALL_PATH}" CACHE PATH "Root of qt5 installation." )
+find_package( Qt5 REQUIRED Widgets WebKit WebKitWidgets ${QT5_SUBLIBS} PATHS ${QT5_INSTALL_PATH}/lib/cmake )
 
 include_directories( ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR} ${DEBPACKAGES_INCLUDE} )
 link_directories( ${DIST_ROOT}/lib )

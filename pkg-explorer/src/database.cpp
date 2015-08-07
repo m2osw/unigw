@@ -1,12 +1,10 @@
 #include "database.h"
 
-#include <QDir>
-#include <QFileInfo>
-#include <QProcess>
-#include <QStandardPaths>
-#include <QSettings>
-#include <QString>
-#include <QTextStream>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wctor-dtor-privacy"
+#pragma GCC diagnostic ignored "-Wsign-promo"
+#include <QtWidgets>
+#pragma GCC diagnostic pop
 
 #include <libdebpackages/wpkgar.h>
 
