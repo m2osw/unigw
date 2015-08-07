@@ -47,11 +47,44 @@ if( NOT EXISTS "${NSIS}" )
     message( FATAL_ERROR "NSIS is needed! Please install." )
 endif()
 
-file( TO_NATIVE_PATH "${CMAKE_BINARY_DIR}" NATIVE_DIR )
+function( parse_wpkg_version VERSION )
+    unset( VERSION_LIST )
+    string( FIND "${VERSION}" "." PERIOD )
+    if( ${PERIOD} EQUAL -1 )
+        message( FATAL_ERROR "WPKG version needs to have periods in it!" )
+    endif()
+    while( ${PERIOD} GREATER -1 )
+        string( SUBSTRING "${VERSION}" 0 ${PERIOD} REV )
+        list( APPEND VERSION_LIST ${REV} )
+        math( EXPR AFTER_PERIOD "${PERIOD}+1" )
+        string( SUBSTRING "${VERSION}" ${AFTER_PERIOD} -1 VERSION_ )
+        set( VERSION ${VERSION_} )
+        string( FIND "${VERSION}" "." PERIOD )
+        if( ${PERIOD} EQUAL -1 )
+            list( APPEND VERSION_LIST "${VERSION}" )
+        endif()
+    endwhile()
+    #
+    list( GET VERSION_LIST 0 VERSION_MAJOR )
+    list( GET VERSION_LIST 1 VERSION_MINOR )
+    list( GET VERSION_LIST 2 VERSION_PATCH )
+    set( WPKG_VERSION_MAJOR ${VERSION_MAJOR} PARENT_SCOPE )
+    set( WPKG_VERSION_MINOR ${VERSION_MINOR} PARENT_SCOPE )
+    set( WPKG_VERSION_PATCH ${VERSION_PATCH} PARENT_SCOPE )
+endfunction()
+
+parse_wpkg_version( ${WPKG_VERSION} )
+
+file( TO_NATIVE_PATH "${WPKG_ROOT}"        NATIVE_DIST_DIR  )
+file( TO_NATIVE_PATH "${CMAKE_BINARY_DIR}" NATIVE_BUILD_DIR )
 add_custom_target( nsis_package ALL
         COMMAND ${NSIS}
                     /V4
-                    /DBUILD_DIR="${NATIVE_DIR}"
+                    /DWPKG_VERSION_MAJOR="${WPKG_VERSION_MAJOR}"
+                    /DWPKG_VERSION_MINOR="${WPKG_VERSION_MINOR}"
+                    /DWPKG_VERSION_PATCH="${WPKG_VERSION_PATCH}"
+                    /DDIST_DIR="${NATIVE_DIST_DIR}"
+                    /DBUILD_DIR="${NATIVE_BUILD_DIR}"
                     ${CMAKE_CURRENT_SOURCE_DIR}/setup.nsi
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         DEPENDS build-all

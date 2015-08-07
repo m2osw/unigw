@@ -69,10 +69,16 @@ if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
     return()
 endif()
 
+set( WPKG_VERSION "$ENV{WPKG_VERSION}" CACHE STRING "Wpkg version to require" )
+
+if( "${WPKG_VERSION}" STREQUAL "" )
+    message( FATAL_ERROR "WPKG_VERSION must be set!" )
+endif()
+
 set( SUBPACKAGES "runtime*, documentation" )
 set( COMPONENT_LIST runtime documentation )
 set( INSTALL_PACKAGES wpkg-gui wpkggui-doc )
-set( PLATFORM_DEPENDS "Depends/runtime: wpkg (>= 0.9.0), wpkggui-doc (>= ${VERSION})" )
+set( PLATFORM_DEPENDS "Depends/runtime: wpkg (>= ${WPKG_VERSION}), wpkggui-doc (>= ${VERSION})" )
 if( MO_WINDOWS )
     set( PLATFORM_DEPENDS "${PLATFORM_DEPENDS}, wpkgguiqt5 (>= ${VERSION})" )
     set( SUBPACKAGES "${SUBPACKAGES}, qt5" )

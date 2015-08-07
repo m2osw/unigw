@@ -7,7 +7,7 @@ Section: admin
 Priority: optional
 Architecture: $(architecture())
 Architecture/documentation: all
-Source-Depends: wpkg-dev (>= 0.9.11)
+Source-Depends: wpkg-dev (>= @WPKG_VERSION@)
 Homepage: https://sourceforge.net/projects/unigw/
 Maintainer: Made to Order Software Corporation <contact@m2osw.com>
 DESCRIPTION=GUI Multi-platform packager.

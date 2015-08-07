@@ -2,9 +2,19 @@
 #
 # Author: R. Douglas Barbieri, Made to Order Software Corp.
 #
-!define VERSION_MAJOR    "0"
-!define VERSION_MINOR    "9"
-!define VERSION_REVISION "11"
+!ifndef WPKG_VERSION_MAJOR
+   Abort "Major version not set!"
+!endif
+!ifndef WPKG_VERSION_MINOR
+   Abort "Major version not set!"
+!endif
+!ifndef WPKG_VERSION_PATCH
+   Abort "Major version not set!"
+!endif
+
+!define VERSION_MAJOR    ${WPKG_VERSION_MAJOR}
+!define VERSION_MINOR    ${WPKG_VERSION_MINOR}
+!define VERSION_REVISION ${WPKG_VERSION_PATCH}
 
 Name "Windows Packager ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REVISION}"
 XPStyle on
@@ -90,6 +100,10 @@ LangString MUI_UNTEXT_ABORT_SUBTITLE        ${LANG_ENGLISH} "You have aborted th
     !define BUILD_DIR .
 !endif
 
+!ifndef DIST_DIR
+    !define DIST_DIR ${BUILD_DIR}\dist
+!endif
+
 !define PACKAGER_BASE "M2OSW\Windows Packager"
 !define PACKAGER_INSTDIR "c:\WPKG"
 !define PACKAGER_MENUDIR "$SMPROGRAMS\${PACKAGER_BASE}"
@@ -107,8 +121,7 @@ Section Install
    SetOutPath "${PACKAGER_INSTDIR}"
 
    ; Install the bootstrap application
-   File "${BUILD_DIR}\dist\bin\wpkg_static.exe"
-   ;File "${BUILD_DIR}\dist\bin\libwinpthread-1.dll"
+   File "${DIST_DIR}\bin\wpkg_static.exe"
    File "${BUILD_DIR}\wpkg-Release\WPKG\admindb_init.txt"
 
    ; Create the uninstaller
@@ -118,7 +131,7 @@ Section Install
    CreateDirectory "${PACKAGER_INSTDIR}\packages"
 
    SetOutPath "${PACKAGER_INSTDIR}\packages"
-   File /r "${BUILD_DIR}\dist\packages\*.*"
+   File /r "${DIST_DIR}\packages\*.*"
 
    SetOutPath "${PACKAGER_INSTDIR}"
    CreateDirectory "${PACKAGER_MENUDIR}"

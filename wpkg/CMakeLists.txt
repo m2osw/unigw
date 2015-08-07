@@ -40,7 +40,7 @@ cmake_minimum_required(VERSION 3.3.0)
 ##
 set(WPKG_VERSION_MAJOR 0)
 set(WPKG_VERSION_MINOR 9)
-set(WPKG_VERSION_PATCH 11)
+set(WPKG_VERSION_PATCH 12)
 
 enable_testing()
 
