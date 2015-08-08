@@ -75,8 +75,9 @@ endfunction()
 
 parse_wpkg_version( ${WPKG_VERSION} )
 
-file( TO_NATIVE_PATH "${WPKG_ROOT}"        NATIVE_DIST_DIR  )
-file( TO_NATIVE_PATH "${CMAKE_BINARY_DIR}" NATIVE_BUILD_DIR )
+file( TO_NATIVE_PATH "${WPKG_ROOT}"                NATIVE_DIST_DIR   )
+file( TO_NATIVE_PATH "${CMAKE_BINARY_DIR}"         NATIVE_BUILD_DIR  )
+file( TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}" NATIVE_SOURCE_DIR )
 add_custom_target( nsis_package ALL
         COMMAND ${NSIS}
                     /V4
@@ -85,6 +86,7 @@ add_custom_target( nsis_package ALL
                     /DWPKG_VERSION_PATCH="${WPKG_VERSION_PATCH}"
                     /DDIST_DIR="${NATIVE_DIST_DIR}"
                     /DBUILD_DIR="${NATIVE_BUILD_DIR}"
+                    /DSOURCE_DIR="${NATIVE_SOURCE_DIR}"
                     ${CMAKE_CURRENT_SOURCE_DIR}/setup.nsi
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         DEPENDS build-all

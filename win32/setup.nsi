@@ -123,6 +123,7 @@ Section Install
    ; Install the bootstrap application
    File "${DIST_DIR}\bin\wpkg_static.exe"
    File "${BUILD_DIR}\wpkg-Release\WPKG\admindb_init.txt"
+   File "${SOURCE_DIR}\vcredist_x64.exe"
 
    ; Create the uninstaller
    WriteUninstaller "${PACKAGER_INSTDIR}\uninstall.exe"
@@ -132,6 +133,9 @@ Section Install
 
    SetOutPath "${PACKAGER_INSTDIR}\packages"
    File /r "${DIST_DIR}\packages\*.*"
+
+   ; Install VC2013 runtime files
+   !insertmacro RunCommand '${PACKAGER_INSTDIR}/vcredist_x64.exe /quiet /install' 'Cannot install VC 2013 Redistributable!'
 
    SetOutPath "${PACKAGER_INSTDIR}"
    CreateDirectory "${PACKAGER_MENUDIR}"
@@ -167,11 +171,11 @@ InitWpkgDatabase:
    !insertmacro RunCommand '${WPKG} --verbose --root ${PACKAGER_INSTDIR} --add-sources $\"${PACKAGER_SOURCE}$\"'                 'Cannot add local wpkg source!'
    !insertmacro RunCommand '${WPKG} --verbose --root ${PACKAGER_INSTDIR} --update'                                               'Cannot update wpkg sources!'
    !insertmacro RunCommand '${WPKG} --verbose --root ${PACKAGER_INSTDIR} --install wpkg wpkg-gui'                                'Cannot install wpkg packages!'
-   goto WpkgInstallDone
+   goto FinishInstall
 ContinueWpkgInstall:
    !insertmacro RunCommand '${WPKG} --verbose --root ${PACKAGER_INSTDIR} --update'  'Cannot update wpkg sources!'
    !insertmacro RunCommand '${WPKG} --verbose --root ${PACKAGER_INSTDIR} --upgrade' 'Cannot upgrade wpkg inntallation!'
-WpkgInstallDone:
+FinishInstall:
 SectionEnd
 
 Section "Uninstall"
