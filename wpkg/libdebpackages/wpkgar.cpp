@@ -2503,12 +2503,6 @@ bool wpkgar_manager::run_one_script(const wpkg_filename::uri_filename& package_n
     }
 #endif
 
-    // TODO: add some putenv() to give the running process some info about
-    //       the packager (i.e. package name, version, root path, full name
-    //       of the package being installed, os, vendor, processor, etc.);
-    //       also we may want to reset our own environment to not leak stuff
-    //       that should not be visible to those scripts
-
     wpkg_output::log("system(%1).")
             .quoted_arg(cmd)
         .level(wpkg_output::level_info)
@@ -2516,18 +2510,36 @@ bool wpkgar_manager::run_one_script(const wpkg_filename::uri_filename& package_n
         .package(package_name)
         .action("execute-script");
 
+    // Add some putenv() to give the running process some info about
+    // the packager (i.e. package name, version, root path, full name
+    // of the package being installed, os, vendor, processor, etc.);
+    // also we may want to reset our own environment to not leak stuff
+    // that should not be visible to those scripts
+    const std::string env_root_path    ( std::string( "WPKG_ROOT_PATH="     ) += f_root_path     .os_filename().get_utf8() );
+    const std::string env_db_path      ( std::string( "WPKG_DATABASE_PATH=" ) += f_database_path .os_filename().get_utf8() );
+    const std::string env_package_name ( std::string( "WPKG_PACKAGE_NAME="  ) += package_name    .os_filename().get_utf8() );
+
 #ifdef MO_WINDOWS
+    int r;
+    r = _wputenv( libutf8::mbstowcs( env_root_path    ).c_str() );
+    r = _wputenv( libutf8::mbstowcs( env_db_path      ).c_str() );
+    r = _wputenv( libutf8::mbstowcs( env_package_name ).c_str() );
+
     // under MS-Windows we have to convert the UTF-8 to UTF-16 before
     // calling the system function or it will fail if characters outside
     // of the locale are used
-    int r(_wsystem(libutf8::mbstowcs(cmd).c_str()));
+    r = _wsystem(libutf8::mbstowcs(cmd).c_str());
 
     // windows does not always flush properly although the /q should
     // prevent a lot of the output from the script from showing up
     fflush(stdout);
     fflush(stderr);
 #else
-    int r(system(cmd.c_str()));
+    int r;
+    r = putenv( const_cast<char*>( env_root_path    .c_str() ) );
+    r = putenv( const_cast<char*>( env_db_path      .c_str() ) );
+    r = putenv( const_cast<char*>( env_package_name .c_str() ) );
+    r = system( cmd.c_str() );
 #endif
     wpkg_output::log("system() call returned %1")
             .arg(r)

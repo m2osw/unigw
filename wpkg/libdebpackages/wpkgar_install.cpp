@@ -2576,11 +2576,12 @@ void wpkgar_install::trim_available(package_item_t& item, wpkgar_package_ptrs_t&
                 {
                     f_manager->check_interrupt();
 
-                    if(f_packages[k].get_type() == package_item_t::package_type_available
-                    && d.f_name == f_packages[k].get_name())
+                    auto k_pkg( f_packages[k] );
+                    if(k_pkg.get_type() == package_item_t::package_type_available
+                    && d.f_name == k_pkg.get_name())
                     {
                         // completely ignore those
-                        f_packages[k].set_type(package_item_t::package_type_invalid);
+                        k_pkg.set_type(package_item_t::package_type_invalid);
                     }
                 }
                 continue;
@@ -2677,9 +2678,10 @@ void wpkgar_install::trim_available(package_item_t& item, wpkgar_package_ptrs_t&
             {
                 f_manager->check_interrupt();
 
-                if(d.f_name == f_packages[k].get_name())
+                auto k_pkg( f_packages[k] );
+                if(d.f_name == k_pkg.get_name())
                 {
-                    switch(f_packages[k].get_type())
+                    switch(k_pkg.get_type())
                     {
                     case package_item_t::package_type_installed:
                     case package_item_t::package_type_upgrade:
@@ -2693,7 +2695,7 @@ void wpkgar_install::trim_available(package_item_t& item, wpkgar_package_ptrs_t&
                         //          because we're not creating a valid tree, only
                         //          trimming what is for sure invalid/incompatible
                         if(item.get_type() != package_item_t::package_type_explicit
-                        || match_dependency_version(d, f_packages[k]) == 1)
+                        || match_dependency_version(d, k_pkg) == 1)
                         {
                             // found at least one
                             ++match_count;
@@ -2701,7 +2703,7 @@ void wpkgar_install::trim_available(package_item_t& item, wpkgar_package_ptrs_t&
                             // recursive call to handle the Depends of this entry
                             // since in this case we need it
                             parents.push_back(&item);
-                            trim_available(f_packages[k], parents);
+                            trim_available(k_pkg, parents);
                             parents.pop_back();
                         }
                         else
@@ -2719,7 +2721,7 @@ void wpkgar_install::trim_available(package_item_t& item, wpkgar_package_ptrs_t&
                                 .debug(wpkg_output::debug_flags::debug_detail_config)
                                 .module(wpkg_output::module_validate_installation)
                                 .package(filename);
-                            f_packages[k].set_type(package_item_t::package_type_invalid);
+                            k_pkg.set_type(package_item_t::package_type_invalid);
                         }
                         break;
 
@@ -3799,6 +3801,8 @@ void wpkgar_install::output_tree(int file_count, const wpkgar_package_list_t& tr
     dot.printf("}\n");
     std::stringstream stream;
     stream << "install-graph-";
+    stream.width(3);
+    stream.fill('0');
     stream << file_count;
     stream << ".dot";
     dot.write_file(stream.str());
