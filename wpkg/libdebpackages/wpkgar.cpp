@@ -33,6 +33,7 @@
 #include    <algorithm>
 #include    <fstream>
 #include    <iostream>
+#include    <sstream>
 #include    <fcntl.h>
 #include    <errno.h>
 #include    <time.h>
@@ -1525,10 +1526,15 @@ void wpkgar_manager::load_temporary_package(const wpkg_filename::uri_filename& f
         // (which we had in older versions, but that was just way too
         // slow when done 10 times per package while validating an
         // installation!)
-        if(pkg->second->get_fullname().full_path() != fullname.full_path())
+        auto second_package( pkg->second );
+        if(second_package->get_fullname().full_path() != fullname.full_path())
         {
             // Note: here we could add an md5sum test (slow but we err anyway)
-            throw wpkgar_exception_invalid("two packages with the same basename but different full names cannot be used at the same time");
+            std::stringstream ss;
+            ss << "two packages with the same basename ('" << basename << "') have different full names: '"
+               << second_package->get_fullname().full_path() << "'' vs '" << fullname.full_path() << "'."
+               << " They cannot be used at the same time! Please reinitialize your distribution root as it is likely corrupt!";
+            throw wpkgar_exception_invalid(ss.str());
         }
         return;
     }
@@ -1874,6 +1880,8 @@ void wpkgar_manager::add_repository(const wpkg_filename::uri_filename& repositor
             return;
         }
     }
+    // This message is annoying because you get it each time you install a package from the repository. And it's not
+    // really very useful--you're not going to check if an "http:" scheme URL is valid or not until you try to access it.
     else
     {
         wpkg_output::log("repository %1 is not a local file and cannot be checked prior to actually attempting to use it.")
