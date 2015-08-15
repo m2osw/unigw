@@ -264,6 +264,12 @@ private:
     validation_return_t find_installed_dependency(wpkgar_package_list_t::size_type index, const wpkg_filename::uri_filename& package_name, const wpkg_dependencies::dependencies::dependency_t& d, const std::string& field_name);
     void read_repositories();
     void trim_conflicts(wpkgar_package_list_t& tree, wpkgar_package_list_t::size_type idx, bool only_explicit);
+    bool trim_dependency
+        ( package_item_t& item
+        , wpkgar_package_ptrs_t& parents
+        , const wpkg_dependencies::dependencies::dependency_t& dependency
+        , const std::string& field_name
+        );
     void trim_available(package_item_t& item, wpkgar_package_ptrs_t& parents);
     void trim_available_packages();
     validation_return_t validate_installed_depends_field(const wpkgar_package_list_t::size_type idx, const std::string& field_name);
