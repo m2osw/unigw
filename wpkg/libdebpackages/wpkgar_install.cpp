@@ -6581,26 +6581,24 @@ int wpkgar_install::unpack()
         throw std::logic_error("the manager must be locked before calling wpkgar_install::unpack()");
     }
 
-    for(wpkgar_package_list_t::size_type i(0);
-                                         i < f_sorted_packages.size();
-                                         ++i)
+    for( auto idx : f_sorted_packages )
     {
-        wpkgar_package_list_t::size_type idx(f_sorted_packages[i]);
-        if(!f_packages[idx].is_unpacked())
+        auto& package( f_packages[idx] );
+        if(!package.is_unpacked())
         {
-            switch(f_packages[idx].get_type())
+            switch(package.get_type())
             {
             case package_item_t::package_type_explicit:
             case package_item_t::package_type_implicit:
                 {
-                    std::string package_name(f_packages[idx].get_name());
+                    const std::string package_name(package.get_name());
                     wpkg_output::log("unpacking %1")
                                 .quoted_arg(package_name)
                         .debug(wpkg_output::debug_flags::debug_progress)
                         .module(wpkg_output::module_validate_installation);
 
                     package_item_t *upgrade(NULL);
-                    int32_t upgrade_idx(f_packages[idx].get_upgrade());
+                    const int32_t upgrade_idx(package.get_upgrade());
                     if(upgrade_idx != -1)
                     {
                         upgrade = &f_packages[upgrade_idx];
@@ -6621,7 +6619,7 @@ int wpkgar_install::unpack()
                         // it was not installed yet, just purge the whole thing
                         f_manager->track("purge " + package_name, package_name);
                     }
-                    if(!do_unpack(&f_packages[idx], upgrade))
+                    if(!do_unpack(&package, upgrade))
                     {
                         // an error occured, we cannot continue
                         // TBD: should we throw?
