@@ -1737,7 +1737,7 @@ void wpkgar_install::validate_distribution()
     }
 
     const std::string distribution(f_manager->get_field("core", "Distribution"));
-    for( auto package : f_packages )
+    for( const auto& package : f_packages )
     {
         f_manager->check_interrupt();
 
@@ -2476,11 +2476,9 @@ bool wpkgar_install::trim_dependency
     // explicit package then we mark all implicit packages of the same
     // name as invalid because they for sure won't get used
     bool found_package( false );
-    for( auto pkg : f_packages )
+    for( auto& pkg : f_packages )
     {
         f_manager->check_interrupt();
-
-        //auto pkg( f_packages[j] );
 
         if(pkg.get_type() == package_item_t::package_type_explicit
                 && dependency.f_name == pkg.get_name())
@@ -2536,8 +2534,7 @@ bool wpkgar_install::trim_dependency
     // with the same name as invalid (they cannot "legally" get used!)
     if( found_package )
     {
-        //for(wpkgar_package_list_t::size_type k(0); k < f_packages.size(); ++k)
-        for( auto pkg : f_packages )
+        for( auto& pkg : f_packages )
         {
             f_manager->check_interrupt();
 
@@ -2561,7 +2558,7 @@ bool wpkgar_install::trim_dependency
     // not found as an explicit package,
     // try as an already installed package
     bool found(false);
-    for( auto pkg : f_packages )
+    for( const auto& pkg : f_packages )
     {
         bool quit( false );
         f_manager->check_interrupt();
@@ -2661,10 +2658,23 @@ bool wpkgar_install::trim_dependency
                     break;
 
                 case package_item_t::package_type_available:
+                    //
                     // WARNING: We cannot check a version from an implicit
                     //          package to an implicit package at this point
                     //          because we're not creating a valid tree, only
                     //          trimming what is for sure invalid/incompatible
+                    //
+                    // TODO:    I remarked off the test for not-explicit, because
+                    //          coupled with the logical OR operator, any non-explicit
+                    //          package in the queue which happened to match names
+                    //          would be considered a match, because the second test
+                    //          would never be executed. Now, since I need to confer
+                    //          with the original author (Alexis) to discover his
+                    //          intent, I've marked this TODO. But for now, this
+                    //          fixes the upgrade bug that was preventing package
+                    //          upgrade when multiple different versions of a
+                    //          dependency existed in the repository.
+                    //
                     if(//item.get_type() != package_item_t::package_type_explicit
                             match_dependency_version(dependency, pkg) == 1)
                     {
@@ -2832,7 +2842,7 @@ void wpkgar_install::trim_available( package_item_t& item, wpkgar_package_ptrs_t
     }
 
     // got a Depends field?
-    for( auto field_name : f_field_names )
+    for( const auto& field_name : f_field_names )
     {
         if(!item.field_is_defined( field_name ))
         {
@@ -4902,7 +4912,7 @@ void wpkgar_install::validate_installed_size_and_overwrite()
     const wpkg_filename::uri_filename root(f_manager->get_inst_path());
     controlled_vars::zuint32_t total;
     int32_t idx = -1;
-    for( auto outer_pkg : f_packages )
+    for( auto& outer_pkg : f_packages )
     {
         ++idx;
         int factor(0);
@@ -4925,7 +4935,7 @@ void wpkgar_install::validate_installed_size_and_overwrite()
                 // because we use that for our overwrite test
                 const std::string& name(outer_pkg.get_name());
                 int32_t j = -1;
-                for( auto inner_pkg : f_packages )
+                for( auto& inner_pkg : f_packages )
                 {
                     ++j;
                     switch(inner_pkg.get_type())
@@ -4990,7 +5000,7 @@ void wpkgar_install::validate_installed_size_and_overwrite()
         }
 #endif //!MO_DARWIN && !MO_SUNOS && !MO_FREEBSD
     }
-    // for( auto outer_pkg : f_packages )
+    // for( auto& outer_pkg : f_packages )
 
     // got all the totals, make sure its valid
     //if(!disks.are_valid())
