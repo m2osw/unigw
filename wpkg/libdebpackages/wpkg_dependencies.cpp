@@ -199,6 +199,47 @@ std::string dependencies::dependency_t::to_string(bool remove_arch) const
 }
 
 
+/** \brief Reverse the embedded operator.
+ *
+ * This is useful for when we want to make sure the same dependency
+ * is consistent with the package we want.
+ */
+void dependencies::dependency_t::reverse_operator()
+{
+    switch( f_operator )
+    {
+    case operator_lt:
+        f_operator = operator_ge;
+        break;
+
+    case operator_le:
+        f_operator = operator_gt;
+        break;
+
+    case operator_eq:
+        // Nothing to do
+        break;
+
+    case operator_ge:
+        f_operator = operator_lt;
+        break;
+
+    case operator_gt:
+        f_operator = operator_le;
+        break;
+
+    case operator_ne:
+        throw wpkg_dependencies_exception_invalid("unexpected operator \"ne\" for a dependency in operator_to_string()");
+
+    case operator_any:
+        throw wpkg_dependencies_exception_invalid("unexpected operator \"any\" for a dependency in operator_to_string()");
+
+    default:
+        throw wpkg_dependencies_exception_invalid("unexpected operator for a dependency in operator_to_string()");
+    }
+}
+
+
 /** \brief Parse a list of dependencies and assign them to a dependencies object.
  *
  * This constructor parses a list of dependencies with a package name, an optional
