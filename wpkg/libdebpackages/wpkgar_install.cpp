@@ -1737,7 +1737,7 @@ void wpkgar_install::validate_distribution()
     }
 
     const std::string distribution(f_manager->get_field("core", "Distribution"));
-    for( auto package : f_packages )
+    for( const auto& package : f_packages )
     {
         f_manager->check_interrupt();
 
@@ -2463,7 +2463,353 @@ void wpkgar_install::trim_conflicts(wpkgar_package_list_t& tree, const wpkgar_pa
 }
 
 
-void wpkgar_install::trim_available(package_item_t& item, wpkgar_package_ptrs_t& parents)
+bool wpkgar_install::trim_dependency
+    ( package_item_t& item
+    , wpkgar_package_ptrs_t& parents
+    , const wpkg_dependencies::dependencies::dependency_t& dependency
+    , const std::string& field_name
+    )
+{
+    const auto filename( item.get_filename() );
+
+    // if an explicit package has a dependency satisfied by another
+    // explicit package then we mark all implicit packages of the same
+    // name as invalid because they for sure won't get used
+    bool found_package( false );
+    for( auto& pkg : f_packages )
+    {
+        f_manager->check_interrupt();
+
+        if(pkg.get_type() == package_item_t::package_type_explicit
+                && dependency.f_name == pkg.get_name())
+        {
+            // note that explicit to explicit dependencies already had their
+            // version checked but implicit to explicit, not yet; if
+            // explicit to explicit we just check it again, that's quite
+            // fast anyway
+            if(match_dependency_version(dependency, pkg) == 1)
+            {
+                // recursive call to check circular definitions, just
+                // in case we had such
+                parents.push_back(&item);
+                trim_available( pkg, parents );
+                parents.pop_back();
+            }
+            else
+            {
+                if(!get_parameter(wpkgar_install_force_depends_version, false))
+                {
+                    // since we cannot replace an explicit dependency, we
+                    // generate an error in this case
+                    wpkg_output::log("package %1 depends on %2 with an incompatible version constraint (%3).")
+                        .quoted_arg(filename)
+                        .quoted_arg(pkg.get_filename())
+                        .arg(dependency.to_string())
+                        .level(wpkg_output::level_error)
+                        .module(wpkg_output::module_validate_installation)
+                        .package(filename)
+                        .action("install-validation");
+                }
+                else
+                {
+                    // there is a version problem but the user is okay with it
+                    // just generate a wPaying taxes that help those less fortunate than we are is not stealing.arning
+                    wpkg_output::log("use package %1 which has an incompatible version for dependency %2 found in field %3.")
+                        .quoted_arg(filename)
+                        .quoted_arg(dependency.to_string())
+                        .arg(field_name)
+                        .level(wpkg_output::level_warning)
+                        .module(wpkg_output::module_validate_installation)
+                        .package(filename)
+                        .action("install-validation");
+                }
+            }
+            // we found the package we're done with this test
+            found_package = true;
+            break;
+        }
+    }
+
+    // if available among explicit packages, mark all implicit packages
+    // with the same name as invalid (they cannot "legally" get used!)
+    if( found_package )
+    {
+        for( auto& pkg : f_packages )
+        {
+            f_manager->check_interrupt();
+
+            if(pkg.get_type() == package_item_t::package_type_available
+                    && dependency.f_name == pkg.get_name())
+            {
+                // completely ignore those
+                pkg.set_type(package_item_t::package_type_invalid);
+            }
+        }
+        return false;
+    }
+
+    // we use the auto-update flag to know when an implicit package is used
+    // to automatically update an installed package (opposed to installing
+    // a new intermediate package) although at this point we do NOT mark
+    // the installed packages as being upgraded since it will depend on
+    // whether this specific case is used in the end or not
+    bool auto_upgrade(false);
+
+    // not found as an explicit package,
+    // try as an already installed package
+    bool found(false);
+    for( const auto& pkg : f_packages )
+    {
+        bool quit( false );
+        f_manager->check_interrupt();
+
+        if(dependency.f_name == pkg.get_name())
+        {
+            switch(pkg.get_type())
+            {
+                case package_item_t::package_type_unpacked:
+                    wpkg_output::log("unpacked version of %1 checked for dependency %2, if selected later, it will fail.")
+                        .quoted_arg(pkg.get_name())
+                        .quoted_arg(dependency.to_string())
+                        .debug(wpkg_output::debug_flags::debug_detail_config)
+                        .module(wpkg_output::module_validate_installation)
+                        .package(filename);
+                    /*FLOWTHROUGH*/
+                case package_item_t::package_type_installed:
+                case package_item_t::package_type_configure:
+                case package_item_t::package_type_upgrade:
+                case package_item_t::package_type_downgrade:
+                    // note that we cannot err about the unpacked package
+                    // right now as we cannot be certain it will be
+                    // included in the tree we're going to select in the
+                    // end (and thus it may not be a problem.)
+
+                    // TODO: support --force-depends-version
+                    // if we're checking an implicit package, the version
+                    // must match or that implicit package cannot be
+                    // installed unless we can auto-update
+                    if(match_dependency_version(dependency, pkg) != 1)
+                    {
+                        // When this fails, we could still have an implicit
+                        // package that could be used to upgrade this
+                        // package... try that first
+                        auto_upgrade = true;
+
+                        // simulate the end of the list so we don't waste
+                        // our time and enter the next loop
+                        quit = true;
+                    }
+                    else
+                    {
+                        // recursive call? -- not necessary for installed
+                        // packages since we expect the existing installation
+                        // to already be in a working state and thus to have
+                        // all the dependencies satisfied; this being said we
+                        // may end up auto-upgrading packages to satisfy some
+                        // dependencies... right?
+                        //trim_available(pkg, parents);
+
+                        // we found it, stop here
+                        found = true;
+                    }
+                    break;
+
+                default:
+                    // other types do not represent an installed package
+                    break;
+
+            }
+        }
+
+        if( found || quit )
+        {
+            break;
+        }
+    }
+
+    if( found )
+    {
+        // in this case (i.e. package was found in the list of installed
+        // packages) we keep the implicit packages because even if
+        // already installed is satisfactory in this case, we may hit a
+        // case where we end up having to update these files and for
+        // that purpose we need to have access to the implicit packages!
+        return false;
+    }
+
+    // not found as an explicit or installed package,
+    // try as an implicit package
+    uint32_t match_count(0);
+    bool match_installed(false);
+    package_item_t* last_package( 0 );
+    for( auto& pkg : f_packages )
+    {
+        last_package = &pkg;
+        f_manager->check_interrupt();
+
+        if(dependency.f_name == pkg.get_name())
+        {
+            switch(pkg.get_type())
+            {
+                case package_item_t::package_type_installed:
+                case package_item_t::package_type_upgrade:
+                    // if already installed, we're all good
+                    match_installed = true;
+                    break;
+
+                case package_item_t::package_type_available:
+                    //
+                    // WARNING: We cannot check a version from an implicit
+                    //          package to an implicit package at this point
+                    //          because we're not creating a valid tree, only
+                    //          trimming what is for sure invalid/incompatible
+                    //
+                    // TODO:    I remarked off the test for not-explicit, because
+                    //          coupled with the logical OR operator, any non-explicit
+                    //          package in the queue which happened to match names
+                    //          would be considered a match, because the second test
+                    //          would never be executed. Now, since I need to confer
+                    //          with the original author (Alexis) to discover his
+                    //          intent, I've marked this TODO. But for now, this
+                    //          fixes the upgrade bug that was preventing package
+                    //          upgrade when multiple different versions of a
+                    //          dependency existed in the repository.
+                    //
+                    if(//item.get_type() != package_item_t::package_type_explicit
+                            match_dependency_version(dependency, pkg) == 1)
+                    {
+                        // found at least one
+                        ++match_count;
+
+                        // recursive call to handle the Depends of this entry
+                        // since in this case we need it
+                        parents.push_back(&item);
+                        trim_available(pkg, parents);
+                        parents.pop_back();
+                    }
+                    else
+                    {
+                        // if the version doesn't match from then this
+                        // implicit package cannot be used at all because
+                        // an explicit package directly depends on it
+                        //
+                        // here it is not an error because we may have
+                        // other satisfactory implicit packages (see
+                        // 'match_count == 0' below)
+                        wpkg_output::log("file %1 does not satisfy dependency %2 because of its version.")
+                            .quoted_arg(filename)
+                            .quoted_arg(dependency.to_string())
+                            .debug(wpkg_output::debug_flags::debug_detail_config)
+                            .module(wpkg_output::module_validate_installation)
+                            .package(filename);
+                        pkg.set_type(package_item_t::package_type_invalid);
+                    }
+                    break;
+
+                default:
+                    // other types are ignored here
+                    break;
+
+            }
+        }
+
+        if( match_installed )
+        {
+            break;
+        }
+    }
+    //
+    if( match_count == 0 )
+    {
+        if(!match_installed)
+        {
+            if(auto_upgrade)
+            {
+                if( last_package == 0 )
+                {
+                    wpkg_output::log("Error with last_package! Should never be null!")
+                        .level(wpkg_output::level_warning)
+                        .module(wpkg_output::module_validate_installation)
+                        .package(filename)
+                        .action("install-validation");
+                }
+                else
+                {
+                    // in this case we tell the user that the existing
+                    // installation is not compatible rather than that there
+                    // is no package that satisfies the dependency
+                    //
+                    // XXX add a --force-auto-upgrade flag?
+                    if(!get_parameter(wpkgar_install_force_depends, false))
+                    {
+                        wpkg_output::log("package %1 depends on %2 which is an installed package with an incompatible version constraint (%3).")
+                                .quoted_arg(filename)
+                                .quoted_arg(last_package->get_filename())
+                                .arg(dependency.to_string())
+                                .level(wpkg_output::level_error)
+                                .module(wpkg_output::module_validate_installation)
+                                .package(filename)
+                                .action("install-validation");
+                    }
+                    else
+                    {
+                        // TBD: is that warning in the way?
+                        //
+                        // TODO:
+                        // Mark the tree (somehow) as "less good" since it
+                        // has warnings (i.e. count warnings for each tree)
+                        wpkg_output::log("package %1 depends on %2 which is an installed package with an incompatible version constraint (%3); it may still get installed using this tree.")
+                                .quoted_arg(filename)
+                                .quoted_arg(last_package->get_filename())
+                                .arg(dependency.to_string())
+                                .level(wpkg_output::level_warning)
+                                .module(wpkg_output::module_validate_installation)
+                                .package(filename)
+                                .action("install-validation");
+                    }
+                }
+            }
+            else
+            {
+                if(!get_parameter(wpkgar_install_force_depends, false))
+                {
+                    wpkg_output::log("no explicit or implicit package satisfy dependency %1 of package %2.")
+                        .quoted_arg(dependency.to_string())
+                        .quoted_arg(item.get_name())
+                        .level(wpkg_output::level_error)
+                        .module(wpkg_output::module_validate_installation)
+                        .package(filename)
+                        .action("install-validation");
+                }
+                else
+                {
+                    // TBD: is that warning in the way?
+                    //
+                    // TODO:
+                    // Mark the tree (somehow) as "less good" since it
+                    // has warnings (i.e. count warnings for each tree)
+                    wpkg_output::log("no explicit or implicit package satisfy dependency %1 of package %2; it may still get installed using this tree.")
+                        .quoted_arg(dependency.to_string())
+                        .quoted_arg(item.get_name())
+                        .level(wpkg_output::level_warning)
+                        .module(wpkg_output::module_validate_installation)
+                        .package(filename)
+                        .action("install-validation");
+                }
+            }
+        }
+        //else if(match_installed) ... we're updating that package
+    }
+    else if(match_count > 1)
+    {
+        f_install_includes_choices = true;
+    }
+
+    return true;
+}
+
+
+void wpkgar_install::trim_available( package_item_t& item, wpkgar_package_ptrs_t& parents )
 {
     const wpkg_filename::uri_filename filename(item.get_filename());
 
@@ -2496,316 +2842,18 @@ void wpkgar_install::trim_available(package_item_t& item, wpkgar_package_ptrs_t&
     }
 
     // got a Depends field?
-    for(wpkgar_list_of_strings_t::const_iterator f(f_field_names.begin());
-                                                 f != f_field_names.end();
-                                                 ++f)
+    for( const auto& field_name : f_field_names )
     {
-        if(!item.field_is_defined(*f))
+        if(!item.field_is_defined( field_name ))
         {
             continue;
         }
 
         // satisfy all dependencies
-        wpkg_dependencies::dependencies depends(item.get_field(*f));
-        for(int i(0); i < depends.size(); ++i)
+        wpkg_dependencies::dependencies depends( item.get_field( field_name ) );
+        for( int i(0); i < depends.size(); ++i )
         {
-            const wpkg_dependencies::dependencies::dependency_t& d(depends.get_dependency(i));
-
-            // if an explicit package has a dependency satisfied by another
-            // explicit package then we mark all implicit packages of the same
-            // name as invalid because they for sure won't get used
-            wpkgar_package_list_t::size_type j;
-            for(j = 0; j < f_packages.size(); ++j)
-            {
-                f_manager->check_interrupt();
-
-                if(f_packages[j].get_type() == package_item_t::package_type_explicit
-                && d.f_name == f_packages[j].get_name())
-                {
-                    // note that explicit to explicit dependencies already had their
-                    // version checked but implicit to explicit, not yet; if
-                    // explicit to explicit we just check it again, that's quite
-                    // fast anyway
-                    if(match_dependency_version(d, f_packages[j]) == 1)
-                    {
-                        // recursive call to check circular definitions, just
-                        // in case we had such
-                        parents.push_back(&item);
-                        trim_available(f_packages[j], parents);
-                        parents.pop_back();
-                    }
-                    else
-                    {
-                        if(!get_parameter(wpkgar_install_force_depends_version, false))
-                        {
-                            // since we cannot replace an explicit dependency, we
-                            // generate an error in this case
-                            wpkg_output::log("package %1 depends on %2 with an incompatible version constraint (%3).")
-                                    .quoted_arg(filename)
-                                    .quoted_arg(f_packages[j].get_filename())
-                                    .arg(d.to_string())
-                                .level(wpkg_output::level_error)
-                                .module(wpkg_output::module_validate_installation)
-                                .package(filename)
-                                .action("install-validation");
-                        }
-                        else
-                        {
-                            // there is a version problem but the user is okay with it
-                            // just generate a warning
-                            wpkg_output::log("use package %1 which has an incompatible version for dependency %2 found in field %3.")
-                                    .quoted_arg(filename)
-                                    .quoted_arg(d.to_string())
-                                    .arg(*f)
-                                .level(wpkg_output::level_warning)
-                                .module(wpkg_output::module_validate_installation)
-                                .package(filename)
-                                .action("install-validation");
-                        }
-                    }
-                    // we found the package we're done with this test
-                    break;
-                }
-            }
-
-            // if available among explicit packages, mark all implicit packages
-            // with the same name as invalid (they cannot "legally" get used!)
-            if(j != f_packages.size())
-            {
-                for(wpkgar_package_list_t::size_type k(0); k < f_packages.size(); ++k)
-                {
-                    f_manager->check_interrupt();
-
-                    auto k_pkg( f_packages[k] );
-                    if(k_pkg.get_type() == package_item_t::package_type_available
-                    && d.f_name == k_pkg.get_name())
-                    {
-                        // completely ignore those
-                        k_pkg.set_type(package_item_t::package_type_invalid);
-                    }
-                }
-                continue;
-            }
-
-            // we use the auto-update flag to know when an implicit package is used
-            // to automatically update an installed package (opposed to installing
-            // a new intermediate package) although at this point we do NOT mark
-            // the installed packages as being upgraded since it will depend on
-            // whether this specific case is used in the end or not
-            bool auto_upgrade(false);
-
-            // not found as an explicit package,
-            // try as an already installed package
-            bool found(false);
-            for(j = 0; !found && j < f_packages.size(); ++j)
-            {
-                f_manager->check_interrupt();
-
-                if(d.f_name == f_packages[j].get_name())
-                {
-                    switch(f_packages[j].get_type())
-                    {
-                    case package_item_t::package_type_unpacked:
-                        wpkg_output::log("unpacked version of %1 checked for dependency %2, if selected later, it will fail.")
-                                .quoted_arg(f_packages[j].get_name())
-                                .quoted_arg(d.to_string())
-                            .debug(wpkg_output::debug_flags::debug_detail_config)
-                            .module(wpkg_output::module_validate_installation)
-                            .package(filename);
-                        /*FLOWTHROUGH*/
-                    case package_item_t::package_type_installed:
-                    case package_item_t::package_type_configure:
-                    case package_item_t::package_type_upgrade:
-                    case package_item_t::package_type_downgrade:
-                        // note that we cannot err about the unpacked package
-                        // right now as we cannot be certain it will be
-                        // included in the tree we're going to select in the
-                        // end (and thus it may not be a problem.)
-
-                        // TODO: support --force-depends-version
-                        // if we're checking an implicit package, the version
-                        // must match or that implicit package cannot be
-                        // installed unless we can auto-update
-                        if(match_dependency_version(d, f_packages[j]) != 1)
-                        {
-                            // When this fails, we could still have an implicit
-                            // package that could be used to upgrade this
-                            // package... try that first
-                            auto_upgrade = true;
-
-                            // simulate the end of the list so we don't waste
-                            // our time and enter the next loop
-                            j = f_packages.size();
-                        }
-                        else
-                        {
-                            // recursive call? -- not necessary for installed
-                            // packages since we expect the existing installation
-                            // to already be in a working state and thus to have
-                            // all the dependencies satisfied; this being said we
-                            // may end up auto-upgrading packages to satisfy some
-                            // dependencies... right?
-                            //trim_available(f_packages[j], parents);
-
-                            // we found it, stop here
-                            found = true;
-                        }
-                        break;
-
-                    default:
-                        // other types do not represent an installed package
-                        break;
-
-                    }
-                }
-            }
-
-            if(j != f_packages.size())
-            { // == if(found) ...
-                // in this case (i.e. package was found in the list of installed
-                // packages) we keep the implicit packages because even if
-                // already installed is satisfactory in this case, we may hit a
-                // case where we end up having to update these files and for
-                // that purpose we need to have access to the implicit packages!
-                continue;
-            }
-
-            // not found as an explicit or installed package,
-            // try as an implicit package
-            uint32_t match_count(0);
-            bool match_installed(false);
-            for(wpkgar_package_list_t::size_type k(0); k < f_packages.size(); ++k)
-            {
-                f_manager->check_interrupt();
-
-                auto k_pkg( f_packages[k] );
-                if(d.f_name == k_pkg.get_name())
-                {
-                    switch(k_pkg.get_type())
-                    {
-                    case package_item_t::package_type_installed:
-                    case package_item_t::package_type_upgrade:
-                        // if already installed, we're all good
-                        match_installed = true;
-                        break;
-
-                    case package_item_t::package_type_available:
-                        // WARNING: We cannot check a version from an implicit
-                        //          package to an implicit package at this point
-                        //          because we're not creating a valid tree, only
-                        //          trimming what is for sure invalid/incompatible
-                        if(item.get_type() != package_item_t::package_type_explicit
-                        || match_dependency_version(d, k_pkg) == 1)
-                        {
-                            // found at least one
-                            ++match_count;
-
-                            // recursive call to handle the Depends of this entry
-                            // since in this case we need it
-                            parents.push_back(&item);
-                            trim_available(k_pkg, parents);
-                            parents.pop_back();
-                        }
-                        else
-                        {
-                            // if the version doesn't match from then this
-                            // implicit package cannot be used at all because
-                            // an explicit package directly depends on it
-                            //
-                            // here it is not an error because we may have
-                            // other satisfactory implicit packages (see
-                            // 'match_count == 0' below)
-                            wpkg_output::log("file %1 does not satisfy dependency %2 because of its version.")
-                                    .quoted_arg(filename)
-                                    .quoted_arg(d.to_string())
-                                .debug(wpkg_output::debug_flags::debug_detail_config)
-                                .module(wpkg_output::module_validate_installation)
-                                .package(filename);
-                            k_pkg.set_type(package_item_t::package_type_invalid);
-                        }
-                        break;
-
-                    default:
-                        // other types are ignored here
-                        break;
-
-                    }
-                }
-            }
-            if(match_count == 0)
-            {
-                if(!match_installed)
-                {
-                    if(auto_upgrade)
-                    {
-                        // in this case we tell the user that the existing
-                        // installation is not compatible rather than that there
-                        // is no package that satisfies the dependency
-                        //
-                        // XXX add a --force-auto-upgrade flag?
-                        if(!get_parameter(wpkgar_install_force_depends, false))
-                        {
-                            wpkg_output::log("package %1 depends on %2 which is an installed package with an incompatible version constraint (%3).")
-                                    .quoted_arg(filename)
-                                    .quoted_arg(f_packages[j].get_filename())
-                                    .arg(d.to_string())
-                                .level(wpkg_output::level_error)
-                                .module(wpkg_output::module_validate_installation)
-                                .package(filename)
-                                .action("install-validation");
-                        }
-                        else
-                        {
-                            // TBD: is that warning in the way?
-                            //
-                            // TODO:
-                            // Mark the tree (somehow) as "less good" since it
-                            // has warnings (i.e. count warnings for each tree)
-                            wpkg_output::log("package %1 depends on %2 which is an installed package with an incompatible version constraint (%3); it may still get installed using this tree.")
-                                    .quoted_arg(filename)
-                                    .quoted_arg(f_packages[j].get_filename())
-                                    .arg(d.to_string())
-                                .level(wpkg_output::level_warning)
-                                .module(wpkg_output::module_validate_installation)
-                                .package(filename)
-                                .action("install-validation");
-                        }
-                    }
-                    else
-                    {
-                        if(!get_parameter(wpkgar_install_force_depends, false))
-                        {
-                            wpkg_output::log("no explicit or implicit package satisfy dependency %1 of package %2.")
-                                    .quoted_arg(d.to_string())
-                                    .quoted_arg(item.get_name())
-                                .level(wpkg_output::level_error)
-                                .module(wpkg_output::module_validate_installation)
-                                .package(filename)
-                                .action("install-validation");
-                        }
-                        else
-                        {
-                            // TBD: is that warning in the way?
-                            //
-                            // TODO:
-                            // Mark the tree (somehow) as "less good" since it
-                            // has warnings (i.e. count warnings for each tree)
-                            wpkg_output::log("no explicit or implicit package satisfy dependency %1 of package %2; it may still get installed using this tree.")
-                                    .quoted_arg(d.to_string())
-                                    .quoted_arg(item.get_name())
-                                .level(wpkg_output::level_warning)
-                                .module(wpkg_output::module_validate_installation)
-                                .package(filename)
-                                .action("install-validation");
-                        }
-                    }
-                }
-                //else if(match_installed) ... we're updating that package
-            }
-            else if(match_count > 1)
-            {
-                f_install_includes_choices = true;
-            }
+            trim_dependency( item, parents, depends.get_dependency(i), field_name );
         }
     }
 }
@@ -3189,7 +3237,8 @@ bool wpkgar_install::check_implicit_for_upgrade(wpkgar_package_list_t& tree, con
     //            cannot generate errors otherwise it could prevent any
     //            tree from being selected
     package_item_t::package_type_t type(package_item_t::package_type_invalid);
-    switch(f_manager->package_status(name)) {   // <- TBD -- should we have a try/catch around this one?
+    switch(f_manager->package_status(name))
+    {   // <- TBD -- should we have a try/catch around this one?
     case wpkgar_manager::not_installed:
     case wpkgar_manager::config_files:
         // it's not currently installed so we can go ahead
@@ -3226,7 +3275,6 @@ bool wpkgar_install::check_implicit_for_upgrade(wpkgar_package_list_t& tree, con
     case wpkgar_manager::ready:
         // definitively invalid, cannot use this implicit target
         return false;
-
     }
 
     // Note: using f_manager directly since the package is there
@@ -4863,13 +4911,13 @@ void wpkgar_install::validate_installed_size_and_overwrite()
 
     const wpkg_filename::uri_filename root(f_manager->get_inst_path());
     controlled_vars::zuint32_t total;
-    for(wpkgar_package_list_t::size_type idx(0);
-                                         idx < f_packages.size();
-                                         ++idx)
+    int32_t idx = -1;
+    for( auto& outer_pkg : f_packages )
     {
+        ++idx;
         int factor(0);
         memfile::memory_file *upgrade(NULL);
-        switch(f_packages[idx].get_type())
+        switch(outer_pkg.get_type())
         {
         case package_item_t::package_type_upgrade:
         case package_item_t::package_type_upgrade_implicit:
@@ -4885,32 +4933,32 @@ void wpkgar_install::validate_installed_size_and_overwrite()
             {
                 // we want the corresponding upgrade (downgrade) package
                 // because we use that for our overwrite test
-                const std::string& name(f_packages[idx].get_name());
-                for(wpkgar_package_list_t::size_type j(0);
-                                                     j < f_packages.size();
-                                                     ++j)
+                const std::string& name(outer_pkg.get_name());
+                int32_t j = -1;
+                for( auto& inner_pkg : f_packages )
                 {
-                    switch(f_packages[j].get_type())
+                    ++j;
+                    switch(inner_pkg.get_type())
                     {
                     case package_item_t::package_type_upgrade:
                     case package_item_t::package_type_downgrade:
-                        if(name == f_packages[j].get_name())
+                        if(name == inner_pkg.get_name())
                         {
                             f_manager->check_interrupt();
 
                             // make sure the package is loaded
                             // TODO: change this load and use the Files field instead
-                            f_manager->load_package(f_packages[j].get_filename());
+                            f_manager->load_package(inner_pkg.get_filename());
 
-                            f_manager->get_wpkgar_file(f_packages[j].get_filename(), upgrade);
-                            if(f_packages[idx].get_upgrade() != -1
-                            || f_packages[j].get_upgrade() != -1)
+                            f_manager->get_wpkgar_file(inner_pkg.get_filename(), upgrade);
+                            if(outer_pkg.get_upgrade() != -1
+                            || inner_pkg.get_upgrade() != -1)
                             {
                                 throw std::logic_error("somehow more than two packages named \"" + name + "\" were marked for upgrade.");
                             }
                             // link these packages together
-                            f_packages[j].set_upgrade(static_cast<int32_t>(idx));
-                            f_packages[idx].set_upgrade(static_cast<int32_t>(j));
+                            inner_pkg.set_upgrade( idx );
+                            outer_pkg.set_upgrade( j   );
 
                             // in case we're a self package add ourselves since
                             // we're being upgraded
@@ -4931,7 +4979,6 @@ void wpkgar_install::validate_installed_size_and_overwrite()
             // other packages are either already installed,
             // not installed, or marked invalid in some ways
             break;
-
         }
 //
 // TODO: There is no drive detection under Darwin / SunOS presently implemented!
@@ -4945,14 +4992,15 @@ void wpkgar_install::validate_installed_size_and_overwrite()
             //       make sure the package is loaded
             // (as far as I can tell this is really fast if the package
             // was already loaded so we're certainly safe doing again.)
-            f_manager->load_package(f_packages[idx].get_filename());
+            f_manager->load_package(outer_pkg.get_filename());
 
-            memfile::memory_file *data;
-            f_manager->get_wpkgar_file(f_packages[idx].get_filename(), data);
-            disks.compute_size_and_verify_overwrite(idx, f_packages[idx], root, data, upgrade, factor);
+            memfile::memory_file *data(0);
+            f_manager->get_wpkgar_file(outer_pkg.get_filename(), data);
+            disks.compute_size_and_verify_overwrite( idx, outer_pkg, root, data, upgrade, factor );
         }
 #endif //!MO_DARWIN && !MO_SUNOS && !MO_FREEBSD
     }
+    // for( auto& outer_pkg : f_packages )
 
     // got all the totals, make sure its valid
     //if(!disks.are_valid())
@@ -6543,26 +6591,24 @@ int wpkgar_install::unpack()
         throw std::logic_error("the manager must be locked before calling wpkgar_install::unpack()");
     }
 
-    for(wpkgar_package_list_t::size_type i(0);
-                                         i < f_sorted_packages.size();
-                                         ++i)
+    for( auto idx : f_sorted_packages )
     {
-        wpkgar_package_list_t::size_type idx(f_sorted_packages[i]);
-        if(!f_packages[idx].is_unpacked())
+        auto& package( f_packages[idx] );
+        if(!package.is_unpacked())
         {
-            switch(f_packages[idx].get_type())
+            switch(package.get_type())
             {
             case package_item_t::package_type_explicit:
             case package_item_t::package_type_implicit:
                 {
-                    std::string package_name(f_packages[idx].get_name());
+                    const std::string package_name(package.get_name());
                     wpkg_output::log("unpacking %1")
                                 .quoted_arg(package_name)
                         .debug(wpkg_output::debug_flags::debug_progress)
                         .module(wpkg_output::module_validate_installation);
 
                     package_item_t *upgrade(NULL);
-                    int32_t upgrade_idx(f_packages[idx].get_upgrade());
+                    const int32_t upgrade_idx(package.get_upgrade());
                     if(upgrade_idx != -1)
                     {
                         upgrade = &f_packages[upgrade_idx];
@@ -6583,7 +6629,7 @@ int wpkgar_install::unpack()
                         // it was not installed yet, just purge the whole thing
                         f_manager->track("purge " + package_name, package_name);
                     }
-                    if(!do_unpack(&f_packages[idx], upgrade))
+                    if(!do_unpack(&package, upgrade))
                     {
                         // an error occured, we cannot continue
                         // TBD: should we throw?
