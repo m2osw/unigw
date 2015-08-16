@@ -184,6 +184,7 @@ public:
     void                                    add_repository(const wpkg_filename::uri_filename& repository);
     void                                    set_repositories(const wpkg_filename::filename_list_t& repositories);
     const wpkg_filename::filename_list_t&   get_repositories() const;
+    void                                    add_sources_list();
 
     void                                    set_tracker(std::shared_ptr<wpkgar_tracker_interface> tracker);
     std::shared_ptr<wpkgar_tracker_interface> get_tracker() const;

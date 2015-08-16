@@ -794,25 +794,8 @@ void wpkgar_install::add_package( const std::string& package, const bool force_r
         {
             wpkgar_repository repository( f_manager );
 
-            wpkg_filename::uri_filename sources_list( f_manager->get_database_path() );
-            sources_list = sources_list.append_child( "core/sources.list" );
-            if( sources_list.exists() )
-            {
-                memfile::memory_file sources_file;
-                sources_file.read_file( sources_list );
-
-                wpkgar_repository::source_vector_t	sources;
-                repository.read_sources( sources_file, sources );
-
-                std::for_each( sources.begin(), sources.end(), [&]( const wpkgar_repository::source& src )
-                {
-                    f_manager->add_repository( src.get_uri() );
-                });
-            }
-
             bool found_package = false;
-            const auto& list( repository.upgrade_list() );
-            std::for_each( list.begin(), list.end(), [&]( wpkgar_repository::package_item_t entry )
+            for( const auto& entry : repository.upgrade_list() )
             {
                 if( entry.get_name() == package )
                 {
@@ -841,7 +824,7 @@ void wpkgar_install::add_package( const std::string& package, const bool force_r
                         f_packages.push_back(package_item);
                     }
                 }
-            });
+            }
 
             if( !found_package )
             {
@@ -3407,18 +3390,11 @@ void wpkgar_install::find_dependencies( wpkgar_package_list_t& tree, const wpkga
                 case package_item_t::package_type_downgrade:
                     if(d.f_name == tree_item.get_name())
                     {
-                        // Note: the issue is that when the package and the dependency
-                        // are the same, the operator needs to be less than.
-                        //
-                        // Otherwise, we are doing an absurd compare that could never be true.
-                        //
-                        auto temp_d( d );
-                        temp_d.f_operator = wpkg_dependencies::dependencies::operator_le;
                         // this is a match, use it if possible!
                         switch(tree_item.get_type())
                         {
                         case package_item_t::package_type_available:
-                            if(match_dependency_version(temp_d, tree_item) == 1
+                            if(match_dependency_version(d, tree_item) == 1
                             && check_implicit_for_upgrade(tree, tree_idx))
                             {
                                 // this one becomes implicit!
@@ -3436,7 +3412,7 @@ void wpkgar_install::find_dependencies( wpkgar_package_list_t& tree, const wpkga
                         case package_item_t::package_type_upgrade:
                         case package_item_t::package_type_upgrade_implicit:
                         case package_item_t::package_type_downgrade:
-                            if(match_dependency_version(temp_d, tree_item) == 1)
+                            if(match_dependency_version(d, tree_item) == 1)
                             {
                                 auto the_file( tree_item.get_filename() );
                                 if( the_file.is_deb() )
@@ -3462,7 +3438,6 @@ void wpkgar_install::find_dependencies( wpkgar_package_list_t& tree, const wpkga
 
                         default:
                             throw std::logic_error("code must have changed because all types that are accepted were handled!");
-
                         }
                     }
                     break;

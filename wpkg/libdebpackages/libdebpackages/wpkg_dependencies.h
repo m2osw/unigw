@@ -70,6 +70,7 @@ public:
     {
         std::string operator_to_string() const;
         std::string to_string(bool remove_arch = true) const;
+        void        reverse_operator();
 
         std::string                     f_name;
         std::string                     f_version;

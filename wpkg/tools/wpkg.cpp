@@ -2908,6 +2908,10 @@ void init_manager(command_line& cl, wpkgar::wpkgar_manager& manager, const std::
             manager.track(repositories);
         }
     }
+    else
+    {
+        manager.add_sources_list();
+    }
 }
 
 

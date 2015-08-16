@@ -4035,7 +4035,7 @@ public:
                 "/usr/share/doc/t01/info 0123456789abcdef0123456789abcdef\n"
                 );
         ctrl_t01_0->set_field("Version", "1.0");
-        ctrl_t01_0->set_field("Depends", "t05 (= 1.3), t03 (= 1.2), t04 (= 1.1), t07 (= 1.1)");
+        ctrl_t01_0->set_field("Depends", "t05 (>= 1.3), t03 (= 1.2), t04 (= 1.1), t07 (= 1.1)");
         create_package("t01", ctrl_t01_0);
 
 
@@ -4050,7 +4050,7 @@ public:
                 "/usr/share/doc/t02/info 0123456789abcdef0123456789abcdef\n"
                 );
         ctrl_t02->set_field("Version", "1.0");
-        ctrl_t02->set_field("Depends", "t01 (= 1.0), t05 (= 1.3), t10 (= 1.1), t04 (= 1.1), t11 (= 1.0)");
+        ctrl_t02->set_field("Depends", "t01 (= 1.0), t05 (>= 1.3), t10 (= 1.1), t04 (= 1.1), t11 (= 1.0)");
         create_package("t02", ctrl_t02);
 
         // This should fail because required dependencies are not met yet.
@@ -4137,7 +4137,7 @@ public:
                 "/usr/share/doc/t05/copyright 0123456789abcdef0123456789abcdef\n"
                 "/usr/share/doc/t05/info 0123456789abcdef0123456789abcdef\n"
                 );
-        ctrl_t05_3->set_field("Version", "1.3");
+        ctrl_t05_3->set_field("Version", "1.3-1");
         ctrl_t05_3->set_field("Depends", "t08 (= 1.3)");
         create_package("t05", ctrl_t05_3);
 
@@ -4164,7 +4164,7 @@ public:
                 "/usr/share/doc/t06/info 0123456789abcdef0123456789abcdef\n"
                 );
         ctrl_t06_3->set_field("Version", "1.3");
-        ctrl_t06_3->set_field("Depends", "t08 (= 1.3), t05 (= 1.3)");
+        ctrl_t06_3->set_field("Depends", "t08 (= 1.3), t05 (>= 1.3)");
         create_package("t06", ctrl_t06_3);
 
 

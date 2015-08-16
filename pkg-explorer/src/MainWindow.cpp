@@ -380,6 +380,7 @@ void MainWindow::InitManager()
 
     f_manager->set_root_path( root_path.toStdString() );
     f_manager->set_database_path( database_path.toStdString() );
+	f_manager->add_sources_list();
 
     bool lock_file_created = false;
     while( !lock_file_created )

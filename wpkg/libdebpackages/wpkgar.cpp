@@ -28,6 +28,7 @@
  * The class is used by most of the other archive handlers.
  */
 #include    "libdebpackages/wpkgar.h"
+#include    "libdebpackages/wpkgar_repository.h"
 #include    "libdebpackages/debian_packages.h"
 #include    "libdebpackages/wpkg_util.h"
 #include    <algorithm>
@@ -1928,6 +1929,34 @@ void wpkgar_manager::set_repositories(const wpkg_filename::filename_list_t& repo
 const wpkg_filename::filename_list_t& wpkgar_manager::get_repositories() const
 {
     return f_repository;
+}
+
+
+/** \brief Add the list of repositories in core/sources.list.
+ *
+ * Take the list of repositories from the core package's sources.list,
+ * and add them as repositories. This will allow the wpkgar_install object
+ * to detect all dependencies in the user's prefered source list.
+ */
+void wpkgar_manager::add_sources_list()
+{
+    wpkgar::wpkgar_repository repository( this );
+
+    wpkg_filename::uri_filename sources_list( get_database_path() );
+    sources_list = sources_list.append_child( "core/sources.list" );
+    if( sources_list.exists() )
+    {
+        memfile::memory_file sources_file;
+        sources_file.read_file( sources_list );
+
+        wpkgar::wpkgar_repository::source_vector_t	sources;
+        repository.read_sources( sources_file, sources );
+
+        for( const auto& src : sources )
+        {
+            add_repository( src.get_uri() );
+        }
+    }
 }
 
 
