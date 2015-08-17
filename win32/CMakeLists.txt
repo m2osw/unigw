@@ -79,9 +79,6 @@ file( TO_NATIVE_PATH "${WPKG_ROOT}"                NATIVE_DIST_DIR   )
 file( TO_NATIVE_PATH "${CMAKE_BINARY_DIR}"         NATIVE_BUILD_DIR  )
 file( TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}" NATIVE_SOURCE_DIR )
 add_custom_target( nsis_package ALL
-        COMMAND ${WPKG_ROOT}/bin/wpkg_static
-                    --build ${CMAKE_CURRENT_SOURCE_DIR}/vcredist
-                    --output-dir ${WPKG_ROOT}/packages
         COMMAND ${NSIS}
                     /V4
                     /DWPKG_VERSION_MAJOR="${WPKG_VERSION_MAJOR}"

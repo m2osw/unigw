@@ -130,6 +130,11 @@ add_custom_target( build_packages
             --verbose
             --compressor gzip
             --output-dir "${WPKG_ROOT}/packages"
+            --build ${CMAKE_CURRENT_SOURCE_DIR}/vcredist
+        COMMAND wpkg_static
+            --verbose
+            --compressor gzip
+            --output-dir "${WPKG_ROOT}/packages"
             --build      "${LOCAL_WPKG_ROOT}/control.info" "${LOCAL_WPKG_ROOT}"
         COMMAND wpkg_static
             --verbose
@@ -142,6 +147,7 @@ add_custom_target( build_packages
         COMMAND wpkg_static
             --verbose
             --root    "${WPKG_ROOT}"
+            --running-copy
             --force-reinstall
             --install ${INSTALL_PACKAGES}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}

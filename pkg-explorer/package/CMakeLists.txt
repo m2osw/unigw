@@ -124,6 +124,7 @@ add_custom_target( build_packages
         COMMAND ${WPKG}
             --verbose
             --root    "${WPKG_ROOT}"
+            --running-copy
             --force-reinstall
             --install ${INSTALL_PACKAGES}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
