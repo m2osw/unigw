@@ -1,0 +1,8 @@
+Package: msvc-runtime
+Version: 12.0.0
+Architecture: mswindows-amd64
+Description: Microsoft Visual C++ Runtime (MSVC2013)
+ This package installs the side-by-side runtime for MSVC for the version 12 (2013) compiler.
+Maintainer: Made to Order Software Corporation <contact@m2osw.com>
+Priority: required
+Section: admin
