@@ -43,21 +43,22 @@ if( NOT EXISTS "${WPKG_ROOT}" )
 endif()
 
 if( MO_WINDOWS )
-    #unset( QT5_DLL_LIST_RELEASE )
-    #foreach( qt_lib ${QT5_REQ_LIBS} )
-    #    list( APPEND QT5_DLL_LIST_RELEASE ${QT_BINARY_DIR}/${qt_lib}4.dll  )
-    #endforeach()
     file( GLOB BINARY_FILES "${QT5_INSTALL_PATH}/bin/*.dll" )
-
-    #if( MO_MINGW32 )
-    #    list( APPEND BINARY_FILES ${QT_BINARY_DIR}/mingwm10.dll  )
-    #endif()
 
     install(
         FILES
             ${BINARY_FILES}
         DESTINATION
             bin
+        COMPONENT
+            qt5
+       )
+
+    install(
+        FILES
+            "${QT5_INSTALL_PATH}/plugins/platforms/qwindows.dll"
+        DESTINATION
+            bin/platforms
         COMPONENT
             qt5
        )
