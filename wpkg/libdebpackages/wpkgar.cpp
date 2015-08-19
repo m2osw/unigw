@@ -1883,6 +1883,7 @@ void wpkgar_manager::add_repository(const wpkg_filename::uri_filename& repositor
     }
     // This message is annoying because you get it each time you install a package from the repository. And it's not
     // really very useful--you're not going to check if an "http:" scheme URL is valid or not until you try to access it.
+#if 0
     else
     {
         wpkg_output::log("repository %1 is not a local file and cannot be checked prior to actually attempting to use it.")
@@ -1891,6 +1892,7 @@ void wpkgar_manager::add_repository(const wpkg_filename::uri_filename& repositor
             .module(wpkg_output::module_repository)
             .action("validation");
     }
+#endif
 
     f_repository.push_back(repository);
 }
