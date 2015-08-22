@@ -120,6 +120,13 @@ wpkg_interrupt interrupt;
 class tool_output : public wpkg_output::output
 {
 public:
+    enum output_format_t
+    {
+        format_one_line = 0,
+        format_json,
+        format_xml
+    };
+
     tool_output();
     ~tool_output();
 
@@ -127,6 +134,7 @@ public:
     void set_output_file(const std::string& filename);
     const std::string& get_output_file() const;
     void set_level(wpkg_output::level_t level);
+    void set_format(output_format_t format);
 
     int exit_code() const;
 
@@ -139,6 +147,7 @@ private:
     wpkg_stream::fstream                    f_output;
     wpkg_output::level_t                    f_log_level;
     mutable wpkg_output::level_t            f_highest_level;
+    output_format_t                         f_format;
 };
 
 tool_output::tool_output()
@@ -204,15 +213,57 @@ void tool_output::output_message( const wpkg_output::message_t& msg ) const
     {
         f_highest_level = level;
     }
-    if(wpkg_output::compare_levels(level, f_log_level) >= 0 || (msg.get_debug_flags() & wpkg_output::debug_flags::debug_progress) != 0)
+    if(wpkg_output::compare_levels(level, f_log_level) >= 0
+    || (msg.get_debug_flags() & wpkg_output::debug_flags::debug_progress) != 0)
     {
-        fprintf(stderr, "%s\n", msg.get_full_message(true).c_str());
+        switch(f_format)
+        {
+        default: // case output_format_t::format_one_line:
+            std::cerr << msg.get_full_message(true).c_str() << std::endl;
+            break;
+
+        case output_format_t::format_json:
+            // since JSON is generally to be picked up by another tool
+            // we use std::cout instead of the usual std::cerr
+            std::cout << "{" << std::endl
+                      << "  level: " << static_cast<int>(msg.get_level()) << "," << std::endl
+                      << "  module: " << static_cast<int>(msg.get_module()) << "," << std::endl
+                      << "  program_name: \"" << msg.get_program_name() << "\"," << std::endl
+                      << "  package_name: \"" << msg.get_package_name() << "\"," << std::endl
+                      << "  time_stamp: \"" << msg.get_time_stamp() << "\"," << std::endl
+                      << "  action: \"" << msg.get_action() << "\"," << std::endl
+                      << "  debug_flags: " << static_cast<int>(msg.get_debug_flags()) << "," << std::endl
+                      << "  message: \"" << wpkg_output::make_raw_message_parsable(msg.get_raw_message()) << "\"" << std::endl
+                      << "}" << std::endl;
+            break;
+
+        case output_format_t::format_xml:
+            // since XML is generally to be picked up by another tool
+            // we use std::cout instead of the usual std::cerr
+            // TODO: < and > in any string need to be transformed to &lt; &gt; ...
+            std::cout << "<message level=\"" << static_cast<int>(msg.get_level()) << "\"" << std::endl
+                      << "         module=\"" << static_cast<int>(msg.get_module()) << "\"" << std::endl
+                      << "         program_name=\"" << msg.get_program_name() << "\"" << std::endl
+                      << "         package_name=\"" << msg.get_package_name() << "\"" << std::endl
+                      << "         time_stamp=\"" << msg.get_time_stamp() << "\"" << std::endl
+                      << "         action=\"" << msg.get_action() << "\"" << std::endl
+                      << "         debug_flags=\"" << static_cast<int>(msg.get_debug_flags()) << "\">" << std::endl
+                      << msg.get_raw_message() << std::endl
+                      << "</message>" << std::endl;
+            break;
+
+        }
     }
 }
 
 void tool_output::set_level(wpkg_output::level_t level)
 {
     f_log_level = level;
+}
+
+void tool_output::set_format(output_format_t format)
+{
+    f_format = format;
 }
 
 int tool_output::exit_code() const
@@ -1502,10 +1553,26 @@ const advgetopt::getopt::option wpkg_options[] =
     {
         '\0',
         advgetopt::getopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE | advgetopt::getopt::GETOPT_FLAG_CONFIGURATION_FILE,
+        "output-json",
+        NULL,
+        "make the output use a JSON formatted message instead of a one line message",
+        advgetopt::getopt::no_argument
+    },
+    {
+        '\0',
+        advgetopt::getopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE | advgetopt::getopt::GETOPT_FLAG_CONFIGURATION_FILE,
         "output-repository-dir",
         NULL,
         "define the repository directory where source and binary packages shall be saved",
         advgetopt::getopt::required_argument
+    },
+    {
+        '\0',
+        advgetopt::getopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE | advgetopt::getopt::GETOPT_FLAG_CONFIGURATION_FILE,
+        "output-xml",
+        NULL,
+        "make the output use a XML formatted message instead of a one line message",
+        advgetopt::getopt::no_argument
     },
     {
         '\0',
@@ -2649,6 +2716,21 @@ command_line::command_line(int argc, char *argv[], std::vector<std::string> conf
         g_output.set_level(wpkg_output::level_debug);
     }
     g_output.set_debug_flags(f_debug_flags);
+
+    // user wants JSON or XML output?
+    if(f_opt.is_defined("output-json"))
+    {
+        if(f_opt.is_defined("output-xml"))
+        {
+            f_opt.usage(advgetopt::getopt::error, "the --output-json and --output-xml are multually exclusive options");
+            /*NOTREACHED*/
+        }
+        g_output.set_format(tool_output::output_format_t::format_json);
+    }
+    else if(f_opt.is_defined("output-xml"))
+    {
+        g_output.set_format(tool_output::output_format_t::format_xml);
+    }
 
     // if the default files is turn on, keep the temporary files
     if(f_debug_flags & wpkg_output::debug_flags::debug_detail_files)

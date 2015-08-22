@@ -114,7 +114,7 @@ typedef controlled_vars::auto_enum_init<module_t, module_tool> safe_module_t;
 DEBIAN_PACKAGE_EXPORT const char *module_to_string(const module_t module);
 
 DEBIAN_PACKAGE_EXPORT std::string generate_timestamp();
-DEBIAN_PACKAGE_EXPORT std::string make_raw_message_parsable();
+DEBIAN_PACKAGE_EXPORT std::string make_raw_message_parsable(const std::string& raw_message);
 
 
 class DEBIAN_PACKAGE_EXPORT debug_flags

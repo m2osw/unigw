@@ -4006,13 +4006,43 @@ temporary_uri_filename& temporary_uri_filename::operator = (const uri_filename& 
 }
 
 
+/** \brief Retrieve the path to the temporary directory.
+ *
+ * By default the temporary directory is dynamically assigned, in
+ * most cases it is set to /tmp/wpkg-\<pid> under Unix. Under MS-Windows
+ * it makes use of the $TEMP variable (or $TMP) instead of "/tmp" and
+ * also makes use of wpkg-<pid> to make the directory unique per running
+ * instance of the tool you are using.
+ *
+ * The tool you are using may offer a --tmpdir command line option in
+ * which case the path to the temporary directory may be changed to
+ * a user defined directory. That directory is set using the set_tmpdir()
+ * function. It is possible to retrieve the path so defined by the end
+ * user with this very function get_tmpdir().
+ *
+ * The path is used in the tmpdir() function. Note that if the
+ * set_tmpdir() is never called, this function returns an empty
+ * string. In other words, you do not get the default directory
+ * that the library may have generated already.
+ *
+ * \return  The temporary directory path defined by set_tmpdir().
+ *
+ * \sa set_tmpdir()
+ * \sa tmpdir()
+ */
+const std::string& temporary_uri_filename::get_tmpdir()
+{
+    return g_tmpdir_path;
+}
+
+
 /** \brief Defined user path to temporary directory.
  *
  * By default the temporary directory is dynamically assigned, in
  * most cases it is set to /tmp/wpkg-\<pid> under Unix. Under MS-Windows
  * it makes use of the $TEMP variable (or $TMP) instead of "/tmp" and
- * also makes use of wpkg-<pid> to make the directory unique per instance
- * of your tool.
+ * also makes use of wpkg-<pid> to make the directory unique per running
+ * instance of the tool you are using.
  *
  * The temporary directory appends wpkg-\<pid> to this temporary
  * directory. SO if the user passes "/tmp", the directory will again
@@ -4021,11 +4051,18 @@ temporary_uri_filename& temporary_uri_filename::operator = (const uri_filename& 
  *
  * This variable can only be set if the g_tmpdir was not yet assigned
  * (i.e. in your tool, make sure to call the set_tmpdir() very early
- * on or you'll get an error.)
+ * on or you'll get an exception.)
  *
  * The path must be valid, although it is not tested when set. It will be
  * made absolute when created to avoid potential problems (i.e. scripts
  * using cd and then the temporary path.)
+ *
+ * \exception wpkg_filename_exception_compatibility
+ * This function makes sure that the tmpdir() function or any other
+ * function that would set the internal g_tmpdir variable was not
+ * already called. If already called, then this exception is raised
+ * because it is too late to ask for the temporary directory path
+ * to be modified.
  *
  * \param[in] tmpdir  The temporary directory path.
  */

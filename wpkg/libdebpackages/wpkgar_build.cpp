@@ -2863,9 +2863,22 @@ void wpkgar_build::build_repository()
                     {
                         cmd += " " + f_output_repository_dir.full_path();
                     }
+                    const std::string& tmpdir(wpkg_filename::temporary_uri_filename::get_tmpdir());
+                    if(!tmpdir.empty())
+                    {
+                        cmd += " --tmpdir ";
+                        cmd += wpkg_util::make_safe_console_string(tmpdir);
+                    }
                     cmd += " --create-index index.tar.gz";
                     cmd += " --force-file-info";
                     cmd += " --run-unit-tests";
+                    cmd += " --make-tool ";
+                    cmd += wpkg_util::make_safe_console_string(f_make_tool);
+                    if(!f_cmake_generator.empty())
+                    {
+                        cmd += " --cmake-generator ";
+                        cmd += wpkg_util::make_safe_console_string(f_cmake_generator);
+                    }
 
                     // keep the same debug flags for sub-calls
                     cmd += " --debug ";

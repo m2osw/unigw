@@ -305,6 +305,7 @@ public:
     //temporary_uri_filename&     operator = (const temporary_uri_filename& rhs);
     temporary_uri_filename&     operator = (const uri_filename& rhs);
 
+    static const std::string&   get_tmpdir();
     static void                 set_tmpdir(const std::string& tmpdir);
     static void                 keep_files(bool keep = true);
 };
