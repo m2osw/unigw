@@ -35,12 +35,15 @@
 #
 cmake_minimum_required(VERSION 3.3.0)
 
+find_package( WpkgBuild REQUIRED )
+
 ##
 ## Initialization
 ##
-set(WPKG_VERSION_MAJOR 0)
-set(WPKG_VERSION_MINOR 9)
-set(WPKG_VERSION_PATCH 12)
+if( NOT WPKG_VERSION )
+    message( FATAL_ERROR "WPKG_VERSION must be set on the command line!" )
+endif()
+unigw_ParseVersion( WPKG ${WPKG_VERSION} )
 
 enable_testing()
 

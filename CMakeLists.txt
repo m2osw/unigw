@@ -45,7 +45,7 @@ project( unigw )
 set( CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake )
 find_package( WpkgBuild REQUIRED )
 
-set( WPKG_VERSION "0.9.12" CACHE STRING "WPKG version." )
+set( UNIGW_VERSION "1.0.0" CACHE STRING "WPKG version." )
 
 
 ################################################################################
@@ -55,16 +55,17 @@ set( WPKG_VERSION "0.9.12" CACHE STRING "WPKG version." )
 # (you can build your own debug version from source), and also because it's a right pain
 # in the keester.
 #
-ConfigureMakeProject(
+unigw_ConfigureMakeProject(
     PROJECT_NAME wpkg
     BUILD_TYPE   Release
+    CONFIG_ARGS  -DWPKG_VERSION=${UNIGW_VERSION}
 )
 
-ConfigureMakeProject(
+unigw_ConfigureMakeProject(
     PROJECT_NAME pkg-explorer
     DEPENDS      wpkg-Release
     BUILD_TYPE   Release
-    CONFIG_ARGS  -DWPKG_VERSION=${WPKG_VERSION}
+    CONFIG_ARGS  -DWPKG_VERSION=${UNIGW_VERSION}
 )
 
 get_property( BUILD_TARGETS GLOBAL PROPERTY BUILD_TARGETS )

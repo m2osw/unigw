@@ -42,18 +42,48 @@ if( NOT MSVC )
 	find_program( PBUILDER_SCRIPT    WpkgPBuilder.sh			   PATHS ${CMAKE_MODULE_PATH} )
 endif()
 
-function( ConfigureMakeProject )
+function( unigw_ParseVersion PREFIX VERSION )
+    unset( VERSION_LIST )
+    string( FIND "${VERSION}" "." PERIOD )
+    if( ${PERIOD} EQUAL -1 )
+        message( FATAL_ERROR "${PREFIX} version be of the form x.y.z!" )
+    endif()
+    while( ${PERIOD} GREATER -1 )
+        string( SUBSTRING "${VERSION}" 0 ${PERIOD} REV )
+        list( APPEND VERSION_LIST ${REV} )
+        math( EXPR AFTER_PERIOD "${PERIOD}+1" )
+        string( SUBSTRING "${VERSION}" ${AFTER_PERIOD} -1 VERSION_ )
+        set( VERSION ${VERSION_} )
+        string( FIND "${VERSION}" "." PERIOD )
+        if( ${PERIOD} EQUAL -1 )
+            list( APPEND VERSION_LIST "${VERSION}" )
+        endif()
+    endwhile()
+    #
+	list( LENGTH VERSION_LIST LEN )
+	if( NOT ${LEN} EQUAL 3 )
+        message( FATAL_ERROR "${PREFIX} version be of the form x.y.z!" )
+    endif()
+    list( GET VERSION_LIST 0 VERSION_MAJOR )
+    list( GET VERSION_LIST 1 VERSION_MINOR )
+    list( GET VERSION_LIST 2 VERSION_PATCH )
+    set( ${PREFIX}_VERSION_MAJOR ${VERSION_MAJOR} PARENT_SCOPE )
+    set( ${PREFIX}_VERSION_MINOR ${VERSION_MINOR} PARENT_SCOPE )
+    set( ${PREFIX}_VERSION_PATCH ${VERSION_PATCH} PARENT_SCOPE )
+endfunction()
+
+function( unigw_ConfigureMakeProject )
 	set( options        USE_CONFIGURE_SCRIPT NOINC_DEBVERS )
 	set( oneValueArgs   PROJECT_NAME VERSION DISTFILE_PATH BUILD_TYPE )
 	set( multiValueArgs CONFIG_ARGS DEPENDS )
 	cmake_parse_arguments( ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
 	#
 	if( NOT ARG_PROJECT_NAME )
-		message( FATAL_ERROR "ConfigureMakeProject(): You must specify PROJECT_NAME!" )
+		message( FATAL_ERROR "unigw_ConfigureMakeProject(): You must specify PROJECT_NAME!" )
 	endif()
 
 	if( NOT ARG_BUILD_TYPE )
-		message( FATAL_ERROR "ConfigureMakeProject(): BUILD_TYPE required!" )
+		message( FATAL_ERROR "unigw_ConfigureMakeProject(): BUILD_TYPE required!" )
 	endif()
 
 	set( FULL_PROJECT_NAME "${ARG_PROJECT_NAME}-${ARG_BUILD_TYPE}" )
@@ -73,7 +103,7 @@ function( ConfigureMakeProject )
 	endif()
 
 	if( NOT EXISTS ${SRC_DIR} AND NOT ARG_DISTFILE_PATH )
-		message( FATAL_ERROR "ConfigureMakeProject(): No source directory '${SRC_DIR}'!" )
+		message( FATAL_ERROR "unigw_ConfigureMakeProject(): No source directory '${SRC_DIR}'!" )
 	endif()
 
 	if( NOT EXISTS ${SRC_DIR} AND ARG_DISTFILE_PATH )
@@ -115,7 +145,7 @@ function( ConfigureMakeProject )
 		set( COMMAND_LIST
 			${CMAKE_COMMAND}
                 -DCMAKE_INSTALL_PREFIX:PATH=${WPKG_ROOT}
-                -DCMAKE_MODULE_PATH:PATH=${WPKG_ROOT}/share/cmake-2.8/Modules
+                -DCMAKE_MODULE_PATH:PATH=${CMAKE_SOURCE_DIR}/cmake;${WPKG_ROOT}/share/cmake-2.8/Modules
 				-DCMAKE_BUILD_TYPE=${ARG_BUILD_TYPE}
                 -DWPKG_ROOT:PATH="${WPKG_ROOT}"
 				-G "${CMAKE_GENERATOR}"
@@ -143,7 +173,7 @@ function( ConfigureMakeProject )
 
 	if( MSVC )
 		if( NOT (${CMAKE_MAKE_PROGRAM} STREQUAL "nmake") AND NOT (${CMAKE_MAKE_PROGRAM} STREQUAL "jom") )
-			message( FATAL_ERROR "ConfigureMakeProject(): Please use nmake/jom at this level. This won't work right trying to use devenv." )
+			message( FATAL_ERROR "unigw_ConfigureMakeProject(): Please use nmake/jom at this level. This won't work right trying to use devenv." )
 		endif()
 	endif()
 
