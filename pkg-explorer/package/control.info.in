@@ -2,7 +2,7 @@ Sub-Packages: @SUBPACKAGES@
 Package/runtime: wpkg-gui
 Package/documentation: wpkggui-doc
 Package/qt5: wpkgguiqt5
-Version: @VERSION@
+Version: @GUI_VERSION@
 Section: admin
 Priority: optional
 Architecture: $(architecture())

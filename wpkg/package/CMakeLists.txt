@@ -125,12 +125,18 @@ add_custom_command(
         DEPENDS "${WPKG_CONTROL_FILE}"
     )
 
-add_custom_target( build_packages
+if( MO_WINDOWS )
+    set( MSVC_REDIST 
         COMMAND wpkg_static
             --verbose
             --compressor gzip
             --output-dir "${WPKG_ROOT}/packages"
             --build ${CMAKE_CURRENT_SOURCE_DIR}/vcredist
+    )
+endif()
+    
+add_custom_target( build_packages
+        ${MSVC_REDIST}
         COMMAND wpkg_static
             --verbose
             --compressor gzip

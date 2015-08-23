@@ -28,12 +28,14 @@ option( BUILD_WPKG "Build the wpkg package" ON )
 #===============================================================================
 # Release version
 #
-set( VERSION_MAJOR 0 )
-set( VERSION_MINOR 3 )
-set( VERSION_PATCH 5 )
-set( VERSION_DEVEL 0 )
-
-set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}-${VERSION_DEVEL}" )
+set( WPKG_VERSION "$ENV{WPKG_VERSION}" CACHE STRING "Wpkg version to require" )
+if( "${WPKG_VERSION}" STREQUAL "" )
+    message( FATAL_ERROR "WPKG_VERSION must be set!" )
+endif()
+find_package( WpkgBuild REQUIRED )
+unigw_ParseVersion( GUI ${WPKG_VERSION} )
+set( GUI_VERSION_DEVEL 0 )
+set( GUI_VERSION "${GUI_VERSION_MAJOR}.${GUI_VERSION_MINOR}.${GUI_VERSION_PATCH}-${GUI_VERSION_DEVEL}" )
 
 #===============================================================================
 # Set up system
