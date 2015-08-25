@@ -25,8 +25,8 @@
 
 namespace RepoUtils
 {
-    QString     SourceToQString( const wpkgar::wpkgar_repository::source& src, const bool uri_only = false );
-    wpkgar::wpkgar_repository::source
+    QString     SourceToQString( const wpkgar::source& src, const bool uri_only = false );
+    wpkgar::source
                 QStringToSource( const QString& str );
     QStringList ReadSourcesList( wpkgar::wpkgar_manager* manager, const bool uri_only = false );
     void        WriteSourcesList( wpkgar::wpkgar_manager* manager, const QStringList& contents );

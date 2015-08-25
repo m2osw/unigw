@@ -19,9 +19,9 @@ SourceInfoDialog::~SourceInfoDialog()
 }
 
 
-wpkgar::wpkgar_repository::source SourceInfoDialog::GetSource() const
+wpkgar::source SourceInfoDialog::GetSource() const
 {
-	wpkgar::wpkgar_repository::source src;
+	wpkgar::source src;
 	src.set_type         ( f_typeCB->currentText().toStdString() );
 	src.set_uri          ( f_uriEdit->text().toStdString()       );
     src.set_distribution ( f_distEdit->text().toStdString()      );
@@ -35,7 +35,7 @@ wpkgar::wpkgar_repository::source SourceInfoDialog::GetSource() const
 }
 
 
-void SourceInfoDialog::SetSource( const wpkgar::wpkgar_repository::source& src )
+void SourceInfoDialog::SetSource( const wpkgar::source& src )
 {
 	const int id = f_typeCB->findText( src.get_type().c_str() );
     f_typeCB->setCurrentIndex( id );

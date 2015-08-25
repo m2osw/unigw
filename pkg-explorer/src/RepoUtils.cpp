@@ -31,7 +31,7 @@ namespace RepoUtils
         return name.append_child( "core/sources.list" );
     }
 
-    QString SourceToQString( const wpkgar::wpkgar_repository::source& src, const bool uri_only )
+    QString SourceToQString( const wpkgar::source& src, const bool uri_only )
     {
         QStringList components;
         for( int i = 0; i < src.get_component_size(); i++ )
@@ -59,9 +59,9 @@ namespace RepoUtils
     }
 
 
-    wpkgar::wpkgar_repository::source QStringToSource( const QString& str )
+    wpkgar::source QStringToSource( const QString& str )
     {
-        wpkgar::wpkgar_repository::source src;
+        wpkgar::source src;
 
         QStringList list = str.split( " " );
         src.set_type         ( list[0].toStdString() );
@@ -85,13 +85,13 @@ namespace RepoUtils
         {
             memfile::memory_file				sources_file;
             wpkgar_repository					repository( manager );
-            wpkgar_repository::source_vector_t	sources;
+            source_vector_t	sources;
 
             sources_file.read_file( name );
             repository.read_sources( sources_file, sources );
 
             std::for_each( sources.begin(), sources.end(),
-                [&]( const wpkgar_repository::source& src )
+                [&]( const source& src )
                 {
                     sourceList << SourceToQString( src, uri_only );
                 }
@@ -107,7 +107,7 @@ namespace RepoUtils
 
         wpkg_filename::uri_filename name( GetSourcesUri( manager ) );
 
-		wpkgar_repository::source_vector_t sources;
+        source_vector_t sources;
 		memfile::memory_file sources_file;
 
 		sources_file.create( memfile::memory_file::file_format_other );

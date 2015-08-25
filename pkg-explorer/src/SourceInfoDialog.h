@@ -31,8 +31,8 @@ public:
     SourceInfoDialog( QWidget *p );
     ~SourceInfoDialog();
 
-	wpkgar::wpkgar_repository::source GetSource() const;
-	void SetSource( const wpkgar::wpkgar_repository::source& src );
+    wpkgar::source GetSource() const;
+    void SetSource( const wpkgar::source& src );
     
 private slots:
     void on_f_buttonBox_clicked(QAbstractButton *button);
