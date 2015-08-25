@@ -6565,7 +6565,7 @@ void remove_sources(command_line& cl)
     std::vector<int> lines;
     for(int i(0); i < max; ++i)
     {
-        lines.push_back(cl.opt().get_long("filename", i, 1, static_cast<int>(sources.size())));
+        lines.push_back(cl.opt().get_long("filename", i, 0, static_cast<int>(sources.size()-1)));
     }
     std::sort(lines.begin(), lines.end());
 

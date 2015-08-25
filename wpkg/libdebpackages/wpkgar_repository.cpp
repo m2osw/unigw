@@ -1001,12 +1001,18 @@ void wpkgar_repository::write_sources(memfile::memory_file& file, const source_v
  * The process maintains a file with information about each one of the
  * index. This is important since all the indexes have the exact same
  * filename in each repository.
- *
- * \param[in] manager  The manager defining the target to update.
  */
 void wpkgar_repository::update()
 {
-    load_index_list();
+    // Blow away the core/indexes directory, since we need to rebuild these
+    // in case the sources.list file changed.
+    //
+    wpkg_filename::uri_filename indexes_dir(f_manager->get_database_path());
+    indexes_dir = indexes_dir.append_child("core/indexes");
+    indexes_dir.os_unlink_rf();
+
+    // Recreate the local index cache based on the sources.list (which might have changed).
+    //
     wpkg_filename::uri_filename name(f_manager->get_database_path());
     name = name.append_child("core/sources.list");
     wpkgar::wpkgar_repository::source_vector_t sources;
