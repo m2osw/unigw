@@ -32,7 +32,7 @@
  */
 #ifndef WPKGAR_H
 #define WPKGAR_H
-#include    "wpkg_control.h"
+#include    "libdebpackages/wpkg_control.h"
 #include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
 
@@ -121,6 +121,37 @@ public:
 };
 
 
+class DEBIAN_PACKAGE_EXPORT source
+{
+public:
+    typedef std::map<std::string, std::string> parameter_map_t;
+
+    std::string     get_type() const;
+    std::string     get_parameter(const std::string& name, const std::string& def_value = "") const;
+    parameter_map_t get_parameters() const;
+    std::string     get_uri() const;
+    std::string     get_distribution() const;
+    int             get_component_size() const;
+    std::string     get_component(int index) const;
+
+    void set_type(const std::string& type);
+    void add_parameter(const std::string& name, const std::string& value);
+    void set_uri(const std::string& uri);
+    void set_distribution(const std::string& distribution);
+    void add_component(const std::string& component);
+
+private:
+    typedef std::vector<std::string> component_vector_t;
+
+    std::string             f_type;
+    parameter_map_t         f_parameters;
+    std::string             f_uri;
+    std::string             f_distribution;
+    component_vector_t      f_components;
+};
+typedef std::vector<source> source_vector_t;
+
+
 // the manager handles many archives in one place
 class DEBIAN_PACKAGE_EXPORT wpkgar_manager
 {
@@ -181,7 +212,8 @@ public:
     bool                                    is_self() const;
 
     void                                    list_installed_packages(package_list_t& list);
-    void                                    add_repository(const wpkg_filename::uri_filename& repository);
+    void                                    add_repository( const source& source_repo );
+    void                                    add_repository( const wpkg_filename::uri_filename& repository );
     void                                    set_repositories(const wpkg_filename::filename_list_t& repositories);
     const wpkg_filename::filename_list_t&   get_repositories() const;
     void                                    add_sources_list();

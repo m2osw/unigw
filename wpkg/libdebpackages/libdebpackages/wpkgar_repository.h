@@ -52,35 +52,6 @@ public:
     };
     typedef std::vector<index_entry> entry_vector_t;
 
-    class DEBIAN_PACKAGE_EXPORT source
-    {
-    public:
-        typedef std::map<std::string, std::string> parameter_map_t;
-
-        std::string get_type() const;
-        std::string get_parameter(const std::string& name, const std::string& def_value = "") const;
-        parameter_map_t get_parameters() const;
-        std::string get_uri() const;
-        std::string get_distribution() const;
-        int get_component_size() const;
-        std::string get_component(int index) const;
-
-        void set_type(const std::string& type);
-        void add_parameter(const std::string& name, const std::string& value);
-        void set_uri(const std::string& uri);
-        void set_distribution(const std::string& distribution);
-        void add_component(const std::string& component);
-
-    private:
-        typedef std::vector<std::string> component_vector_t;
-
-        std::string             f_type;
-        parameter_map_t         f_parameters;
-        std::string             f_uri;
-        std::string             f_distribution;
-        component_vector_t      f_components;
-    };
-    typedef std::vector<source> source_vector_t;
 
     class DEBIAN_PACKAGE_EXPORT update_entry_t
     {

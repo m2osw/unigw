@@ -273,6 +273,15 @@ namespace wpkgar
  */
 
 
+/** \class source
+ * \brief A sources.lists manager.
+ *
+ * This class handles the sources.lists file format by reading it and
+ * allowing the repository implementation use it to compute the different
+ * indexes we talked about.
+ */
+
+
 /** \brief The archive package holder.
  *
  * The package manager reads packages and saves them in a wpkgar_package
@@ -1844,10 +1853,113 @@ void wpkgar_manager::list_installed_packages(package_list_t& list)
 }
 
 
+/*===================================================================================*/
+std::string source::get_type() const
+{
+    return f_type;
+}
+
+std::string source::get_parameter(const std::string& name, const std::string& def_value) const
+{
+    parameter_map_t::const_iterator it(f_parameters.find(name));
+    if(it == f_parameters.end())
+    {
+        return def_value;
+    }
+    return it->second;
+}
+
+source::parameter_map_t source::get_parameters() const
+{
+    return f_parameters;
+}
+
+std::string source::get_uri() const
+{
+    return f_uri;
+}
+
+std::string source::get_distribution() const
+{
+    return f_distribution;
+}
+
+int source::get_component_size() const
+{
+    return static_cast<int>(f_components.size());
+}
+
+std::string source::get_component(int index) const
+{
+    return f_components[index];
+}
+
+
+void source::set_type(const std::string& type)
+{
+    f_type = type;
+}
+
+void source::add_parameter(const std::string& name, const std::string& value)
+{
+    f_parameters[name] = value;
+}
+
+void source::set_uri(const std::string& uri)
+{
+    f_uri = uri;
+}
+
+void source::set_distribution(const std::string& distribution)
+{
+    f_distribution = distribution;
+}
+
+void source::add_component(const std::string& component)
+{
+    f_components.push_back(component);
+}
+
+
 /** \brief Add a repository directory.
  *
  * This function is used to add one or more repository directories to the
- * remove object. This list is used whenever the rollback feature is used
+ * remote source.
+ *
+ * \param[in] source  The source to add.
+ */
+void wpkgar_manager::add_repository( const source& source_repo )
+{
+    wpkg_filename::uri_filename repo_base;
+    repo_base = source_repo.get_uri();
+    if( !source_repo.get_distribution().empty() )
+    {
+        repo_base = repo_base.append_child("/");
+        repo_base = repo_base.append_child( source_repo.get_distribution() );
+    }
+
+    const int cnt(source_repo.get_component_size());
+    if( cnt > 0 )
+    {
+        for( int j(0); j < cnt; ++j )
+        {
+            wpkg_filename::uri_filename repo( repo_base );
+            repo = repo.append_child("/");
+            repo = repo.append_child( source_repo.get_component(j) );
+            f_repository.push_back( repo );
+        }
+    }
+    else
+    {
+        f_repository.push_back( repo_base );
+    }
+}
+
+
+/** \brief Add a repository directory.
+ *
+ * This function is used to add one or more repository directories to the
+ * remote object. This list is used whenever the rollback feature is used
  * and an error occurs. To reinstalled the package it gets loaded from one
  * of the repositories.
  *
@@ -1883,7 +1995,6 @@ void wpkgar_manager::add_repository(const wpkg_filename::uri_filename& repositor
     }
     // This message is annoying because you get it each time you install a package from the repository. And it's not
     // really very useful--you're not going to check if an "http:" scheme URL is valid or not until you try to access it.
-#if 0
     else
     {
         wpkg_output::log("repository %1 is not a local file and cannot be checked prior to actually attempting to use it.")
@@ -1892,7 +2003,6 @@ void wpkgar_manager::add_repository(const wpkg_filename::uri_filename& repositor
             .module(wpkg_output::module_repository)
             .action("validation");
     }
-#endif
 
     f_repository.push_back(repository);
 }
@@ -1951,12 +2061,12 @@ void wpkgar_manager::add_sources_list()
         memfile::memory_file sources_file;
         sources_file.read_file( sources_list );
 
-        wpkgar::wpkgar_repository::source_vector_t	sources;
+        source_vector_t	sources;
         repository.read_sources( sources_file, sources );
 
         for( const auto& src : sources )
         {
-            add_repository( src.get_uri() );
+            add_repository( src );
         }
     }
 }

@@ -3861,7 +3861,7 @@ void add_sources(command_line& cl)
     wpkg_filename::uri_filename name(manager.get_database_path());
     name = name.append_child("core/sources.list");
     wpkgar::wpkgar_repository repository(&manager);
-    wpkgar::wpkgar_repository::source_vector_t sources;
+    wpkgar::source_vector_t sources;
     memfile::memory_file sources_file;
     if(name.exists())
     {
@@ -6206,7 +6206,7 @@ void list_sources(command_line& cl)
             name = name.append_child("core/sources.list");
         }
         wpkgar::wpkgar_repository repository(&manager);
-        wpkgar::wpkgar_repository::source_vector_t sources;
+        wpkgar::source_vector_t sources;
         memfile::memory_file sources_file;
         sources_file.read_file(name);
         repository.read_sources(sources_file, sources);
@@ -6217,18 +6217,18 @@ void list_sources(command_line& cl)
         }
 
         int line(1);
-        for(wpkgar::wpkgar_repository::source_vector_t::const_iterator it(sources.begin()); it != sources.end(); ++it, ++line)
+        for(wpkgar::source_vector_t::const_iterator it(sources.begin()); it != sources.end(); ++it, ++line)
         {
             if(cl.verbose())
             {
                 printf("%3d. ", line);
             }
             printf("%s", it->get_type().c_str());
-            wpkgar::wpkgar_repository::source::parameter_map_t params(it->get_parameters());
+            wpkgar::source::parameter_map_t params(it->get_parameters());
             if(!params.empty())
             {
                 printf(" [ ");
-                for(wpkgar::wpkgar_repository::source::parameter_map_t::const_iterator p(params.begin()); p != params.end(); ++p)
+                for(wpkgar::source::parameter_map_t::const_iterator p(params.begin()); p != params.end(); ++p)
                 {
                     printf("%s=%s ", p->first.c_str(), p->second.c_str());
                 }
@@ -6554,7 +6554,7 @@ void remove_sources(command_line& cl)
     wpkg_filename::uri_filename name(manager.get_database_path());
     name = name.append_child("core/sources.list");
     wpkgar::wpkgar_repository repository(&manager);
-    wpkgar::wpkgar_repository::source_vector_t sources;
+    wpkgar::source_vector_t sources;
     memfile::memory_file sources_file;
     sources_file.read_file(name);
     sources_file.printf("\n");

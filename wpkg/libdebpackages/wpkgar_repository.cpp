@@ -65,15 +65,6 @@ namespace wpkgar
  */
 
 
-/** \class wpkgar_repository::source
- * \brief A sources.lists manager.
- *
- * This class handles the sources.lists file format by reading it and
- * allowing the repository implementation use it to compute the different
- * indexes we talked about.
- */
-
-
 /** \class wpkgar_repository::update_entry_t
  * \brief Update database management.
  *
@@ -226,80 +217,6 @@ void wpkgar_repository::package_item_t::check_installed_package(bool exists)
 std::string wpkgar_repository::package_item_t::get_cause_for_rejection() const
 {
     return f_cause_for_rejection;
-}
-
-
-
-
-
-
-
-
-
-std::string wpkgar_repository::source::get_type() const
-{
-    return f_type;
-}
-
-std::string wpkgar_repository::source::get_parameter(const std::string& name, const std::string& def_value) const
-{
-    parameter_map_t::const_iterator it(f_parameters.find(name));
-    if(it == f_parameters.end())
-    {
-        return def_value;
-    }
-    return it->second;
-}
-
-wpkgar_repository::source::parameter_map_t wpkgar_repository::source::get_parameters() const
-{
-    return f_parameters;
-}
-
-std::string wpkgar_repository::source::get_uri() const
-{
-    return f_uri;
-}
-
-std::string wpkgar_repository::source::get_distribution() const
-{
-    return f_distribution;
-}
-
-int wpkgar_repository::source::get_component_size() const
-{
-    return static_cast<int>(f_components.size());
-}
-
-std::string wpkgar_repository::source::get_component(int index) const
-{
-    return f_components[index];
-}
-
-
-void wpkgar_repository::source::set_type(const std::string& type)
-{
-    f_type = type;
-}
-
-void wpkgar_repository::source::add_parameter(const std::string& name, const std::string& value)
-{
-    f_parameters[name] = value;
-}
-
-void wpkgar_repository::source::set_uri(const std::string& uri)
-{
-    f_uri = uri;
-}
-
-void wpkgar_repository::source::set_distribution(const std::string& distribution)
-{
-    f_distribution = distribution;
-}
-
-void wpkgar_repository::source::add_component(const std::string& component)
-{
-    f_components.push_back(component);
 }
 
 
@@ -966,14 +883,14 @@ void wpkgar_repository::read_sources(const memfile::memory_file& file, source_ve
 void wpkgar_repository::write_sources(memfile::memory_file& file, const source_vector_t& sources)
 {
     file.printf("# Auto-generated sources.list file\n");
-    for(wpkgar::wpkgar_repository::source_vector_t::const_iterator it(sources.begin()); it != sources.end(); ++it)
+    for(wpkgar::source_vector_t::const_iterator it(sources.begin()); it != sources.end(); ++it)
     {
         file.printf("%s", it->get_type().c_str());
-        wpkgar::wpkgar_repository::source::parameter_map_t params(it->get_parameters());
+        wpkgar::source::parameter_map_t params(it->get_parameters());
         if(!params.empty())
         {
             file.printf(" [ ");
-            for(wpkgar::wpkgar_repository::source::parameter_map_t::const_iterator p(params.begin()); p != params.end(); ++p)
+            for(wpkgar::source::parameter_map_t::const_iterator p(params.begin()); p != params.end(); ++p)
             {
                 file.printf("%s=%s ", p->first.c_str(), p->second.c_str());
             }
@@ -1015,7 +932,7 @@ void wpkgar_repository::update()
     //
     wpkg_filename::uri_filename name(f_manager->get_database_path());
     name = name.append_child("core/sources.list");
-    wpkgar::wpkgar_repository::source_vector_t sources;
+    wpkgar::source_vector_t sources;
     memfile::memory_file sources_file;
     sources_file.read_file(name);
     read_sources(sources_file, sources);
