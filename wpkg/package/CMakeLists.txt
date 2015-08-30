@@ -108,26 +108,34 @@ endforeach()
 set( WPKG_CONTROL_FILE "${WPKG_ROOT}/var/lib/wpkg/core/control"      )
 set( WPKG_SOURCES_FILE "${WPKG_ROOT}/var/lib/wpkg/core/sources.list" )
 
+if( CMAKE_CROSSCOMPILING )
+    set( WPKG "${wpkg_static_BINARY_DIR}/wpkg_static${CMAKE_EXECUTABLE_SUFFIX}" )
+else()
+    set( WPKG "wpkg_static" )
+endif()
+
 add_custom_command(
         OUTPUT "${WPKG_CONTROL_FILE}"
-        COMMAND wpkg_static
+        COMMAND ${WPKG}
             --verbose
             --root "${WPKG_ROOT}"
             --create-admindir ${LOCAL_WPKG_ROOT}/admindb_init.txt
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
 
 add_custom_command(
         OUTPUT "${WPKG_SOURCES_FILE}"
-        COMMAND wpkg_static
+        COMMAND ${WPKG}
             --verbose
             --root "${WPKG_ROOT}"
             --add-sources "wpkg file://${WPKG_ROOT}/packages/ ."
         DEPENDS "${WPKG_CONTROL_FILE}"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
 
 if( MO_WINDOWS )
     set( MSVC_REDIST 
-        COMMAND wpkg_static
+        COMMAND ${WPKG}
             --verbose
             --compressor gzip
             --output-dir "${WPKG_ROOT}/packages"
@@ -137,26 +145,26 @@ endif()
     
 add_custom_target( build_packages
         ${MSVC_REDIST}
-        COMMAND wpkg_static
+        COMMAND ${WPKG}
             --verbose
             --compressor gzip
             --output-dir "${WPKG_ROOT}/packages"
             --build      "${LOCAL_WPKG_ROOT}/control.info" "${LOCAL_WPKG_ROOT}"
-        COMMAND wpkg_static
+        COMMAND ${WPKG}
             --verbose
             --create-index "${WPKG_ROOT}/packages/index.tar.gz"
             --repository "${WPKG_ROOT}/packages"
-        COMMAND wpkg_static
+        COMMAND ${WPKG}
             --verbose
             --root    "${WPKG_ROOT}"
             --update
-        COMMAND wpkg_static
+        COMMAND ${WPKG}
             --verbose
             --root    "${WPKG_ROOT}"
             --running-copy
             --force-reinstall
             --install ${INSTALL_PACKAGES}
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         DEPENDS
             ${COMP_TARGETS}
             "${WPKG_SOURCES_FILE}"

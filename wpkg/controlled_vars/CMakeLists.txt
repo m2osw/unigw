@@ -56,9 +56,16 @@ add_executable( ${PROJECT_NAME}
 ##
 project( controlled_vars.h )
 
+if( CMAKE_CROSSCOMPILING )
+	set( CMD "${PROJECT_BINARY_DIR}/controlled_vars${CMAKE_EXECUTABLE_SUFFIX}" )
+else()
+	# Cross-compiling causes this not to work: see above
+	set( CMD controlled_vars )
+endif()
+
 add_custom_command(
 	OUTPUT controlled_vars.h
-	COMMAND controlled_vars
+	COMMAND ${CMD}
 	DEPENDS controlled_vars
 )
 
