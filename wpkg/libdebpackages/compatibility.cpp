@@ -30,14 +30,17 @@
 #include    "libdebpackages/compatibility.h"
 #include    <stdexcept>
 #include    <vector>
+#include    <time.h>
 
 #ifdef _MSC_VER
+#   if _MSC_VER < 1900
 int snprintf(char *output, size_t size, const char *format, ...)
 {
     va_list ap;
     va_start(ap, format);
     return _vsnprintf(output, size, format, ap);
 }
+#   endif
 
 int strcasecmp(const char *a, const char *b)
 {

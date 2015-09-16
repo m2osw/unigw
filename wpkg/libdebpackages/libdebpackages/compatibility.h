@@ -54,7 +54,9 @@ extern "C" DEBIAN_PACKAGE_EXPORT char * strptime(const char *buf, const char *fm
 #ifdef _MSC_VER
 typedef int mode_t;
 
+#   if _MSC_VER < 1900
 DEBIAN_PACKAGE_EXPORT int snprintf(char *output, size_t size, const char *format, ...);
+#   endif
 DEBIAN_PACKAGE_EXPORT int strcasecmp(const char *a, const char *b);
 DEBIAN_PACKAGE_EXPORT int strncasecmp(const char *a, const char *b, size_t c);
 
