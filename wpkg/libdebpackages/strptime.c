@@ -126,21 +126,14 @@ static int strncasecmp(const char *a, const char *b, size_t c);
 #endif
 
 
-namespace
-{
-    char * tzname_compat()
-    {
-#ifdef _MSC_VER
-        return _tzname;
-#else
-        return tzname;
-#endif
-    }
-}
 
 char * strptime(const char *buf, const char *fmt, struct tm *tm)
 {
-    char *c_tzname( tzname_compat() );
+#ifdef _MSC_VER
+    char** tzname_compat = _tzname;
+#else
+    char* tzname_compat = tzname;
+#endif
     unsigned char c;
     const unsigned char *bp, *ep;
     int alt_format, i, split_year = 0, neg = 0, offs;
@@ -429,7 +422,7 @@ recurse:
                         bp += 3;
                     } else {
                         ep = find_string(bp, &i,
-                                static_cast<const char * const *>(c_tzname),
+                                (const char * const *)tzname_compat,
                                 NULL, 2);
                         if (ep != NULL) {
                             tm->tm_isdst = i;
@@ -437,7 +430,7 @@ recurse:
                             tm->TM_GMTOFF = -(timezone);
 #endif
 #ifdef TM_ZONE
-                            tm->TM_ZONE = c_tzname[i];
+                            tm->TM_ZONE = tzname_compat[i];
 #endif
                         }
                         bp = ep;
