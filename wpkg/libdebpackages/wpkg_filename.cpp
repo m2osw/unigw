@@ -1532,7 +1532,15 @@ void uri_filename::set_filename(std::string filename)
         if(e != NULL)
         {
             int portno(atoi(port.c_str()));
+
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
             if(htons(portno) == e->s_port)
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
             {
                 port = "";
             }
