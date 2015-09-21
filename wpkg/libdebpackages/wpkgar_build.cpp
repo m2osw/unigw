@@ -2009,7 +2009,7 @@ void wpkgar_build::build_source()
     if((wpkg_output::get_output_debug_flags() & wpkg_output::debug_flags::debug_progress) != 0)
     {
 #if defined(MO_WINDOWS)
-        cmd += "set VERBOSE=1 && ";
+        cmd += "set \"VERBOSE=1\" && ";
 #else
         cmd += "VERBOSE=1 ";
 #endif
@@ -2308,7 +2308,7 @@ void wpkgar_build::build_project()
     if((wpkg_output::get_output_debug_flags() & wpkg_output::debug_flags::debug_progress) != 0)
     {
 #if defined(MO_WINDOWS)
-        make_all_cmd += "set VERBOSE=1 && ";
+        make_all_cmd += "set \"VERBOSE=1\" && ";
 #else
         make_all_cmd += "VERBOSE=1 ";
 #endif
@@ -2362,7 +2362,7 @@ void wpkgar_build::run_project_unit_tests()
     if((wpkg_output::get_output_debug_flags() & wpkg_output::debug_flags::debug_progress) != 0)
     {
 #if defined(MO_WINDOWS)
-        run_tests_cmd += "set VERBOSE=1 && ";
+        run_tests_cmd += "set \"VERBOSE=1\" && ";
 #else
         run_tests_cmd += "VERBOSE=1 ";
 #endif
