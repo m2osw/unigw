@@ -520,7 +520,16 @@ void InitThread::run()
 			//
             if( f_showInstalledOnly && (status != wpkgar_manager::installed) )
 			{
-				show_package = false;
+				switch( status )
+				{
+					wpkgar_manager::installed:
+					wpkgar_manager::half_installed:
+					wpkgar_manager::half_configured:
+						show_package = true;
+						break;
+					default:
+						show_package = false;
+				}
 			}
 			//
 			if( show_package )
