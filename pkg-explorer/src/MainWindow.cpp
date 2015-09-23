@@ -522,9 +522,9 @@ void InitThread::run()
 			{
 				switch( status )
 				{
-					wpkgar_manager::installed:
-					wpkgar_manager::half_installed:
-					wpkgar_manager::half_configured:
+					case wpkgar_manager::installed:
+					case wpkgar_manager::half_installed:
+					case wpkgar_manager::half_configured:
 						show_package = true;
 						break;
 					default:
