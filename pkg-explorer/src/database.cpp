@@ -8,6 +8,12 @@
 
 #include <libdebpackages/wpkgar.h>
 
+
+namespace
+{
+	QString g_defaultDbRoot;
+}
+
 namespace Database
 {
 
@@ -60,8 +66,19 @@ QString GetCanonalizedArch()
 
 QString GetDefaultDbRoot()
 {
-    return QStandardPaths::writableLocation( QStandardPaths::AppLocalDataLocation ) + "/WPKG_ROOT";
+	if( g_defaultDbRoot.isEmpty() )
+	{
+    	g_defaultDbRoot = QStandardPaths::writableLocation( QStandardPaths::AppLocalDataLocation ) + "/WPKG_ROOT";
+	}
+	return g_defaultDbRoot;
 }
+
+
+void SetDefaultDbRoot( const QString& new_root )
+{
+	g_defaultDbRoot = new_root;
+}
+
 
 void InitDatabase()
 {

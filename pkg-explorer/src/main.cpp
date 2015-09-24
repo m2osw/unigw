@@ -40,7 +40,7 @@ int main( int argc, char *argv[] )
 	QStringList args(app.arguments());
 	if( args.contains("--help") || args.contains("-h") )
 	{
-		printf("Usage: pkg-explorer [--help | --version]\n\n");
+		printf("Usage: pkg-explorer [--help | --version | --root <root> ]\n\n");
 		printf("  Run pkg-explorer by itself and use the menus to do work.\n\n");
 		printf("  If you are looking for a command line tool to manage your installation\n");
 		printf("  environment, use wpkg instead.\n");
@@ -50,6 +50,16 @@ int main( int argc, char *argv[] )
 	{
 		printf("pkg-explorer %s\n", VERSION);
 		exit(0);
+	}
+
+	auto iter = std::find_if( args.begin(), args.end(), []( const QString& arg )
+	{
+		return arg == "--root" || arg == "-r";
+	});
+	//
+	if( iter != args.end() )
+	{
+		Database::SetDefaultDbRoot( *(++iter) );
 	}
 
 	// Set-up core application info
