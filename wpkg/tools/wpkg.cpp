@@ -299,6 +299,7 @@ public:
         command_build,
         command_build_and_install,
         command_canonicalize_version,
+        command_canonicalize_version_misspelled,
         command_cflags,
         command_check_install,
         command_compare_versions,
@@ -2370,11 +2371,12 @@ command_line::command_line(int argc, char *argv[], std::vector<std::string> conf
     {
         set_command(command_audit);
     }
-
-    if(f_opt.is_defined("canonicalize-version")
-    || f_opt.is_defined("canonalize-version"))
-    {
+    if(f_opt.is_defined("canonicalize-version")) {
         set_command(command_canonicalize_version);
+    }
+    if(f_opt.is_defined("canonalize-version"))
+    {
+        set_command(command_canonicalize_version_misspelled);
     }
     if(f_opt.is_defined("cflags"))
     {
@@ -4506,16 +4508,16 @@ bool is_letter(char c)
         || (c >= 'A' && c <= 'Z');
 }
 
-void canonicalize_version(command_line& cl)
+void canonicalize_version(command_line& cl, const std::string& optname)
 {
-    if(cl.opt().size("canonicalize-version") != 1)
+    if(cl.opt().size(optname) != 1)
     {
-        fprintf(stderr, "error:%s: --canonicalize-version expects exactly 1 parameter.\n",
-            cl.opt().get_program_name().c_str());
+        fprintf(stderr, "error:%s: --%s expects exactly 1 parameter.\n",
+            cl.opt().get_program_name().c_str(), optname.c_str());
         exit(1);
     }
     char err[256];
-    std::string org(cl.opt().get_string("canonicalize-version", 0));
+    std::string org(cl.opt().get_string(optname, 0));
     debian_version_handle_t v(string_to_debian_version(org.c_str(), err, sizeof(err)));
     if(v == NULL)
     {
@@ -7076,7 +7078,11 @@ int main(int argc, char *argv[])
             break;
 
         case command_line::command_canonicalize_version:
-            canonicalize_version(cl);
+            canonicalize_version(cl, "canonicalize-version");
+            break;
+
+        case command_line::command_canonicalize_version_misspelled:
+            canonicalize_version(cl, "canonalize-version");
             break;
 
         case command_line::command_cflags:
