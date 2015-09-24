@@ -1,4 +1,4 @@
-# S5 3.5.0 Installer (to replace the aging and over-engineered InstallShieldX)
+# WPKG installer to front end wpkg installation.
 #
 # Author: R. Douglas Barbieri, Made to Order Software Corp.
 #
