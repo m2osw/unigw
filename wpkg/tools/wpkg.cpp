@@ -6147,7 +6147,7 @@ void list_index_packages(command_line& cl)
         exit(1);
     }
 
-    int max(cl.opt().size("list-index-packages"));
+    int const max(cl.opt().size("list-index-packages"));
     if(max == 0)
     {
         std::cerr << "error:"
