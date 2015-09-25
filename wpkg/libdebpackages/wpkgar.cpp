@@ -2659,28 +2659,34 @@ bool wpkgar_manager::run_one_script(const wpkg_filename::uri_filename& package_n
         .package(package_name)
         .action("execute-script");
 
-    // Add some putenv() to give the running process some info about
-    // the packager (i.e. package name, version, root path, full name
-    // of the package being installed, os, vendor, processor, etc.);
-    // also we may want to reset our own environment to not leak stuff
-    // that should not be visible to those scripts
-    std::string env_root_path    ( std::string( "WPKG_ROOT_PATH="     ) += f_root_path     .os_filename().get_utf8() );
-    std::string env_db_path      ( std::string( "WPKG_DATABASE_PATH=" ) += f_database_path .os_filename().get_utf8() );
-    std::string env_package_name ( std::string( "WPKG_PACKAGE_NAME="  ) += package_name    .os_filename().get_utf8() );
+    // Set a number of environment variables to give the running process some
+    // info about the packager (i.e. package name, version, root path, full
+    // name of the package being installed, os, vendor, processor, etc.); also
+    // we may want to reset our own environment to not leak stuff that should
+    // not be visible to those scripts
+    //
+    typedef std::map<std::string, std::string> env_map_t;
+    env_map_t env;
+    //
+    env["WPKG_ROOT_PATH"]     = f_root_path.os_filename().get_utf8();
+    env["WPKG_DATABASE_PATH"] = f_database_path.os_filename().get_utf8();
+    env["WPKG_PACKAGE_NAME"]  = package_name.os_filename().get_utf8();
 
 #ifdef MO_WINDOWS
     int r;
-    //
-    // Since this is MSWindows, we have to make sure the
-    // slash is the "right" slash for the OS (e.g. '\', not '/').
-    //
-    std::replace( env_root_path.begin(),    env_root_path.end(),    '/', '\\' );
-    std::replace( env_db_path.begin(),      env_db_path.end(),      '/', '\\' );
-    std::replace( env_package_name.begin(), env_package_name.end(), '/', '\\' );
-    //
-    r = _wputenv( libutf8::mbstowcs( env_root_path    ).c_str() );
-    r = _wputenv( libutf8::mbstowcs( env_db_path      ).c_str() );
-    r = _wputenv( libutf8::mbstowcs( env_package_name ).c_str() );
+
+    for( env_map_t::const_iterator it = env.cbegin(); it != env.cend(); ++it )
+    {
+        std::string value (it->second);
+        //
+        // Since this is MSWindows, we have to make sure the
+        // slash is the "right" slash for the OS (e.g. '\', not '/').
+        //
+        std::replace(value.begin(), value.end(), '/', '\\');
+        //
+        r = _wputenv_s(libutf8::mbstowcs(it->first).c_str(),
+                       libutf8::mbstowcs(value).c_str());
+    }
 
     // under MS-Windows we have to convert the UTF-8 to UTF-16 before
     // calling the system function or it will fail if characters outside
@@ -2693,9 +2699,12 @@ bool wpkgar_manager::run_one_script(const wpkg_filename::uri_filename& package_n
     fflush(stderr);
 #else
     int r;
-    r = putenv( env_root_path    .c_str() ) );
-    r = putenv( env_db_path      .c_str() ) );
-    r = putenv( env_package_name .c_str() ) );
+
+    for( env_map_t::const_iterator it = env.cbegin(); it != env.cend(); ++it )
+    {
+        r = setenv( it->first.c_str(), it->second.c_str(), 1 );
+    }
+
     r = system( cmd.c_str() );
 #endif
     wpkg_output::log("system() call returned %1")
