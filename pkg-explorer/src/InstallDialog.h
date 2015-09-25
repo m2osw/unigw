@@ -36,26 +36,28 @@ public:
             );
     ~InstallDialog();
 
+    void GetPackageList( QStringList& package_list ) const;
+    Mode GetMode() const { return f_mode; }
+
 signals:
     void ShowProcessDialog( bool show_it, bool enable_cancel );
 
 private:
-    QStandardItemModel                     f_model;
-    QItemSelectionModel                    f_selectModel;
-    QSharedPointer<wpkgar::wpkgar_manager> f_manager;
-    QSharedPointer<wpkgar::wpkgar_install> f_installer;
-    QSharedPointer<QThread>                f_thread;
-    Mode                                   f_mode;
+    QStandardItemModel                      f_model;
+    QItemSelectionModel                     f_selectModel;
+    QSharedPointer<wpkgar::wpkgar_manager>  f_manager;
+    QSharedPointer<QThread>                 f_thread;
+    Mode                                    f_mode;
 
-    void StartThread();
+    //void StartThread();
     void PopulateTree( const QString& filterText = QString() );
 
 private slots:
     void OnItemChanged( QStandardItem* );
     void on_f_treeView_pressed(const QModelIndex &index);
     void on_f_buttonBox_clicked(QAbstractButton *button);
-    void OnValidateComplete();
-    void OnInstallComplete();
+    //void OnValidateComplete();
+    //void OnInstallComplete();
     void on_f_searchBox_textEdited(const QString &arg1);
 };
 

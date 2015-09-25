@@ -1,18 +1,17 @@
 #include "database.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wctor-dtor-privacy"
-#pragma GCC diagnostic ignored "-Wsign-promo"
+#if defined(MO_LINUX)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wctor-dtor-privacy"
+#   pragma GCC diagnostic ignored "-Wsign-promo"
+#endif
 #include <QtWidgets>
-#pragma GCC diagnostic pop
+#if defined(MO_LINUX)
+#   pragma GCC diagnostic pop
+#endif
 
 #include <libdebpackages/wpkgar.h>
 
-
-namespace
-{
-	QString g_defaultDbRoot;
-}
 
 namespace Database
 {
@@ -66,17 +65,14 @@ QString GetCanonalizedArch()
 
 QString GetDefaultDbRoot()
 {
-	if( g_defaultDbRoot.isEmpty() )
-	{
-    	g_defaultDbRoot = QStandardPaths::writableLocation( QStandardPaths::AppLocalDataLocation ) + "/WPKG_ROOT";
-	}
-	return g_defaultDbRoot;
+    return QStandardPaths::writableLocation( QStandardPaths::AppLocalDataLocation ) + "/WPKG_ROOT";
 }
 
 
-void SetDefaultDbRoot( const QString& new_root )
+void SetDbRoot( const QString& new_root )
 {
-	g_defaultDbRoot = new_root;
+    QSettings settings;
+    settings.setValue( "root_path", new_root );
 }
 
 

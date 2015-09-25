@@ -30,7 +30,9 @@ public:
 
     // Thread-safe methods
     //
+    LogForm* GetLogForm() const { return f_logForm; }
     void AddProgressValue( const int value );
+    void ShowLogPane( const bool val = true );
     static bool CancelClicked();
 
     // Non-thread-safe methods (accesses the gui directly)

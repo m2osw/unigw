@@ -19,7 +19,13 @@
 
 #include "include_qt4.h"
 #include <libdebpackages/wpkgar.h>
+#include <libdebpackages/wpkgar_install.h>
+
+#include "InstallDialog.h"
+#include "InstallThread.h"
 #include "LicenseBox.h"
+#include "ProcessDialog.h"
+
 #include "ui_MainWindow.h"
 
 class MainWindow : public QMainWindow, private Ui::MainWindow
@@ -30,7 +36,8 @@ public:
     MainWindow( const bool showSysTray = true );
     ~MainWindow();
 
-	void RunCommand( const QString& command );
+    void SetInstallPackages( const QStringList& list );
+    void RunCommand( const QString& command );
 
 protected:
     void showEvent ( QShowEvent * event );
@@ -41,11 +48,15 @@ private:
     QStandardItemModel						f_packageModel;
     QItemSelectionModel						f_selectModel;
     QSharedPointer<wpkgar::wpkgar_manager>	f_manager;
+    QSharedPointer<wpkgar::wpkgar_install>  f_installer;
     QSharedPointer<wpkgar::wpkgar_lock>		f_lock;
     QSharedPointer<QThread>                 f_thread;
 	QScopedPointer<LicenseBox>				f_license_box;
     bool									f_showInstalledPackagesOnly;
 	QSharedPointer<QSystemTrayIcon>			f_sysTray;
+    QStringList                             f_immediateInstall;
+    InstallDialog::Mode                     f_installMode;
+    ProcessDialog                           f_procDlg;
 
     typedef QMap<wpkg_output::level_t,QAction*> level_to_action_t;
 	level_to_action_t	f_levelToAction;
@@ -70,6 +81,11 @@ private:
 
     void ResetLogChecks( QAction* except );
 
+    void StartInstallThread( const QStringList& packages_list );
+
+public slots:
+    void OnShowProcessDialog( const bool show_it, const bool enable_cancel );
+
 private slots:
 	void OnAboutToQuit();
 	void OnInitTimer();
@@ -81,6 +97,8 @@ private slots:
 	void OnRefreshListing();
 	void OnUpdateFinished();
     void OnSystrayMessage( const QString& );
+    void OnInstallValidateComplete();
+    void OnInstallComplete();
     void on_actionFileImport_triggered();
     void on_actionRemove_triggered();
     void on_actionDatabaseRoot_triggered();

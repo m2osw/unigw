@@ -189,7 +189,7 @@ void InstallDialog::on_f_buttonBox_clicked(QAbstractButton *button)
     //
     if( button == applyBtn )
     {
-        StartThread();
+        accept();
     }
     else if( button == closeBtn )
     {
@@ -210,14 +210,8 @@ void InstallDialog::on_f_buttonBox_clicked(QAbstractButton *button)
 }
 
 
-void InstallDialog::StartThread()
+void InstallDialog::GetPackageList( QStringList& package_list ) const
 {
-    wpkg_output::get_output()->reset_error_count();
-    f_installer = QSharedPointer<wpkgar_install>( new wpkgar_install(f_manager.data()) );
-
-    // always force the chown/chmod because under Unix that doesn't work well otherwise
-	f_installer->set_parameter( wpkgar_install::wpkgar_install_force_file_info, true );
-
     for( int row(0); row < f_model.rowCount(); ++row )
     {
         const QStandardItem* item = f_model.item( row );
@@ -226,157 +220,9 @@ void InstallDialog::StartThread()
             if( item->checkState() == Qt::Checked )
             {
                 const QString filename = item->data().toString();
-                f_installer->add_package( filename.toStdString() );
+                package_list << filename;
             }
         }
-    }
-
-    QSharedPointer<InstallThread> _thread( new InstallThread( this, f_manager.data(), f_installer.data(), InstallThread::ThreadValidateOnly ) );
-    ShowProcessDialog( true, true );
-
-    connect
-        ( _thread.data(), SIGNAL(finished())
-          , this        , SLOT(OnValidateComplete())
-        );
-
-    f_thread = _thread.staticCast<QThread>();
-    f_thread->start();
-}
-
-
-void InstallDialog::OnValidateComplete()
-{
-    ShowProcessDialog( false, true );
-
-    if( f_thread.dynamicCast<InstallThread>()->get_state() == InstallThread::ThreadFailed )
-    {
-        QMessageBox::critical
-            ( this
-              , tr("Package Validation Error!")
-              , tr("One or more packages failed to validate! See log pane for details...")
-              , QMessageBox::Ok
-            );
-            return;
-    }
-
-    wpkgar_install::install_info_list_t install_list = f_installer->get_install_list();
-
-    QStringList msg;
-    switch( f_mode )
-    {
-        case InstallMode:
-            {
-                QStringList explicit_packages;
-                QStringList implicit_packages;
-                std::for_each( install_list.begin(), install_list.end(),
-                    [&](const wpkgar_install::install_info_t& info )
-                    {
-                        const QString package_name = QString("%1: %2").arg(info.get_name().c_str()).arg(info.get_version().c_str());
-                        switch( info.get_install_type() )
-                        {
-                        case wpkgar_install::install_info_t::install_type_explicit:
-                            explicit_packages << package_name;
-                            break;
-                        case wpkgar_install::install_info_t::install_type_implicit:
-                            implicit_packages << package_name;
-                            break;
-                        default:
-                            qDebug() << "this should not happen!!!!";
-                            Q_ASSERT(0);
-                        }
-                    }
-                );
-
-                msg << tr("The following requested packages will be installed:\n\n%1").arg(explicit_packages.join(", "));
-                if( !implicit_packages.empty() )
-                {
-                    msg << tr("The following new packages will be installed to satisfy dependencies:\n\n%1").arg(implicit_packages.join(", "));
-                }
-            }
-            break;
-
-        case UpgradeMode:
-            {
-                QStringList explicit_packages;
-                QStringList implicit_packages;
-                QStringList upgrading_packages;
-                std::for_each( install_list.begin(), install_list.end(),
-                    [&](const wpkgar_install::install_info_t& info )
-                    {
-                        const QString package_name = QString("%1: %2").arg(info.get_name().c_str()).arg(info.get_version().c_str());
-                        switch( info.get_install_type() )
-                        {
-                        case wpkgar_install::install_info_t::install_type_explicit:
-                            explicit_packages << package_name;
-                            break;
-                        case wpkgar_install::install_info_t::install_type_implicit:
-                            implicit_packages << package_name;
-                            break;
-                        default:
-                            qDebug() << "this should not happen!!!!";
-                            Q_ASSERT(0);
-                        }
-                        if( info.is_upgrade() )
-                        {
-                            upgrading_packages << info.get_name().c_str();
-                        }
-                    }
-                );
-
-                msg << tr("The following packages will be installed:\n\n%1").arg(QString(explicit_packages.join(", ")));
-                if( !implicit_packages.empty() )
-                {
-                    msg << tr("The following new packages will be installed to satisfy dependencies:\n\n%1").arg(implicit_packages.join(", "));
-                }
-                if( !upgrading_packages.empty() )
-                {
-                    msg << tr("The packages which will be upgraded are:\n\n%1").arg(upgrading_packages.join(", "));
-                }
-            }
-            break;
-    }
-
-    msg << tr("\nDo you want to continue?");
-    if( QMessageBox::question
-            ( this
-            , tr("Package Validation")
-            , msg.join("\n\n")
-            , QMessageBox::Yes
-            , QMessageBox::No
-            )
-            == QMessageBox::Yes )
-    {
-        QSharedPointer<InstallThread> _thread( new InstallThread( this, f_manager.data(), f_installer.data(), InstallThread::ThreadInstallOnly ) );
-
-        ShowProcessDialog( true, true );
-
-        connect
-            ( _thread.data(), SIGNAL(finished())
-              , this          , SLOT(OnInstallComplete())
-            );
-
-        f_thread = _thread.staticCast<QThread>();
-        f_thread->start();
-    }
-}
-
-
-void InstallDialog::OnInstallComplete()
-{
-    ShowProcessDialog( false, true );
-
-    if( f_thread.dynamicCast<InstallThread>()->get_state() == InstallThread::ThreadFailed )
-    {
-        QMessageBox::critical
-            ( this
-            , tr("Package Installation Error!")
-            , tr("One or more packages failed to install! See log pane for details...")
-            , QMessageBox::Ok
-            );
-    }
-    else
-    {
-        accept();
     }
 }
 

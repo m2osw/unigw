@@ -25,38 +25,16 @@ using namespace wpkgar;
 
 LogForm::LogForm(QWidget *p)
     : QWidget(p)
-    , f_procDlg(p)  // Make sure parent is this object's parent, in case LogForm is hidden.
 {
     setupUi(this);
     f_textEdit->ensureCursorVisible();
     connect( &f_timer, SIGNAL(timeout()), this, SLOT(OnDisplayText()) );
 	f_timer.start( 100 );
-
-    connect
-        ( &f_logOutput
-        , SIGNAL(AddProcessMessage(const QString&))
-        , &f_procDlg
-        , SLOT(AddMessage(const QString&))
-        );
 }
 
 
 LogForm::~LogForm()
 {
-}
-
-
-void LogForm::ShowProcessDialog( const bool show_it, const bool enable_cancel )
-{
-    if( show_it )
-    {
-        f_procDlg.show();
-		f_procDlg.EnableCancelButton( enable_cancel );
-    }
-    else
-    {
-        f_procDlg.hide();
-    }
 }
 
 

@@ -19,7 +19,6 @@
 #pragma once
 
 #include "include_qt4.h"
-#include "ProcessDialog.h"
 #include "LogForm.h"
 #include "LogOutput.h"
 #include "ui_LogForm.h"
@@ -40,15 +39,11 @@ public:
     void                    Clear();
 
 private:
-    ProcessDialog           f_procDlg;
     LogOutput               f_logOutput;
     QTimer					f_timer;
 
 signals:
     void SetSystrayMessage( const QString& msg );
-
-public slots:
-    void ShowProcessDialog( const bool show_it, const bool enable_cancel );
 
 private slots:
 	void OnDisplayText();

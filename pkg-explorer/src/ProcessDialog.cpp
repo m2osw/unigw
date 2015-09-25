@@ -38,7 +38,7 @@ ProcessDialog::ProcessDialog(QWidget *p)
     connect( &f_timer, SIGNAL(timeout()), this, SLOT(DisplayMessages()));
     f_timer.start( 100 );
 
-    //f_logPane->hide();
+    f_dockWidget->setVisible( false );
 }
 
 ProcessDialog::~ProcessDialog()
@@ -65,6 +65,12 @@ void ProcessDialog::AddProgressValue( int value )
 {
     QMutexLocker locker( &f_mutex );
     f_progressFifo.push_back( value );
+}
+
+
+void ProcessDialog::ShowLogPane( const bool val )
+{
+    f_dockWidget->setVisible( val );
 }
 
 

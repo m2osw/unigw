@@ -37,6 +37,12 @@ int main( int argc, char *argv[] )
 	//
 	QApplication  app(argc, argv);
 
+    // Set-up core application info
+    //
+    QApplication::setOrganizationName   ( "M2OSW"        );
+    QApplication::setOrganizationDomain ( "m2osw.com"    );
+    QApplication::setApplicationName    ( "pkg-explorer" );
+
 	QStringList args(app.arguments());
 	if( args.contains("--help") || args.contains("-h") )
 	{
@@ -59,14 +65,23 @@ int main( int argc, char *argv[] )
 	//
 	if( iter != args.end() )
 	{
-		Database::SetDefaultDbRoot( *(++iter) );
+        Database::SetDbRoot( *(++iter) );
 	}
 
-	// Set-up core application info
-	//
-	QApplication::setOrganizationName   ( "M2OSW"        );
-	QApplication::setOrganizationDomain ( "m2osw.com"    );
-	QApplication::setApplicationName    ( "pkg-explorer" );
+    iter = std::find_if( args.begin(), args.end(), []( const QString& arg )
+    {
+        return arg == "--install" || arg == "-i";
+    });
+    //
+    QStringList to_install;
+    if( iter != args.end() )
+    {
+        ++iter;
+        for( ; iter != args.end(); ++iter )
+        {
+            to_install << *iter;
+        }
+    }
 
 	// Make sure the wpkg database is created and initialized.
 	//
@@ -75,14 +90,20 @@ int main( int argc, char *argv[] )
 	// Create and show main window
 	//
 	MainWindow mainWnd;
-	mainWnd.show();
-	//
-	app.setQuitOnLastWindowClosed( false );
-	//
-	// We need the above to keep the app from qutting when
-	// we are minimized to systray and a dialog closes
-	//
-	return app.exec();
+    if( to_install.isEmpty() )
+    {
+        mainWnd.show();
+        app.setQuitOnLastWindowClosed( false );
+    }
+    else
+    {
+        mainWnd.SetInstallPackages( to_install );
+    }
+
+    // We need the above to keep the app from qutting when
+    // we are minimized to systray and a dialog closes
+    //
+    return app.exec();
 }
 
 
