@@ -31,6 +31,7 @@
 #include    "libdebpackages/wpkg_util.h"
 #include    <algorithm>
 #include    <sstream>
+#include    <iostream>
 #include	<time.h>
 
 
@@ -515,6 +516,18 @@ void wpkgar_repository::create_index(memfile::memory_file& index_file)
                     .action("install-validation");
                 continue;
             }
+            wpkg_filename::uri_filename const path(filename.remove_common_segments(*it).dirname(false));
+            if(path.segment_size() == 0)
+            {
+                wpkg_output::log("an index filename always expects at least one path segment before a package name, %1 is invalid.")
+                        .quoted_arg(path.append_child(filename.basename() + ".deb"))
+                    .level(wpkg_output::level_error)
+                    .module(wpkg_output::module_repository)
+                    .package(filename)
+                    .action("install-validation");
+                continue;
+            }
+
             data.dir_rewind();
             for(;;)
             {
@@ -554,7 +567,6 @@ void wpkgar_repository::create_index(memfile::memory_file& index_file)
                             ctrl.read();
                             ctrl.set_input_file(NULL);
                             memfile::memory_file::file_info idx_info;
-                            wpkg_filename::uri_filename path(filename.remove_common_segments(*it).dirname(false));
                             const std::string ctrl_name(path.append_child(filename.basename() + ".ctrl").path_only());
                             wpkg_output::log("add package %1 to this repository index file.")
                                     .quoted_arg(ctrl_name)

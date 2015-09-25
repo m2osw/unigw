@@ -143,17 +143,24 @@ if( MO_WINDOWS )
     )
 endif()
     
+# The following installs all the packages under a folder named "tools"
+# which is certainly wrong for documentation, headers, libraries...
 add_custom_target( build_packages
         ${MSVC_REDIST}
         COMMAND ${WPKG}
             --verbose
             --compressor gzip
-            --output-dir "${WPKG_ROOT}/packages"
+            --output-dir "${WPKG_ROOT}/packages/tools"
             --build      "${LOCAL_WPKG_ROOT}/control.info" "${LOCAL_WPKG_ROOT}"
         COMMAND ${WPKG}
             --verbose
+            --recursive
             --create-index "${WPKG_ROOT}/packages/index.tar.gz"
             --repository "${WPKG_ROOT}/packages"
+        COMMAND ${WPKG}
+            --verbose
+            --root "${WPKG_ROOT}"
+            --list-index-packages "${WPKG_ROOT}/packages/index.tar.gz"
         COMMAND ${WPKG}
             --verbose
             --root    "${WPKG_ROOT}"
