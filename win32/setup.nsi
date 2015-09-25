@@ -107,7 +107,7 @@ LangString MUI_UNTEXT_ABORT_SUBTITLE        ${LANG_ENGLISH} "You have aborted th
 !define PACKAGER_BASE "M2OSW\Windows Packager"
 !define PACKAGER_INSTDIR "c:\WPKG"
 !define PACKAGER_MENUDIR "$SMPROGRAMS\${PACKAGER_BASE}"
-!define PACKAGER_SOURCE  'wpkg file:///WPKG/packages/ .'
+!define PACKAGER_SOURCE  'wpkg c:/WPKG/packages/ .'
 
 ; Create system environment variables
 !define env_hklm 'HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"'
@@ -127,7 +127,8 @@ Section Install
    ; Create the uninstaller
    WriteUninstaller "${PACKAGER_INSTDIR}\uninstall.exe"
 
-   ; Now install the package files
+   ; Now install the package files (but first remove what is there)
+   RmDir /r "${PACKAGER_INSTDIR}\packages"
    CreateDirectory "${PACKAGER_INSTDIR}\packages"
 
    SetOutPath "${PACKAGER_INSTDIR}\packages"
@@ -159,7 +160,7 @@ Section Install
    WriteRegStr   HKLM "${WININST_KEY}" "Contact"          "contact@m2osw.com"
 
    ; Definitions of each script/app we must run
-   !define WPKG "${PACKAGER_INSTDIR}\wpkg_static.exe"
+   !define WPKG     "${PACKAGER_INSTDIR}\wpkg_static.exe"
    SetOutPath "${PACKAGER_INSTDIR}"
    IfFileExists "${PACKAGER_INSTDIR}\var\lib\wpkg\core\control" ContinueWpkgInstall InitWpkgDatabase
 InitWpkgDatabase:
@@ -169,8 +170,8 @@ InitWpkgDatabase:
    !insertmacro RunCommand '${WPKG} --verbose --root ${PACKAGER_INSTDIR} --install wpkg wpkg-gui'                                'Cannot install wpkg packages!'
    goto FinishInstall
 ContinueWpkgInstall:
-   !insertmacro RunCommand '${WPKG} --verbose --root ${PACKAGER_INSTDIR} --update'                 'Cannot update wpkg sources!'
-   !insertmacro RunCommand '${WPKG} --verbose --root ${PACKAGER_INSTDIR} --upgrade --running-copy' 'Cannot upgrade wpkg inntallation!'
+   !insertmacro RunCommand '${WPKG} --verbose --root ${PACKAGER_INSTDIR} --update'                                               'Cannot update wpkg sources!'
+   !insertmacro RunCommand '${WPKG} --verbose --root ${PACKAGER_INSTDIR} --upgrade --running-copy'                               'Cannot upgrade wpkg packages!'
 FinishInstall:
 SectionEnd
 

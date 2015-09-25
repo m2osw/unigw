@@ -37,6 +37,7 @@ public:
     ~MainWindow();
 
     void SetInstallPackages( const QStringList& list );
+    void SetDoUpgrade( const bool val = true );
     void RunCommand( const QString& command );
 
 protected:
@@ -58,6 +59,7 @@ private:
     InstallDialog::Mode                     f_installMode;
     ProcessDialog                           f_procDlg;
     QSharedPointer<LogOutput>               f_logOutput;
+    bool                                    f_doUpgrade;
 
     typedef QMap<wpkg_output::level_t,QAction*> level_to_action_t;
 	level_to_action_t	f_levelToAction;

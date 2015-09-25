@@ -46,7 +46,7 @@ int main( int argc, char *argv[] )
 	QStringList args(app.arguments());
 	if( args.contains("--help") || args.contains("-h") )
 	{
-		printf("Usage: pkg-explorer [--help | --version | --root <root> ]\n\n");
+        printf("Usage: pkg-explorer [--help | --version | --root <root> | --install <packages> | --upgrade]\n\n");
 		printf("  Run pkg-explorer by itself and use the menus to do work.\n\n");
 		printf("  If you are looking for a command line tool to manage your installation\n");
 		printf("  environment, use wpkg instead.\n");
@@ -58,30 +58,43 @@ int main( int argc, char *argv[] )
 		exit(0);
 	}
 
-	auto iter = std::find_if( args.begin(), args.end(), []( const QString& arg )
+    auto root_iter = std::find_if( args.begin(), args.end(), []( const QString& arg )
 	{
 		return arg == "--root" || arg == "-r";
 	});
-	//
-	if( iter != args.end() )
-	{
-        Database::SetDbRoot( *(++iter) );
-	}
 
-    iter = std::find_if( args.begin(), args.end(), []( const QString& arg )
+    auto install_iter = std::find_if( args.begin(), args.end(), []( const QString& arg )
     {
         return arg == "--install" || arg == "-i";
     });
-    //
-    QStringList to_install;
-    if( iter != args.end() )
+
+    auto upgrade_iter = std::find_if( args.begin(), args.end(), []( const QString& arg )
     {
-        ++iter;
-        for( ; iter != args.end(); ++iter )
+        return arg == "--upgrade" || arg == "-u";
+    });
+
+    if( root_iter != args.end() )
+    {
+        Database::SetDbRoot( *(++root_iter) );
+    }
+
+    if( install_iter != args.end() && upgrade_iter != args.end() )
+    {
+        std::cerr << "You cannot mix --install with --upgrade!" << std::endl;
+        exit( 1 );
+    }
+
+    QStringList to_install;
+    if( install_iter != args.end() )
+    {
+        ++install_iter;
+        for( ; install_iter != args.end(); ++install_iter )
         {
-            to_install << *iter;
+            to_install << *install_iter;
         }
     }
+
+    const bool do_upgrade = (upgrade_iter != args.end());
 
 	// Make sure the wpkg database is created and initialized.
 	//
@@ -94,6 +107,7 @@ int main( int argc, char *argv[] )
     {
         mainWnd.show();
         app.setQuitOnLastWindowClosed( false );
+        mainWnd.SetDoUpgrade( do_upgrade );
     }
     else
     {

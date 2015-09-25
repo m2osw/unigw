@@ -86,6 +86,7 @@ MainWindow::MainWindow( const bool showSysTray )
 	, f_selectModel(&f_packageModel)
     , f_installMode(InstallDialog::InstallMode)
     , f_procDlg(this)  // Make sure parent is this object's parent, in case LogForm is hidden.
+    , f_doUpgrade(false)
 {
     setupUi(this);
 
@@ -202,10 +203,18 @@ MainWindow::~MainWindow()
     wpkg_output::set_output( 0 );
 }
 
+
 void MainWindow::SetInstallPackages( const QStringList& list )
 {
     f_immediateInstall = list;
 }
+
+
+void MainWindow::SetDoUpgrade( const bool val )
+{
+    f_doUpgrade = val;
+}
+
 
 void MainWindow::RunCommand( const QString& command )
 {
@@ -462,12 +471,12 @@ void MainWindow::InitManager()
     f_webForm->SetManager( f_manager );
     if( lock_file_created )
     {
-        RefreshListing();
-        if( !f_immediateInstall.isEmpty() )
+        if( f_immediateInstall.isEmpty() )
         {
-            // Force the log to show
-            //actionShowLog->setChecked( true );
-
+            RefreshListing();
+        }
+        else
+        {
             // Start install
             f_installMode = InstallDialog::InstallMode;
             StartInstallThread( f_immediateInstall );
@@ -680,6 +689,15 @@ void MainWindow::OnRefreshListing()
 
 	UpdateActions();
     OnShowProcessDialog( false, true );
+
+    if( f_doUpgrade )
+    {
+        // Force the log to show
+        actionShowLog->setChecked( true );
+
+        // Kick off update, then upgrade
+        actionUpdate->trigger();
+    }
 }
 
 
@@ -1093,6 +1111,10 @@ void MainWindow::OnUpdateFinished()
 {
 	ActionsDisable ad( f_actionList );
     OnShowProcessDialog( false, true );
+    if( f_doUpgrade )
+    {
+        actionUpgrade->trigger();
+    }
 }
 
 
@@ -1117,6 +1139,8 @@ void MainWindow::on_actionUpgrade_triggered()
     {
         InitManager();
     }
+
+    f_doUpgrade = false;
 }
 
 

@@ -52,18 +52,27 @@ unigw_ParseVersion( WPKG ${UNIGW_VERSION} )
 file( TO_NATIVE_PATH "${WPKG_ROOT}"                NATIVE_DIST_DIR   )
 file( TO_NATIVE_PATH "${CMAKE_BINARY_DIR}"         NATIVE_BUILD_DIR  )
 file( TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}" NATIVE_SOURCE_DIR )
+set( NSIS_COMMMAND_LINE
+    COMMAND ${NSIS}
+        /V4
+        /DWPKG_VERSION_MAJOR="${WPKG_VERSION_MAJOR}"
+        /DWPKG_VERSION_MINOR="${WPKG_VERSION_MINOR}"
+        /DWPKG_VERSION_PATCH="${WPKG_VERSION_PATCH}"
+        /DDIST_DIR="${NATIVE_DIST_DIR}"
+        /DBUILD_DIR="${NATIVE_BUILD_DIR}"
+        /DSOURCE_DIR="${NATIVE_SOURCE_DIR}"
+        ${CMAKE_CURRENT_SOURCE_DIR}/setup.nsi
+)
+
 add_custom_target( nsis_package ALL
-        COMMAND ${NSIS}
-                    /V4
-                    /DWPKG_VERSION_MAJOR="${WPKG_VERSION_MAJOR}"
-                    /DWPKG_VERSION_MINOR="${WPKG_VERSION_MINOR}"
-                    /DWPKG_VERSION_PATCH="${WPKG_VERSION_PATCH}"
-                    /DDIST_DIR="${NATIVE_DIST_DIR}"
-                    /DBUILD_DIR="${NATIVE_BUILD_DIR}"
-                    /DSOURCE_DIR="${NATIVE_SOURCE_DIR}"
-                    ${CMAKE_CURRENT_SOURCE_DIR}/setup.nsi
+        ${NSIS_COMMMAND_LINE}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         DEPENDS build-all
+    )
+
+add_custom_target( nsis_package_standalone
+        ${NSIS_COMMMAND_LINE}
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
 
 # vim: ts=4 sw=4 et
