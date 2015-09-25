@@ -2088,6 +2088,12 @@ void wpkgar_install::read_repositories()
             {
                 if(!index_filename.exists())
                 {
+                    wpkg_output::log("Creating index file, since it does not exist in repository '%1'.")
+                            .quoted_arg(*it)
+                        .debug(wpkg_output::debug_flags::debug_detail_config)
+                        .module(wpkg_output::module_validate_installation)
+                        .package(index_filename);
+
                     // that's a direct filename but the index is missing,
                     // create it on the spot
                     wpkgar_repository repository(f_manager);
@@ -2100,6 +2106,12 @@ void wpkgar_install::read_repositories()
                 }
                 else
                 {
+                    wpkg_output::log("Reading index file from repository '%1'.")
+                            .quoted_arg(*it)
+                        .debug(wpkg_output::debug_flags::debug_detail_config)
+                        .module(wpkg_output::module_validate_installation)
+                        .package(index_filename);
+
                     // index exists, read it
                     compressed.read_file(index_filename);
                     compressed.decompress(index_file);
@@ -2112,6 +2124,12 @@ void wpkgar_install::read_repositories()
                 // fails we just ignore that entry
                 try
                 {
+                    wpkg_output::log("Reading index file from remote repository '%1'.")
+                            .quoted_arg(*it)
+                        .debug(wpkg_output::debug_flags::debug_detail_config)
+                        .module(wpkg_output::module_validate_installation)
+                        .package(index_filename);
+
                     compressed.read_file(index_filename);
                     compressed.decompress(index_file);
                 }

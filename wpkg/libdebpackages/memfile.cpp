@@ -46,6 +46,7 @@
 #include    "libdebpackages/wpkg_stream.h"
 #include    "libdebpackages/wpkgar_block.h"
 #include    "libdebpackages/case_insensitive_string.h"
+#include    "libdebpackages/wpkg_output.h"
 
 #ifdef debpackages_EXPORTS
 #define BZ_IMPORT 1
@@ -1407,6 +1408,11 @@ void memory_file::read_file(const wpkg_filename::uri_filename& filename, file_in
 
     f_filename = filename;
 
+    wpkg_output::log("Reading file '%1'.")
+            .quoted_arg(f_filename.original_filename())
+        .debug(wpkg_output::debug_flags::debug_detail_files)
+        .module(wpkg_output::module_repository);
+
     // WARNING: here the filename may NOT have been canonicalized
     std::string scheme(filename.path_scheme());
 
@@ -1733,6 +1739,11 @@ void memory_file::write_file(const wpkg_filename::uri_filename& filename, bool c
 
     // this assignment may not always be correct, but in most cases it should be fine
     const_cast<wpkg_filename::uri_filename&>(f_filename) = filename;
+
+    wpkg_output::log("Writing file '%1'.")
+            .quoted_arg(f_filename.original_filename())
+        .debug(wpkg_output::debug_flags::debug_detail_files)
+        .module(wpkg_output::module_repository);
 
     wpkg_stream::fstream file;
     file.create(filename);

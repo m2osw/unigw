@@ -2664,12 +2664,20 @@ bool wpkgar_manager::run_one_script(const wpkg_filename::uri_filename& package_n
     // of the package being installed, os, vendor, processor, etc.);
     // also we may want to reset our own environment to not leak stuff
     // that should not be visible to those scripts
-    const std::string env_root_path    ( std::string( "WPKG_ROOT_PATH="     ) += f_root_path     .os_filename().get_utf8() );
-    const std::string env_db_path      ( std::string( "WPKG_DATABASE_PATH=" ) += f_database_path .os_filename().get_utf8() );
-    const std::string env_package_name ( std::string( "WPKG_PACKAGE_NAME="  ) += package_name    .os_filename().get_utf8() );
+    std::string env_root_path    ( std::string( "WPKG_ROOT_PATH="     ) += f_root_path     .os_filename().get_utf8() );
+    std::string env_db_path      ( std::string( "WPKG_DATABASE_PATH=" ) += f_database_path .os_filename().get_utf8() );
+    std::string env_package_name ( std::string( "WPKG_PACKAGE_NAME="  ) += package_name    .os_filename().get_utf8() );
 
 #ifdef MO_WINDOWS
     int r;
+    //
+    // Since this is MSWindows, we have to make sure the
+    // slash is the "right" slash for the OS (e.g. '\', not '/').
+    //
+    std::replace( env_root_path.begin(),    env_root_path.end(),    '/', '\\' );
+    std::replace( env_db_path.begin(),      env_db_path.end(),      '/', '\\' );
+    std::replace( env_package_name.begin(), env_package_name.end(), '/', '\\' );
+    //
     r = _wputenv( libutf8::mbstowcs( env_root_path    ).c_str() );
     r = _wputenv( libutf8::mbstowcs( env_db_path      ).c_str() );
     r = _wputenv( libutf8::mbstowcs( env_package_name ).c_str() );
@@ -2685,9 +2693,9 @@ bool wpkgar_manager::run_one_script(const wpkg_filename::uri_filename& package_n
     fflush(stderr);
 #else
     int r;
-    r = putenv( const_cast<char*>( env_root_path    .c_str() ) );
-    r = putenv( const_cast<char*>( env_db_path      .c_str() ) );
-    r = putenv( const_cast<char*>( env_package_name .c_str() ) );
+    r = putenv( env_root_path    .c_str() ) );
+    r = putenv( env_db_path      .c_str() ) );
+    r = putenv( env_package_name .c_str() ) );
     r = system( cmd.c_str() );
 #endif
     wpkg_output::log("system() call returned %1")

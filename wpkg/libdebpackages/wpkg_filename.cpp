@@ -3480,14 +3480,26 @@ bool uri_filename::os_unlink() const
 {
     bool result(true);
 
-    if(unlink(os_filename().get_os_string().c_str()) != 0)
+    const auto fname( os_filename().get_os_string() );
+#ifdef MO_WINDOWS
+    // Make the read-only file read-write.
+    //
+    if( _wchmod( fname.c_str(), _S_IREAD | _S_IWRITE ) == -1 )
+    {
+        if(errno != ENOENT)
+        {
+            throw wpkg_filename_exception_io("file \"" + f_original + "\" could not be made read/write!");
+        }
+    }
+#endif
+    if( unlink(fname.c_str()) != 0 )
     {
         result = false;
 
         // this is an error only if the file exists and cannot be deleted
         if(errno != ENOENT)
         {
-            throw wpkg_filename_exception_io("file \"" + f_original + "\" could not be removed");
+            throw wpkg_filename_exception_io("file \"" + f_original + "\" could not be removed!");
         }
     }
 
