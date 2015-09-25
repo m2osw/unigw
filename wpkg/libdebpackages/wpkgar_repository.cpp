@@ -517,16 +517,6 @@ void wpkgar_repository::create_index(memfile::memory_file& index_file)
                 continue;
             }
             wpkg_filename::uri_filename const path(filename.remove_common_segments(*it).dirname(false));
-            if(path.segment_size() == 0)
-            {
-                wpkg_output::log("an index filename always expects at least one path segment before a package name, %1 is invalid.")
-                        .quoted_arg(path.append_child(filename.basename() + ".deb"))
-                    .level(wpkg_output::level_error)
-                    .module(wpkg_output::module_repository)
-                    .package(filename)
-                    .action("install-validation");
-                continue;
-            }
 
             data.dir_rewind();
             for(;;)
@@ -651,10 +641,15 @@ void wpkgar_repository::load_index(const memfile::memory_file& file, entry_vecto
         const std::string filename(idx_info.get_filename());
 
         // we always expect a path before the package name
-        const std::string::size_type pos(filename.find_last_of('/'));
+        std::string::size_type pos(filename.find_last_of('/'));
         if(pos == std::string::npos)
         {
-            throw wpkgar_exception_invalid("an index filename always expects at least one path segment before a package name");
+            pos = 0;
+        }
+        else
+        {
+            // position ourselves right after the '/'
+            ++pos;
         }
 
         // all files must have .ctrl as their extension
@@ -667,7 +662,7 @@ void wpkgar_repository::load_index(const memfile::memory_file& file, entry_vecto
         {
             throw wpkgar_exception_invalid("all the files in an index must have the \".ctrl\" extension, \"" + filename.substr(dot) + "\" is not valid");
         }
-        const std::string basename = filename.substr(pos + 1, dot - pos - 1);
+        const std::string basename = filename.substr(pos, dot - pos);
 
         // we must at least have a package name and a version
         const std::string::size_type p(basename.find_first_of('_'));

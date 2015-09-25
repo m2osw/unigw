@@ -138,23 +138,20 @@ if( MO_WINDOWS )
         COMMAND ${WPKG}
             --verbose
             --compressor gzip
-            --output-dir "${WPKG_ROOT}/packages/tools"
+            --output-dir "${WPKG_ROOT}/packages"
             --build ${CMAKE_CURRENT_SOURCE_DIR}/vcredist
     )
 endif()
     
-# The following installs all the packages under a folder named "tools"
-# which is certainly wrong for documentation, headers, libraries...
 add_custom_target( build_packages
         ${MSVC_REDIST}
         COMMAND ${WPKG}
             --verbose
             --compressor gzip
-            --output-dir "${WPKG_ROOT}/packages/tools"
+            --output-dir "${WPKG_ROOT}/packages"
             --build      "${LOCAL_WPKG_ROOT}/control.info" "${LOCAL_WPKG_ROOT}"
         COMMAND ${WPKG}
             --verbose
-            --recursive
             --create-index "${WPKG_ROOT}/packages/index.tar.gz"
             --repository "${WPKG_ROOT}/packages"
         COMMAND ${WPKG}
