@@ -106,10 +106,11 @@ add_custom_target( build_packages
         COMMAND ${WPKG}
             --verbose
             --compressor gzip
-            --output-dir "${WPKG_ROOT}/packages"
+            --output-dir "${WPKG_ROOT}/packages/gui"
             --build      "${LOCAL_WPKG_ROOT}/control.info" "${LOCAL_WPKG_ROOT}"
         COMMAND ${WPKG}
             --verbose
+            --recursive
             --create-index "${WPKG_ROOT}/packages/index.tar.gz"
             --repository "${WPKG_ROOT}/packages"
         COMMAND ${WPKG}

@@ -138,7 +138,7 @@ if( MO_WINDOWS )
         COMMAND ${WPKG}
             --verbose
             --compressor gzip
-            --output-dir "${WPKG_ROOT}/packages"
+            --output-dir "${WPKG_ROOT}/packages/tools"
             --build ${CMAKE_CURRENT_SOURCE_DIR}/vcredist
     )
 endif()

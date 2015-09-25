@@ -188,7 +188,7 @@ else()
 		)
 endif()
 
-add_custom_target( package_prereqs DEPENDS changelog_generation pkg-explorer pkg-installer )
+add_custom_target( package_prereqs DEPENDS changelog_generation pkg-explorer )
 set_property( TARGET package_prereqs PROPERTY FOLDER package )
 add_subdirectory( package )
 
