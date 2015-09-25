@@ -57,6 +57,7 @@ private:
     QStringList                             f_immediateInstall;
     InstallDialog::Mode                     f_installMode;
     ProcessDialog                           f_procDlg;
+    QSharedPointer<LogOutput>               f_logOutput;
 
     typedef QMap<wpkg_output::level_t,QAction*> level_to_action_t;
 	level_to_action_t	f_levelToAction;
@@ -73,6 +74,8 @@ private:
 	void LogWarning ( const QString& msg );
 	void LogError   ( const QString& msg );
 	void LogFatal   ( const QString& msg );
+
+    void HandleFailure();
 
     void InitManager();
     void RefreshListing();

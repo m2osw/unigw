@@ -31,14 +31,10 @@ ProcessDialog::ProcessDialog(QWidget *p)
     setupUi(this);
     f_progressBar->setVisible( false );
 
-    setWindowFlags( Qt::Dialog
-			| Qt::CustomizeWindowHint	// Turn off the system menu, title bar, and max/min buttons
-			);
+    ShowLogPane( false );
 
     connect( &f_timer, SIGNAL(timeout()), this, SLOT(DisplayMessages()));
     f_timer.start( 100 );
-
-    f_dockWidget->setVisible( false );
 }
 
 ProcessDialog::~ProcessDialog()
@@ -70,6 +66,17 @@ void ProcessDialog::AddProgressValue( int value )
 
 void ProcessDialog::ShowLogPane( const bool val )
 {
+    if( val )
+    {
+        setWindowFlags( Qt::Window );
+    }
+    else
+    {
+        setWindowFlags( Qt::Dialog
+                        | Qt::CustomizeWindowHint	// Turn off the system menu, title bar, and max/min buttons
+                        );
+    }
+    //
     f_dockWidget->setVisible( val );
 }
 

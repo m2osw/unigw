@@ -33,14 +33,11 @@ public:
     LogForm( QWidget *p = 0 );
     ~LogForm();
 
-    wpkg_output::output*    GetLogOutput();
-    wpkg_output::level_t    GetLogLevel() const;
-    void                    SetLogLevel( wpkg_output::level_t level );
-    void                    Clear();
+    void    SetLogOutput( QSharedPointer<LogOutput> out );
 
 private:
-    LogOutput               f_logOutput;
-    QTimer					f_timer;
+    QSharedPointer<LogOutput>   f_logOutput;
+    QTimer					    f_timer;
 
 signals:
     void SetSystrayMessage( const QString& msg );

@@ -89,6 +89,10 @@ MainWindow::MainWindow( const bool showSysTray )
 {
     setupUi(this);
 
+    f_logOutput = QSharedPointer<LogOutput>( new LogOutput );
+    f_logForm->SetLogOutput( f_logOutput );
+    f_procDlg.GetLogForm()->SetLogOutput( f_logOutput );
+
     if( QSystemTrayIcon::isSystemTrayAvailable() && showSysTray )
     {
         f_sysTray = QSharedPointer<QSystemTrayIcon>( new QSystemTrayIcon( this ) );
@@ -183,7 +187,7 @@ MainWindow::MainWindow( const bool showSysTray )
 		;
 
     connect
-        ( dynamic_cast<LogOutput*>(f_logForm->GetLogOutput())
+        ( f_logOutput.data()
         , SIGNAL(AddProcessMessage(const QString&))
         , &f_procDlg
         , SLOT(AddMessage(const QString&))
@@ -257,7 +261,7 @@ void MainWindow::LoadSettings()
     f_levelToAction[wpkg_output::level_error]   = actionViewLogError;
 
     const wpkg_output::level_t level = static_cast<wpkg_output::level_t>(settings.value( "log_level", wpkg_output::level_info ).toInt());
-    f_logForm->SetLogLevel( level );
+    f_logOutput->set_level( level );
 	f_levelToAction[level]->setChecked( true );
 }
 
@@ -269,7 +273,7 @@ void MainWindow::SaveSettings()
     settings.setValue( "state",               saveState()                          );
     settings.setValue( "show_installed",      actionShowInstalled->isChecked()     );
     settings.setValue( "show_log",            actionShowLog->isChecked()           );
-    settings.setValue( "log_level",           f_logForm->GetLogLevel()             );
+    settings.setValue( "log_level",           f_logOutput->get_level()             );
     settings.setValue( "minimize_to_systray", actionMinimizeToSystray->isChecked() );
 }
 
@@ -332,13 +336,10 @@ void MainWindow::showEvent( QShowEvent * /*evt*/ )
 
 void MainWindow::OutputToLog( wpkg_output::level_t level, const QString& msg )
 {
-    wpkg_output::output* out = f_logForm->GetLogOutput();
-	Q_ASSERT(out);
-	//
 	wpkg_output::message_t msg_obj;
 	msg_obj.set_level( level );
 	msg_obj.set_raw_message( msg.toStdString() );
-    out->log( msg_obj );
+    f_logOutput->log( msg_obj );
 }
 
 
@@ -396,18 +397,8 @@ void MainWindow::InitManager()
     f_manager->add_self("wpkg-gui");
     f_manager->add_self("wpkgguiqt4");
 
-	wpkg_output::output* out(0);
-	if( f_immediateInstall.isEmpty() )
-	{
-		out = f_logForm->GetLogOutput();
-	}
-	else
-	{
-        out = f_procDlg.GetLogForm()->GetLogOutput();
-	}
-	Q_ASSERT( out );
-	wpkg_output::set_output( out );
-    out->set_debug_flags( wpkg_output::debug_flags::debug_progress );
+    wpkg_output::set_output( f_logOutput.data() );
+    f_logOutput->set_debug_flags( wpkg_output::debug_flags::debug_progress );
 
 	QSettings settings;
 	const QString root_path = settings.value( "root_path" ).toString();
@@ -787,6 +778,20 @@ void MainWindow::StartInstallThread( const QStringList& packages_list )
 }
 
 
+void MainWindow::HandleFailure()
+{
+    if( f_immediateInstall.isEmpty() )
+    {
+        return;
+    }
+
+    f_immediateInstall.clear();
+    show();
+    InitManager();
+    actionShowLog->trigger();
+}
+
+
 void MainWindow::OnInstallValidateComplete()
 {
     OnShowProcessDialog( false, true );
@@ -794,12 +799,13 @@ void MainWindow::OnInstallValidateComplete()
     if( f_thread.dynamicCast<InstallThread>()->get_state() == InstallThread::ThreadFailed )
     {
         QMessageBox::critical
-            ( this
-              , tr("Package Validation Error!")
-              , tr("One or more packages failed to validate! See log pane for details...")
-              , QMessageBox::Ok
-            );
-            return;
+                ( this
+                  , tr("Package Validation Error!")
+                  , tr("One or more packages failed to validate! See log pane for details...")
+                  , QMessageBox::Ok
+                  );
+        HandleFailure();
+        return;
     }
 
     wpkgar_install::install_info_list_t install_list = f_installer->get_install_list();
@@ -906,7 +912,8 @@ void MainWindow::OnInstallValidateComplete()
 
 void MainWindow::OnInstallComplete()
 {
-    if( f_thread.dynamicCast<InstallThread>()->get_state() == InstallThread::ThreadFailed )
+    const bool failed = f_thread.dynamicCast<InstallThread>()->get_state() == InstallThread::ThreadFailed;
+    if( failed )
     {
         QMessageBox::critical
             ( this
@@ -933,7 +940,14 @@ void MainWindow::OnInstallComplete()
 	}
 	else
 	{
-		actionQuit->triggered();
+        if( failed )
+        {
+            HandleFailure();
+        }
+        else
+        {
+            actionQuit->triggered();
+        }
 	}
 }
 
@@ -1198,7 +1212,7 @@ void MainWindow::on_actionAboutWindowsPackager_triggered()
 
 void MainWindow::on_actionClearLog_triggered()
 {
-    f_logForm->Clear();
+    f_logOutput->clear();
 }
 
 void MainWindow::on_actionShowInstalled_triggered()
@@ -1222,7 +1236,7 @@ void MainWindow::ResetLogChecks( QAction* except )
 void MainWindow::on_actionViewLogDebug_triggered()
 {
     ResetLogChecks( actionViewLogDebug );
-    f_logForm->SetLogLevel( wpkg_output::level_debug );
+    f_logOutput->set_level( wpkg_output::level_debug );
     f_statusbar->showMessage( tr("Debug Log Level Set") );
 }
 
@@ -1230,7 +1244,7 @@ void MainWindow::on_actionViewLogDebug_triggered()
 void MainWindow::on_actionViewLogInfo_triggered()
 {
     ResetLogChecks( actionViewLogInfo );
-    f_logForm->SetLogLevel( wpkg_output::level_info );
+    f_logOutput->set_level( wpkg_output::level_info );
     f_statusbar->showMessage( tr("Info Log Level Set") );
 }
 
@@ -1238,7 +1252,7 @@ void MainWindow::on_actionViewLogInfo_triggered()
 void MainWindow::on_actionViewLogWarning_triggered()
 {
     ResetLogChecks( actionViewLogWarning );
-    f_logForm->SetLogLevel( wpkg_output::level_warning );
+    f_logOutput->set_level( wpkg_output::level_warning );
     f_statusbar->showMessage( tr("Warning Log Level Set") );
 }
 
@@ -1246,7 +1260,7 @@ void MainWindow::on_actionViewLogWarning_triggered()
 void MainWindow::on_actionViewLogError_triggered()
 {
     ResetLogChecks( actionViewLogError );
-    f_logForm->SetLogLevel( wpkg_output::level_error );
+    f_logOutput->set_level( wpkg_output::level_error );
     f_statusbar->showMessage( tr("Error Log Level Set") );
 }
 

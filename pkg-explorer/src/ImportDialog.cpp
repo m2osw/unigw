@@ -65,10 +65,13 @@ void ImportDialog::ShowLogPane( const bool show_pane )
 			, f_logForm , SLOT  (ShowProcessDialog(bool,bool))
 			);
 		//
+#if 0
+        // TODO: this needs to be fixed
 		wpkg_output::output* out = f_logForm->GetLogOutput();
 		Q_ASSERT( out );
 		wpkg_output::set_output( out );
         out->set_debug_flags( wpkg_output::debug_flags::debug_progress );
+#endif
 
         f_logFrame->show();
 	}

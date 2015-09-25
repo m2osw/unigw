@@ -29,7 +29,6 @@ LogForm::LogForm(QWidget *p)
     setupUi(this);
     f_textEdit->ensureCursorVisible();
     connect( &f_timer, SIGNAL(timeout()), this, SLOT(OnDisplayText()) );
-	f_timer.start( 100 );
 }
 
 
@@ -38,32 +37,21 @@ LogForm::~LogForm()
 }
 
 
-wpkg_output::level_t LogForm::GetLogLevel() const
+void LogForm::SetLogOutput( QSharedPointer<LogOutput> output )
 {
-    return f_logOutput.get_level();
-}
-
-
-void LogForm::SetLogLevel( wpkg_output::level_t level )
-{
-    f_logOutput.set_level( level );
-}
-
-
-wpkg_output::output* LogForm::GetLogOutput()
-{
-    return &f_logOutput;
+    f_logOutput = output;
+    f_timer.start( 100 );
 }
 
 
 void LogForm::OnDisplayText()
 {
-    if( !f_logOutput.pending_messages() )
+    if( !f_logOutput->pending_messages() )
 	{
 		return;
 	}
 
-    const wpkg_output::message_t message( f_logOutput.pop_next_message() );
+    const wpkg_output::message_t message( f_logOutput->pop_next_message() );
 	//
     if( message.get_module() == wpkg_output::module_tool )
     {
@@ -93,12 +81,6 @@ void LogForm::OnDisplayText()
 	QTextCursor c = pTextEdit->textCursor();
 	c.movePosition( QTextCursor::End );
 	pTextEdit->setTextCursor(c);
-}
-
-
-void LogForm::Clear()
-{
-    f_logOutput.clear();
 }
 
 
