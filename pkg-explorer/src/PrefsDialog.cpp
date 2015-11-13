@@ -142,9 +142,10 @@ void PrefsDialog::accept()
 
 void PrefsDialog::on_f_repositoryBrowseBtn_clicked()
 {
-	const QString root_path = QFileDialog::getExistingDirectory( this
+    const QString current_root_path = f_repositoryRootLineEdit->text();
+    const QString root_path = QFileDialog::getExistingDirectory( this
 							, tr("Select WPKG Database Root")
-                            , Database::GetDefaultDbRoot()
+                            , current_root_path //Database::GetDefaultDbRoot()
 							, QFileDialog::ShowDirsOnly
 							);
     if( !root_path.isEmpty()        )
