@@ -60,6 +60,7 @@ private:
     ProcessDialog                           f_procDlg;
     QSharedPointer<LogOutput>               f_logOutput;
     bool                                    f_doUpgrade;
+    QLabel                                  f_statusLabel;
 
     typedef QMap<wpkg_output::level_t,QAction*> level_to_action_t;
 	level_to_action_t	f_levelToAction;

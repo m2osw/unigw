@@ -194,7 +194,12 @@ MainWindow::MainWindow( const bool showSysTray )
         , SLOT(AddMessage(const QString&))
         );
 
-	QTimer::singleShot( 100, this, SLOT( OnInitTimer() ) );
+    statusBar()->addWidget( &f_statusLabel );
+    f_statusLabel.setText( "Please wait, initializing..." );
+
+    setWindowTitle( tr("WPKG Package Explorer") );
+
+    QTimer::singleShot( 100, this, SLOT( OnInitTimer() ) );
 }
 
 
@@ -414,6 +419,9 @@ void MainWindow::InitManager()
     const QString database_path = QString("%1/var/lib/wpkg").arg(root_path);
 
     LogDebug( QString("Opening WPKG database %1").arg(root_path) );
+
+    const QString rootMsg( tr("Database root: [%1]").arg(root_path) );
+    f_statusLabel.setText( rootMsg );
 
     f_manager->set_root_path( root_path.toStdString() );
     f_manager->set_database_path( database_path.toStdString() );
