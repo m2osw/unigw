@@ -31,10 +31,15 @@ public:
     virtual void accept();
 
 private:
-    
+    QSharedPointer<QMenu>   f_mruMenu;
+    QStringList             f_mruList;
+
 private slots:
     void on_f_repositoryBrowseBtn_clicked();
     void on_f_buttonBox_clicked(QAbstractButton *button);
+    void on_f_repositoryHistoryBtn_clicked();
+    void on_f_repositoryRootLineEdit_editingFinished();
+    void OnMruTrigged( QAction* act );
 };
 
 // vim: ts=4 sw=4 noet
