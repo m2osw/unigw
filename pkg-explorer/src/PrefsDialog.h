@@ -34,6 +34,8 @@ private:
     QSharedPointer<QMenu>   f_mruMenu;
     QStringList             f_mruList;
 
+    void SetLastRootPath( const QString& root_path );
+
 private slots:
     void on_f_repositoryBrowseBtn_clicked();
     void on_f_buttonBox_clicked(QAbstractButton *button);

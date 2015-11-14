@@ -97,14 +97,44 @@ void PrefsDialog::on_f_repositoryHistoryBtn_clicked()
         actionList << f_mruMenu->addAction( path );
 	}
 
+    if( actionList.size() == 0 )
+    {
+        // Don't display the menu if there is no history (with the current MRU removed)
+        return;
+    }
+
     connect( f_mruMenu.data(), &QMenu::triggered, this, &PrefsDialog::OnMruTrigged );
 
     f_mruMenu->popup( QWidget::mapToGlobal( f_repositoryHistoryBtn->pos() ), actionList[0] );
 }
 
+void PrefsDialog::SetLastRootPath( const QString& root_path )
+{
+    for( auto path : f_mruList )
+    {
+        if( path == root_path )
+        {
+            auto iter = std::find_if( f_mruList.begin(), f_mruList.end(), [&root_path]( const QString& p )
+            {
+                return p == root_path;
+            });
+            if( iter != f_mruList.end() )
+            {
+                f_mruList.erase( iter );
+            }
+            break;
+        }
+    }
+
+    // Make sure the most recently used path is at the top.
+    //
+    f_mruList.push_front( root_path );
+}
+
 void PrefsDialog::OnMruTrigged( QAction* act )
 {
     f_repositoryRootLineEdit->setText( act->text() );
+    SetLastRootPath( act->text() );
 }
 
 void PrefsDialog::on_f_buttonBox_clicked(QAbstractButton *button)
@@ -114,31 +144,13 @@ void PrefsDialog::on_f_buttonBox_clicked(QAbstractButton *button)
 	if( button == defaultsBtn )
 	{
         f_repositoryRootLineEdit->setText( Database::GetDefaultDbRoot() );
-	}
+        SetLastRootPath( Database::GetDefaultDbRoot() );
+    }
 }
 
 void PrefsDialog::on_f_repositoryRootLineEdit_editingFinished()
 {
-    const QString current_root_path = f_repositoryRootLineEdit->text();
-    for( auto path : f_mruList )
-	{
-		if( path == current_root_path )
-		{
-            auto iter = std::find_if( f_mruList.begin(), f_mruList.end(), [&current_root_path]( const QString& p )
-			{
-				return p == current_root_path;
-			});
-            if( iter != f_mruList.end() )
-			{
-                f_mruList.erase( iter );
-			}
-			break;
-		}
-	}
-
-    // Make sure the most recently used path is at the top.
-    //
-    f_mruList.push_front( current_root_path );
+    SetLastRootPath( f_repositoryRootLineEdit->text() );
 }
 
 // vim: ts=4 sw=4 noet
