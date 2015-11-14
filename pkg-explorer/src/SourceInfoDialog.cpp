@@ -63,23 +63,26 @@ void SourceInfoDialog::on_f_uriButton_clicked()
 	uriDlg.setFileMode( QFileDialog::Directory );
 	uriDlg.setOptions( QFileDialog::ShowDirsOnly );
 
+    bool accept_it = false;
     if( uriDlg.exec() )
     {
 		QUrl url;
 		url.setPath( QDir::fromNativeSeparators(uriDlg.directory().absolutePath()) );
 		url.setScheme( "file" );
 
-        QStringList pathList( url.path().split("/") );
-        f_sourceEdit->setText( pathList.last() );
-        pathList.removeLast();
-        f_distEdit->setText( pathList.last() );
-        pathList.removeLast();
-        url.setPath( pathList.join("/") + "/" );
+        f_uriEdit->setText( url.path() );
+        f_sourceEdit->setText( "./" );
+        f_distEdit->setText( "" );
 
-        f_uriEdit->setText( url.toString() );
+        accept_it = true;
 	}
 
 	settings.setValue( "uri_add_dialog", uriDlg.saveState() );
+
+    if( accept_it )
+    {
+        accept();
+    }
 }
 
 void SourceInfoDialog::on_f_buttonBox_clicked(QAbstractButton *button)
