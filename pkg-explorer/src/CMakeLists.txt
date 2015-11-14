@@ -110,6 +110,8 @@ add_executable(
 	LogForm.ui
 	LogForm.cpp
 	LogOutput.cpp
+	Manager.h
+	Manager.cpp
 	MainWindow.ui
 	MainWindow.cpp
 	PrefsDialog.ui

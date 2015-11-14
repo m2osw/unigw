@@ -5386,6 +5386,7 @@ bool wpkgar_install::validate()
     // with their content so we don't have to know about those later
     // all of those are considered explicitly defined packages
     wpkg_output::log("validate directories")
+        .level(wpkg_output::level_info)
         .debug(wpkg_output::debug_flags::debug_progress)
         .module(wpkg_output::module_validate_installation);
     if(!validate_directories())
@@ -5404,12 +5405,14 @@ bool wpkgar_install::validate()
     // (i.e. in --configure all the names must be installed packages, in
     // all other cases, it must not be.)
     wpkg_output::log("validate package name")
+        .level(wpkg_output::level_info)
         .debug(wpkg_output::debug_flags::debug_progress)
         .module(wpkg_output::module_validate_installation);
     validate_package_names();
 
     // check whether some packages are source packages;
     wpkg_output::log("validate installation type (source/binary)")
+        .level(wpkg_output::level_info)
         .debug(wpkg_output::debug_flags::debug_progress)
         .module(wpkg_output::module_validate_installation);
     installing_source();
@@ -5430,6 +5433,7 @@ bool wpkgar_install::validate()
     // make sure that the currently installed packages are in the
     // right state for a new installation to occur
     wpkg_output::log("validate installed packages")
+        .level(wpkg_output::level_info)
         .debug(wpkg_output::debug_flags::debug_progress)
         .module(wpkg_output::module_validate_installation);
     validate_installed_packages();
@@ -5441,6 +5445,7 @@ bool wpkgar_install::validate()
     // matches the core architecture, and of course already installed
     // packages have the right architecture.)
     wpkg_output::log("validate architecture")
+        .level(wpkg_output::level_info)
         .debug(wpkg_output::debug_flags::debug_progress)
         .module(wpkg_output::module_validate_installation);
     validate_architecture();
@@ -5448,6 +5453,7 @@ bool wpkgar_install::validate()
     // if any Pre-Depends is not satisfied in the explicit packages then
     // the installation will fail (although we can go on with validations)
     wpkg_output::log("validate pre-dependencies")
+        .level(wpkg_output::level_info)
         .debug(wpkg_output::debug_flags::debug_progress)
         .module(wpkg_output::module_validate_installation);
     validate_predependencies();
@@ -5458,6 +5464,7 @@ bool wpkgar_install::validate()
     // adds the dependencies to the list and at the end we have a long list
     // that includes all the packages we need to check further
     wpkg_output::log("validate dependencies")
+        .level(wpkg_output::level_info)
         .debug(wpkg_output::debug_flags::debug_progress)
         .module(wpkg_output::module_validate_installation);
     validate_dependencies();
@@ -5468,6 +5475,7 @@ bool wpkgar_install::validate()
     // compatible (i.e. incompatible compiler used to compile two
     // libraries running together...)
     wpkg_output::log("validate distribution name")
+        .level(wpkg_output::level_info)
         .debug(wpkg_output::debug_flags::debug_progress)
         .module(wpkg_output::module_validate_installation);
     validate_distribution();
@@ -5477,6 +5485,7 @@ bool wpkgar_install::validate()
     // a message in verbose mode; at this point this does not generate
     // error (it may later if incompatibilities are found)
     wpkg_output::log("validate packager version")
+        .level(wpkg_output::level_info)
         .debug(wpkg_output::debug_flags::debug_progress)
         .module(wpkg_output::module_validate_installation);
     validate_packager_version();
@@ -5485,6 +5494,7 @@ bool wpkgar_install::validate()
     // fields of all the packages being installed (implicitly or
     // explicitly)
     wpkg_output::log("validate fields")
+        .level(wpkg_output::level_info)
         .debug(wpkg_output::debug_flags::debug_progress)
         .module(wpkg_output::module_validate_installation);
     validate_fields();
@@ -5501,6 +5511,7 @@ bool wpkgar_install::validate()
         // and since we read all the data files, check whether any file gets
         // overwritten as we're at it
         wpkg_output::log("validate size and overwrites")
+            .level(wpkg_output::level_info)
             .debug(wpkg_output::debug_flags::debug_progress)
             .module(wpkg_output::module_validate_installation);
         validate_installed_size_and_overwrite();
@@ -5511,6 +5522,7 @@ bool wpkgar_install::validate()
         // run user defined validation scripts found in the implicit and
         // explicit packages
         wpkg_output::log("validate hooks")
+            .level(wpkg_output::level_info)
             .debug(wpkg_output::debug_flags::debug_progress)
             .module(wpkg_output::module_validate_installation);
         validate_scripts();
@@ -6486,6 +6498,7 @@ bool wpkgar_install::pre_configure()
             std::string package_name(f_packages[idx].get_name());
             wpkg_output::log("pre-configuring %1")
                         .quoted_arg(package_name)
+                .level(wpkg_output::level_info)
                 .debug(wpkg_output::debug_flags::debug_progress)
                 .module(wpkg_output::module_validate_installation);
 
@@ -6597,6 +6610,7 @@ int wpkgar_install::unpack()
                     const std::string package_name(package.get_name());
                     wpkg_output::log("unpacking %1")
                                 .quoted_arg(package_name)
+                        .level(wpkg_output::level_info)
                         .debug(wpkg_output::debug_flags::debug_progress)
                         .module(wpkg_output::module_validate_installation);
 
@@ -6906,6 +6920,7 @@ bool wpkgar_install::configure(int idx)
 
     wpkg_output::log("configuring %1")
             .quoted_arg(f_packages[idx].get_name())
+        .level(wpkg_output::level_info)
         .debug(wpkg_output::debug_flags::debug_progress)
         .module(wpkg_output::module_validate_installation);
 

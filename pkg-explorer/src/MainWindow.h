@@ -1,5 +1,5 @@
 //===============================================================================
-// Copyright:	Copyright (c) 2013 Made to Order Software Corp.
+// Copyright:	Copyright (c) 2013-2015 Made to Order Software Corp.
 //
 // All Rights Reserved.
 //
@@ -24,6 +24,7 @@
 #include "InstallDialog.h"
 #include "InstallThread.h"
 #include "LicenseBox.h"
+#include "Manager.h"
 #include "ProcessDialog.h"
 
 #include "ui_MainWindow.h"
@@ -46,11 +47,13 @@ protected:
     void closeEvent( QCloseEvent* event );
     
 private:
+	std::shared_ptr<Manager>				f_manager;
     QStandardItemModel						f_packageModel;
     QItemSelectionModel						f_selectModel;
-    QSharedPointer<wpkgar::wpkgar_manager>	f_manager;
-    QSharedPointer<wpkgar::wpkgar_install>  f_installer;
-    QSharedPointer<wpkgar::wpkgar_lock>		f_lock;
+    //QSharedPointer<wpkgar::wpkgar_manager>	f_manager;
+    //QSharedPointer<wpkgar::wpkgar_install>  f_installer;
+    //QSharedPointer<wpkgar::wpkgar_lock>		f_lock;
+    //int                                     f_lockCount;
     QSharedPointer<QThread>                 f_thread;
 	QScopedPointer<LicenseBox>				f_license_box;
     bool									f_showInstalledPackagesOnly;
@@ -61,12 +64,53 @@ private:
     QSharedPointer<LogOutput>               f_logOutput;
     bool                                    f_doUpgrade;
     QLabel                                  f_statusLabel;
+    mutable QMutex        					f_mutex;
 
     typedef QMap<wpkg_output::level_t,QAction*> level_to_action_t;
 	level_to_action_t	f_levelToAction;
 
 	typedef QList<QAction*> ActionList;
 	ActionList f_actionList;
+
+#if 0
+    bool SetLock();
+    void ReleaseLock();
+
+    class AutoLock
+    {
+    public:
+        AutoLock( MainWindow* mainWnd ) : f_mainWnd(mainWnd)
+        {
+            f_mainWnd->SetLock();
+        }
+
+        ~AutoLock()
+        {
+            f_mainWnd->ReleaseLock();
+        }
+
+    private:
+        MainWindow* f_mainWnd;
+    };
+    friend class AutoLock;
+
+    class AutoUnlock
+    {
+    public:
+        AutoUnlock( MainWindow* mainWnd ) : f_mainWnd(mainWnd)
+        {
+        }
+
+        ~AutoUnlock()
+        {
+            f_mainWnd->ReleaseLock();
+        }
+
+    private:
+        MainWindow* f_mainWnd;
+    };
+    friend class AutoUnlock;
+#endif
 
 	void LoadSettings();
 	void SaveSettings();

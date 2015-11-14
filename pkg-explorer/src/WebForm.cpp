@@ -253,7 +253,7 @@ namespace
 class DisplayThread : public QThread
 {
 public:
-    DisplayThread( QObject* p, QString currentPkg, ProcessDialog* procDlg, wpkgar::wpkgar_manager* manager )
+    DisplayThread( QObject* p, QString currentPkg, ProcessDialog* procDlg, std::shared_ptr<wpkgar::wpkgar_manager> manager )
         : QThread(p)
 		, f_processDlg(procDlg)
 		, f_manager(manager)
@@ -265,10 +265,10 @@ public:
     virtual void run();
 
 private:
-	ProcessDialog*			f_processDlg;
-	wpkgar::wpkgar_manager*	f_manager;
-	std::string				f_html;
-	QString					f_currentPackage;
+	ProcessDialog*                          f_processDlg;
+	std::shared_ptr<wpkgar::wpkgar_manager> f_manager;
+	std::string                             f_html;
+	QString                                 f_currentPackage;
 
 	void DependencyToLink( std::string& result, const std::string& package_name, const std::string& field_name ) const;
 	void GeneratePackageHtml();
@@ -689,12 +689,15 @@ void WebForm::PrivateDisplayPackage()
     f_processDlg.show();
     f_processDlg.EnableCancelButton( false );
 
-	f_thread = QSharedPointer<QThread>( static_cast<QThread*>( new DisplayThread( this, f_currentPackage, &f_processDlg, f_manager.data() ) ) );
+	f_thread = QSharedPointer<QThread>(
+		static_cast<QThread*>(
+			new DisplayThread( this, f_currentPackage, &f_processDlg, f_manager.lock().get() )
+		) );
 	f_thread->start();
 
     connect
-        ( f_thread.data(), SIGNAL(finished())
-        , this           , SLOT(OnPrivateDisplayPackage())
+        ( f_thread.data(), &QThread::finished
+        , this           , &WebForm::OnPrivateDisplayPackage
         );
 }
 

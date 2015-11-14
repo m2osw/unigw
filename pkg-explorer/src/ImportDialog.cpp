@@ -21,12 +21,11 @@
 
 using namespace wpkgar;
 
-ImportDialog::ImportDialog( QWidget *p, QSharedPointer<wpkgar_manager> manager )
+ImportDialog::ImportDialog( QWidget *p, Manager::pointer_t manager )
 	: QDialog(p)
     , f_model(this)
     , f_selectModel(static_cast<QAbstractItemModel*>(&f_model))
     , f_manager(manager)
-    , f_installer(QSharedPointer<wpkgar_install>(new wpkgar_install(f_manager.data())))
 {
     setupUi(this);
     f_listView->setModel( &f_model );
@@ -286,15 +285,17 @@ void ImportDialog::SetSwitches()
     cb_map[wpkgar_install::wpkgar_install_force_overwrite_dir]    = f_forceOverwriteDirCB;
     cb_map[wpkgar_install::wpkgar_install_force_depends_version]  = f_forceDepVerCB;
 
+	auto installer( f_manager.lock()->GetInstaller().lock() );
+
 	foreach( wpkgar_install::parameter_t key, cb_map.keys() )
 	{
-		f_installer->set_parameter
+		installer->set_parameter
 			( key
 			, cb_map[key]->checkState() == Qt::Checked
 			);
 	}
 
-	f_installer->set_parameter( wpkgar_install::wpkgar_install_skip_same_version,
+	installer->set_parameter( wpkgar_install::wpkgar_install_skip_same_version,
         f_skipSameVersCB->checkState() == Qt::Checked );
 }
 
@@ -313,19 +314,27 @@ void ImportDialog::on_f_buttonBox_clicked(QAbstractButton *button)
 
 		QMap<QString,int> folders;
 		const QStringList contents = f_model.stringList();
+		auto manager  ( f_manager.lock()->GetManager().lock()   );
+		auto installer( f_manager.lock()->GetInstaller().lock() );
 		foreach( QString file, contents )
 		{
-			f_installer->add_package( file.toStdString() );
+			installer->add_package( file.toStdString() );
 			QFileInfo info(file);
 			folders[info.path()]++;
 		}
 
-        f_thread = QSharedPointer<QThread>( static_cast<QThread*>( new InstallThread( this, f_manager.data(), f_installer.data(), InstallThread::ThreadFullInstall ) ) );
+        f_thread.reset
+			( new InstallThread
+			  ( this
+				, f_manager
+				, InstallThread::ThreadFullInstall
+			  )
+			);
 		f_thread->start();
 
 		connect
-			( f_thread.data(), SIGNAL(finished())
-			  , this           , SLOT(OnInstallComplete())
+			( f_thread.get(), &InstallThread::finished
+			, this          , &ImportDialog::OnInstallComplete
 			);
     }
     else if( button == closeBtn )
@@ -337,7 +346,7 @@ void ImportDialog::on_f_buttonBox_clicked(QAbstractButton *button)
 
 void ImportDialog::OnInstallComplete()
 {
-    if( dynamic_cast<InstallThread*>(f_thread.data())->get_state() == InstallThread::ThreadFailed )
+    if( f_thread->get_state() == InstallThread::ThreadFailed )
     {
         QMessageBox::critical
 			( this

@@ -1,5 +1,5 @@
 //===============================================================================
-// Copyright:	Copyright (c) 2013 Made to Order Software Corp.
+// Copyright:	Copyright (c) 2013-2015 Made to Order Software Corp.
 //
 // All Rights Reserved.
 //
@@ -15,43 +15,34 @@
 // WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
 // COMPLETENESS OR PERFORMANCE.
 //===============================================================================
-
 #pragma once
 
 #include "include_qt4.h"
-#include "Manager.h"
+#include "LogOutput.h"
+
+#include <libdebpackages/wpkgar.h>
 #include <libdebpackages/wpkgar_install.h>
+
 #include <memory>
 
-class InstallThread : public QThread
+class Manager
 {
 public:
-	typedef enum { ThreadStopped, ThreadRunning, ThreadFailed, ThreadSucceeded } State;
-	typedef enum { ThreadValidateOnly, ThreadInstallOnly, ThreadFullInstall } Mode;
+    typedef std::weak_ptr<Manager> pointer_t;
 
-    InstallThread
-		( QObject* p,
-		, Manager::pointer_t manager
-		, const Mode mode = ThreadFullInstall
-		);
+    Manager( std::weak_ptr<LogOutput> log );
 
-    virtual void run();
-
-	State get_state() const;
-
+    std::weak_ptr<wpkgar::wpkgar_manager>   GetManager() const;
+    std::weak_ptr<wpkgar::wpkgar_install>   GetInstaller() const;
 
 private:
-    std::shared_ptr<Manager> f_manager;
-    State                    f_state;
-	Mode					 f_mode;
-    mutable QMutex        	 f_mutex;
+    void Init( std::weak_ptr<wpkgar::wpkgar_lock> log );
+    bool CreateLock();
 
-	bool Validate();
-	bool Preconfigure();
-	void InstallFiles();
-
-	void set_state( const State new_state );
+    mutable QMutex        					f_mutex;
+    std::shared_ptr<wpkgar::wpkgar_lock>	f_lock;
+    std::shared_ptr<wpkgar::wpkgar_manager>	f_manager;
+    std::shared_ptr<wpkgar::wpkgar_install> f_installer;
 };
 
-
-// vim: ts=4 sw=4 noet
+// vim: ts=4 sw=4 et

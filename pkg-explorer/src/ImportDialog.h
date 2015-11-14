@@ -20,8 +20,12 @@
 
 #include "include_qt4.h"
 #include "ui_ImportDialog.h"
+#include "InstallThread.h"
+#include "Manager.h"
 
 #include <libdebpackages/wpkgar_install.h>
+
+#include <memory>
 
 class ImportDialog
         : public QDialog
@@ -30,7 +34,7 @@ class ImportDialog
     Q_OBJECT
     
 public:
-    ImportDialog( QWidget *p, QSharedPointer<wpkgar::wpkgar_manager> manager );
+    ImportDialog( QWidget *p, std::shared_ptr<wpkgar::wpkgar_manager> manager );
     ~ImportDialog();
 
     void AddPackages( const QStringList& package_list, const bool clear = false );
@@ -63,9 +67,8 @@ private slots:
 private:
     QStringListModel                      	f_model;
     QItemSelectionModel                   	f_selectModel;
-    QSharedPointer<wpkgar::wpkgar_manager>	f_manager;
-    QSharedPointer<wpkgar::wpkgar_install>	f_installer;
-    QSharedPointer<QThread>               	f_thread;
+	Manager::pointer_t						f_manager;
+    std::shared_ptr<InstallThread>          f_thread;
 
 	void SetSwitches();
 	void ChangeAllChecked();

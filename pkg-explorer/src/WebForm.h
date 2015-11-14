@@ -21,6 +21,8 @@
 #include "include_qt4.h"
 #include "ui_WebForm.h"
 
+#include <memory>
+
 namespace wpkgar
 {
     class wpkgar_manager;
@@ -34,7 +36,7 @@ public:
     WebForm( QWidget *p = 0 );
     ~WebForm();
 
-	void SetManager( QSharedPointer<wpkgar::wpkgar_manager> mgr ) { f_manager = mgr; }
+	void SetManager( std::weak_ptr<wpkgar::wpkgar_manager> mgr ) { f_manager = mgr; }
 
     void DisplayPackage( const QString& package_name );
     void ClearDisplay();
@@ -44,7 +46,7 @@ public:
     void Forward();
     
 private:
-    QSharedPointer<wpkgar::wpkgar_manager>	f_manager;
+    std::weak_ptr<wpkgar::wpkgar_manager>	f_manager;
     QString									f_currentPackage;
     QStack<QString>							f_backStack;
     QStack<QString>							f_fwdStack;

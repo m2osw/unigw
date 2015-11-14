@@ -23,10 +23,13 @@
 using namespace wpkgar;
 
 
-InstallThread::InstallThread( QObject* p, wpkgar::wpkgar_manager* manager, wpkgar::wpkgar_install* installer, const Mode mode )
+InstallThread::InstallThread
+		( QObject* p,
+		, Manager::pointer_t manager
+		, const Mode mode
+		)
 	: QThread(p)
-	, f_manager(manager)
-	, f_installer(installer)
+	, f_manager(manager.lock())
 	, f_state(ThreadStopped)
 	, f_mode(mode)
 {
@@ -49,12 +52,12 @@ void InstallThread::set_state( const State new_state )
 
 bool InstallThread::Validate()
 {
-	const bool succeeded = f_installer->validate();
+	const bool succeeded = f_manager->GetInstaller().lock()->validate();
 	if( !succeeded )
 	{
 		set_state( ThreadFailed );
 	}
-	else if( f_manager->is_self() )
+	else if( f_manager->GetManager().lock()->is_self() )
 	{
 		wpkg_output::log( "Unfortunately, you cannot manage the pkg-explorer installation from itself! To update pkg-explorer use the pkg-explorer-setup or wpkg in a console." ).level(wpkg_output::level_error );
 		set_state( ThreadFailed );
@@ -66,7 +69,7 @@ bool InstallThread::Validate()
 
 bool InstallThread::Preconfigure()
 {
-	const bool succeeded = f_installer->pre_configure();
+	const bool succeeded = f_manager->GetInstaller().lock()->pre_configure();
 	if( !succeeded )
 	{
 		set_state( ThreadFailed );
@@ -77,11 +80,13 @@ bool InstallThread::Preconfigure()
 
 void InstallThread::InstallFiles()
 {
+	auto installer( f_manager->GetInstaller().lock() );
+
 	for(;;)
 	{
-		const std::string package_name( f_installer->get_package_name(0) );
+		const std::string package_name( installer->get_package_name(0) );
 		//
-		const int i( f_installer->unpack() );
+		const int i( installer->unpack() );
 		//
 		if(i < 0)
 		{
@@ -98,7 +103,7 @@ void InstallThread::InstallFiles()
 			break;
 		}
 		//
-		if(!f_installer->configure(i))
+		if(!installer->configure(i))
 		{
 			wpkg_output::log( "Configuration failed!" ).level( wpkg_output::level_error );
 			set_state( ThreadFailed );

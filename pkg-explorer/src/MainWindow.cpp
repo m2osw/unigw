@@ -84,6 +84,7 @@ MainWindow::MainWindow( const bool showSysTray )
 	: QMainWindow(0)
 	, f_packageModel(this)
 	, f_selectModel(&f_packageModel)
+    , f_lockCount(0)
     , f_installMode(InstallDialog::InstallMode)
     , f_procDlg(this)  // Make sure parent is this object's parent, in case LogForm is hidden.
     , f_doUpgrade(false)
@@ -125,39 +126,39 @@ MainWindow::MainWindow( const bool showSysTray )
 
     // Action mapping
     //
-    connect( actionQuit, SIGNAL(triggered()),   qApp, SLOT(quit())          );
-    connect( qApp,           SIGNAL(aboutToQuit()), this, SLOT(OnAboutToQuit()) );
+    connect( actionQuit, &QAction::triggered,        qApp, &QApplication::quit        );
+    connect( qApp,       &QApplication::aboutToQuit, this, &MainWindow::OnAboutToQuit );
 
 	// Listen for selection changes in the view (either via mouse or keyboard)
 	//
     QObject::connect
-        ( &f_selectModel, SIGNAL( selectionChanged  ( const QItemSelection&, const QItemSelection& ))
-        , this          , SLOT  ( OnSelectionChanged( const QItemSelection&, const QItemSelection& ))
+        ( &f_selectModel, &QItemSelectionModel::selectionChanged
+        , this          , &MainWindow::OnSelectionChanged
         );
 
     actionHistoryBack->setEnabled    ( false );
     actionHistoryForward->setEnabled ( false );
 
     QObject::connect
-        ( f_webForm, SIGNAL( StackStatus     ( bool, bool ) )
-        , this     , SLOT  ( OnStackStatus   ( bool, bool ) )
+        ( f_webForm, &WebForm::StackStatus
+        , this     , &MainWindow::OnStackStatus
         );
     QObject::connect
-        ( f_webForm, SIGNAL( HistoryChanged  ( const QString& ) )
-        , this     , SLOT  ( OnHistoryChanged( const QString& ) )
+        ( f_webForm, &WebForm::HistoryChanged
+        , this     , &MainWindow::OnHistoryChanged
         );
     QObject::connect
-        ( f_webForm, SIGNAL( PackageClicked  ( const QString& ) )
-        , this     , SLOT  ( OnPackageClicked( const QString& ) )
+        ( f_webForm, &WebForm::PackageClicked
+        , this     , &MainWindow::OnPackageClicked
         );
     QObject::connect
-        ( f_webForm, SIGNAL( WebPageClicked  ( const QString& ) )
-        , this     , SLOT  ( OnWebPageClicked( const QString& ) )
+        ( f_webForm, &WebForm::WebPageClicked
+        , this     , &MainWindow::OnWebPageClicked
         );
 
     QObject::connect
-        ( f_logForm, SIGNAL( SetSystrayMessage(const QString&) )
-        , this     , SLOT  ( OnSystrayMessage (const QString&) )
+        ( f_logForm, &LogForm::SetSystrayMessage
+        , this     , &MainWindow::OnSystrayMessage
         );
 
 	f_actionList
@@ -189,9 +190,9 @@ MainWindow::MainWindow( const bool showSysTray )
 
     connect
         ( f_logOutput.data()
-        , SIGNAL(AddProcessMessage(const QString&))
+        , &LogOutput::AddProcessMessage
         , &f_procDlg
-        , SLOT(AddMessage(const QString&))
+        , &ProcessDialog::AddMessage
         );
 
     statusBar()->addWidget( &f_statusLabel );
@@ -199,7 +200,7 @@ MainWindow::MainWindow( const bool showSysTray )
 
     setWindowTitle( tr("WPKG Package Explorer") );
 
-    QTimer::singleShot( 100, this, SLOT( OnInitTimer() ) );
+    QTimer::singleShot( 100, this, &MainWindow::OnInitTimer );
 }
 
 
@@ -337,14 +338,14 @@ void MainWindow::closeEvent( QCloseEvent* evt )
 void MainWindow::hideEvent( QHideEvent * /*evt*/ )
 {
     actionShowApplication->setText( tr("&Show Application") );
-    connect( actionShowApplication, SIGNAL(triggered()), this, SLOT(show()) );
+    connect( actionShowApplication, &QAction::triggered, this, &MainWindow::show );
 }
 
 
 void MainWindow::showEvent( QShowEvent * /*evt*/ )
 {
     actionShowApplication->setText( tr("&Hide Application") );
-    connect( actionShowApplication, SIGNAL(triggered()), this, SLOT(hide()) );
+    connect( actionShowApplication, &QAction::triggered, this, &MainWindow::hide );
 }
 
 
@@ -394,14 +395,113 @@ void MainWindow::LogFatal( const QString& msg )
 }
 
 
+#if 0
+bool MainWindow::SetLock()
+{
+	QMutexLocker locker( &f_mutex );
+
+    if( f_lock.data() )
+    {
+		// Already exists, so continue
+		f_lockCount++;
+        return true;
+    }
+
+	f_lockCount++;
+    bool lock_file_created = false;
+    while( !lock_file_created )
+    {
+        try
+        {
+            f_lock = QSharedPointer<wpkgar_lock>(
+                        new wpkgar_lock( f_manager.data(), "Package Explorer" )
+                        );
+            lock_file_created = true;
+        }
+        catch( const wpkgar_exception_locked& except )
+        {
+            LogError( except.what() );
+            QMessageBox::StandardButton result = QMessageBox::critical
+                    ( this
+                      , tr("Database locked!")
+                      , tr("The database is locked. "
+                           "This means that either pkg-explorer terminated unexpectantly, "
+                           "or there is another instance accessing the database. Do you want to remove the lock?")
+                      , QMessageBox::Yes | QMessageBox::No
+                      );
+            if( result == QMessageBox::Yes )
+            {
+                try
+                {
+                    f_manager->remove_lock();
+                    LogDebug( "Lock file removed." );
+                }
+                catch( const std::runtime_error& _xcpt )
+                {
+                    LogFatal( _xcpt.what() );
+                    break;
+                }
+            }
+            else
+            {
+                // Quit the application ungracefully.
+                //
+                LogFatal( "Not removing the lock, so exiting application." );
+                break;
+            }
+        }
+        catch( const std::runtime_error& except )
+        {
+            LogFatal( except.what() );
+            break;
+        }
+    }
+
+    if( !lock_file_created )
+    {
+        MainWindow::close();
+        QApplication::quit();
+    }
+
+    return lock_file_created;
+}
+
+
+void MainWindow::ReleaseLock()
+{
+	QMutexLocker locker( &f_mutex );
+
+    if( f_lockCount == 0 )
+    {
+        f_lock.clear();
+    }
+    else
+    {
+        f_lockCount--;
+    }
+}
+#endif
+
 
 void MainWindow::InitManager()
 {
-    f_lock.clear();
-    if( f_manager.data() != NULL )
+    if( f_manager.GetManager().lock().get() != 0 )
     {
         LogDebug( "Closing database..." );
     }
+
+	try
+	{
+		f_manager.reset( new Manager( f_logOutput ) );
+	}
+	catch( const std::runtime_error& )
+	{
+        LogDebug( "Closing database..." );
+        MainWindow::close();
+        QApplication::quit();
+	}
+
+#if 0
     f_manager = QSharedPointer<wpkgar_manager>( new wpkgar_manager );
 
     f_manager->set_interrupt_handler( &interrupt );
@@ -426,74 +526,19 @@ void MainWindow::InitManager()
     f_manager->set_root_path( root_path.toStdString() );
     f_manager->set_database_path( database_path.toStdString() );
 	f_manager->add_sources_list();
+#endif
 
-    bool lock_file_created = false;
-    while( !lock_file_created )
-	{
-		try
-		{
-			f_lock = QSharedPointer<wpkgar_lock>(
-					new wpkgar_lock( f_manager.data(), "Package Explorer" )
-					);
-			lock_file_created = true;
-		}
-        catch( const wpkgar_exception_locked& except )
-		{
-            LogError( except.what() );
-			QMessageBox::StandardButton result = QMessageBox::critical
-				( this
-				  , tr("Database locked!")
-				  , tr("The database is locked. "
-					  "This means that either pkg-explorer terminated unexpectantly, "
-					  "or there is another instance accessing the database. Do you want to remove the lock?")
-				  , QMessageBox::Yes | QMessageBox::No
-				);
-			if( result == QMessageBox::Yes )
-			{
-				try
-				{
-					f_manager->remove_lock();
-                    LogDebug( "Lock file removed." );
-				}
-               catch( const std::runtime_error& _xcpt )
-				{
-                    LogFatal( _xcpt.what() );
-                    break;
-				}
-			}
-			else
-			{
-				// Quit the application ungracefully.
-				//
-                LogFatal( "Not removing the lock, so exiting application." );
-                break;
-			}
-        }
-        catch( const std::runtime_error& except )
-		{
-            LogFatal( except.what() );
-            break;
-		}
-	}
+    f_webForm->SetManager( f_manager->GetManager() );
 
-    f_webForm->SetManager( f_manager );
-    if( lock_file_created )
+    if( f_immediateInstall.isEmpty() )
     {
-        if( f_immediateInstall.isEmpty() )
-        {
-            RefreshListing();
-        }
-        else
-        {
-            // Start install
-            f_installMode = InstallDialog::InstallMode;
-            StartInstallThread( f_immediateInstall );
-        }
+        RefreshListing();
     }
     else
     {
-        MainWindow::close();
-        QApplication::quit();
+        // Start install
+        f_installMode = InstallDialog::InstallMode;
+        StartInstallThread( f_immediateInstall );
     }
 }
 
@@ -515,9 +560,9 @@ public:
     virtual void run();
 
 private:
-	wpkgar_manager*	f_manager;
-	SectionMap		f_sectionMap;
-	bool			f_showInstalledOnly;
+	std::shared_ptr<wpkgar_manager> f_manager;
+	SectionMap                      f_sectionMap;
+	bool                            f_showInstalledOnly;
 };
 
 
@@ -612,19 +657,21 @@ void InitThread::run()
 
 void MainWindow::RefreshListing()
 {
+    SetLock();
+
 	ActionsDisable ad( f_actionList, false /*enable_remove_action*/ );
 
     OnShowProcessDialog( true, false /*enable_cancel*/ );
 	f_packageModel.setRowCount( 0 );
 
 	f_thread = QSharedPointer<QThread>( static_cast<QThread*>(
-        new InitThread( this, f_manager.data(), actionShowInstalled->isChecked() )
+        new InitThread( this, f_manager.lock(), actionShowInstalled->isChecked() )
 		) );
 	f_thread->start();
 
     connect
-        ( f_thread.data(), SIGNAL(finished())
-        , this           , SLOT(OnRefreshListing())
+        ( f_thread.data(), &QThread::finished
+        , this           , &MainWindow::OnRefreshListing
         );
 }
 
@@ -652,15 +699,17 @@ void MainWindow::UpdateActions()
 
 void MainWindow::OnRefreshListing()
 {
+    AutoUnlock au( this );
+
 	ActionsDisable ad( f_actionList );
 
-    InitThread* _thread = dynamic_cast<InitThread*>(f_thread.data());
-    if( _thread == 0 )
+    InitThread* this_thread = dynamic_cast<InitThread*>(f_thread.data());
+    if( this_thread == 0 )
     {
         return;
     }
 
-    InitThread::SectionMap map = _thread->GetSectionMap();
+    InitThread::SectionMap map = this_thread->GetSectionMap();
     QList<QString> keys = map.keys();
     std::for_each( keys.begin(), keys.end(), [&]( const QString& key )
     {
@@ -780,8 +829,10 @@ void MainWindow::OnSelectionChanged( const QItemSelection &/*selected*/, const Q
 
 void MainWindow::StartInstallThread( const QStringList& packages_list )
 {
+    SetLock();
+
     wpkg_output::get_output()->reset_error_count();
-    f_installer = QSharedPointer<wpkgar_install>( new wpkgar_install(f_manager.data()) );
+    f_installer.reset( new wpkgar_install(f_manager.lock().get()) );
 
     // always force the chown/chmod because under Unix that doesn't work well otherwise
     f_installer->set_parameter( wpkgar_install::wpkgar_install_force_file_info, true );
@@ -791,15 +842,23 @@ void MainWindow::StartInstallThread( const QStringList& packages_list )
         f_installer->add_package( pkg.toStdString() );
     }
 
-    QSharedPointer<InstallThread> _thread( new InstallThread( this, f_manager.data(), f_installer.data(), InstallThread::ThreadValidateOnly ) );
+	QSharedPointer<InstallThread> this_thread
+		(
+			new InstallThread
+				( this
+				, f_manager.lock()
+				, f_installer.lock()
+				, InstallThread::ThreadValidateOnly
+				)
+		);
     OnShowProcessDialog( true, true );
 
     connect
-        ( _thread.data(), SIGNAL(finished())
-          , this        , SLOT(OnInstallValidateComplete())
+        ( this_thread.data(), &QThread::finished
+        , this              , &MainWindow::OnInstallValidateComplete
         );
 
-    f_thread = _thread.staticCast<QThread>();
+    f_thread = this_thread.staticCast<QThread>();
     f_thread->start();
 }
 
@@ -820,6 +879,8 @@ void MainWindow::HandleFailure()
 
 void MainWindow::OnInstallValidateComplete()
 {
+    AutoUnlock au( this );
+
     OnShowProcessDialog( false, true );
 
     if( f_thread.dynamicCast<InstallThread>()->get_state() == InstallThread::ThreadFailed )
@@ -921,16 +982,26 @@ void MainWindow::OnInstallValidateComplete()
             )
             == QMessageBox::Yes )
     {
-        QSharedPointer<InstallThread> _thread( new InstallThread( this, f_manager.data(), f_installer.data(), InstallThread::ThreadInstallOnly ) );
+        SetLock();
+
+        QSharedPointer<InstallThread> this_thread
+			(
+				new InstallThread
+					( this
+					, f_manager.lock()
+					, f_installer.lock()
+					, InstallThread::ThreadInstallOnly
+					)
+			);
 
         OnShowProcessDialog( true, true );
 
         connect
-            ( _thread.data(), SIGNAL(finished())
-              , this          , SLOT(OnInstallComplete())
+            ( this_thread.data(), &QThread::finished
+            , this              , &MainWindow::OnInstallComplete
             );
 
-        f_thread = _thread.staticCast<QThread>();
+        f_thread = this_thread.staticCast<QThread>();
         f_thread->start();
     }
 }
@@ -938,6 +1009,8 @@ void MainWindow::OnInstallValidateComplete()
 
 void MainWindow::OnInstallComplete()
 {
+    AutoUnlock au( this );
+
     const bool failed = f_thread.dynamicCast<InstallThread>()->get_state() == InstallThread::ThreadFailed;
     if( failed )
     {
@@ -984,8 +1057,8 @@ void MainWindow::on_actionFileImport_triggered()
 	ResetErrorCount();
     ImportDialog dlg( this, f_manager );
     connect
-        ( &dlg , SIGNAL(ShowProcessDialog(bool,bool))
-        , this , SLOT  (OnShowProcessDialog(bool,bool))
+        ( &dlg , &ImportDialog::ShowProcessDialog
+        , this , &MainWindow::OnShowProcessDialog
         );
     if( dlg.exec() == QDialog::Accepted )
     {
@@ -999,8 +1072,8 @@ void MainWindow::on_actionInstall_triggered()
     ActionsDisable ad( f_actionList );
     InstallDialog dlg( this, f_manager );
     connect
-        ( &dlg , SIGNAL(ShowProcessDialog(bool,bool))
-        , this , SLOT  (OnShowProcessDialog(bool,bool))
+        ( &dlg , &InstallDialog::ShowProcessDialog
+        , this , &MainWindow::OnShowProcessDialog
         );
     if( dlg.exec() == QDialog::Accepted )
     {
@@ -1027,8 +1100,8 @@ void MainWindow::on_actionRemove_triggered()
 	ResetErrorCount();
     RemoveDialog dlg( this, f_manager );
     connect
-        ( &dlg , SIGNAL(ShowProcessDialog(bool,bool))
-        , this , SLOT  (OnShowProcessDialog(bool,bool))
+        ( &dlg , &RemoveDialog::ShowProcessDialog
+        , this , &MainWindow::OnShowProcessDialog
         );
     dlg.SetPackagesToRemove( packages_to_remove );
     if( dlg.exec() == QDialog::Accepted )
@@ -1102,6 +1175,8 @@ void UpdateThread::run()
 
 void MainWindow::on_actionUpdate_triggered()
 {
+    SetLock();
+
 	ActionsDisable ad( f_actionList, false /*enable_on_destroy*/ );
     OnShowProcessDialog( true, false /*enable_cancel*/ );
 
@@ -1109,14 +1184,15 @@ void MainWindow::on_actionUpdate_triggered()
 	f_thread->start();
 
     connect
-        ( f_thread.data(), SIGNAL(finished())
-        , this           , SLOT(OnUpdateFinished())
+        ( f_thread.data(), &QThread::finished
+        , this           , &MainWindow::OnUpdateFinished
         );
 }
 
 
 void MainWindow::OnUpdateFinished()
 {
+    AutoUnlock au( this );
 	ActionsDisable ad( f_actionList );
     OnShowProcessDialog( false, true );
     if( f_doUpgrade )
@@ -1137,11 +1213,13 @@ void MainWindow::OnSystrayMessage( const QString& msg )
 
 void MainWindow::on_actionUpgrade_triggered()
 {
+    AutoLock al( this );
+
     ActionsDisable ad( f_actionList );
     InstallDialog dlg( this, f_manager, InstallDialog::UpgradeMode );
     connect
-        ( &dlg , SIGNAL(ShowProcessDialog(bool,bool))
-        , this , SLOT  (OnShowProcessDialog(bool,bool))
+        ( &dlg , &InstallDialog::ShowProcessDialog
+        , this , &MainWindow::OnShowProcessDialog
         );
     if( dlg.exec() == QDialog::Accepted )
     {
