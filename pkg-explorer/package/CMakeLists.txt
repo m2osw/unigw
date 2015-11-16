@@ -106,7 +106,7 @@ add_custom_target( build_packages
         COMMAND ${WPKG}
             --verbose
             --compressor gzip
-            --output-dir "${WPKG_ROOT}/packages/gui"
+            --output-dir "${WPKG_ROOT}/packages"
             --build      "${LOCAL_WPKG_ROOT}/control.info" "${LOCAL_WPKG_ROOT}"
         COMMAND ${WPKG}
             --verbose
