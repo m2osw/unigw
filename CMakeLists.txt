@@ -45,7 +45,7 @@ project( unigw )
 set( CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake )
 find_package( WpkgBuild REQUIRED )
 
-set( UNIGW_VERSION "1.0.1" CACHE STRING "WPKG version." )
+set( UNIGW_VERSION "1.0.2" CACHE STRING "WPKG version." )
 
 
 ################################################################################
