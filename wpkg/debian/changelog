@@ -1,3 +1,12 @@
+wpkg (1.0.2~trusty) trusty; urgency=high
+
+  * Stable release.
+  * Improved dependency handling and upgrading.
+  * Better log output.
+  * Improved handling of sources.list and repositories.
+
+ -- R. Douglas Barbieri <doug@dooglio.net>  Mon, 16 Nov 2015 13:19:58 -0800
+
 wpkg (0.9.11~trusty) trusty; urgency=high
 
   * Improved package from repository handling in general.

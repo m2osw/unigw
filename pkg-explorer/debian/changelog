@@ -1,3 +1,11 @@
+pkgexplorer (1.0.2~trusty) trusty; urgency=medium
+
+  * Stable release.
+  * MRU dropdown list for root dirs.
+  * Added command-line parameters which allow for automatic install and upgrade.
+
+ -- R. Douglas Barbieri <doug@dooglio.net>  Mon, 16 Nov 2015 13:22:47 -0800
+
 pkgexplorer (0.3.2.76~trusty) trusty; urgency=high
 
   * Nightly build.
