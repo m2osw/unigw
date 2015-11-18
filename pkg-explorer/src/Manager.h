@@ -34,6 +34,7 @@ public:
 
     std::weak_ptr<wpkgar::wpkgar_manager>   GetManager() const;
     std::weak_ptr<wpkgar::wpkgar_install>   GetInstaller() const;
+    std::weak_ptr<wpkgar::wpkgar_remove>    GetRemover() const;
 
 private:
     void Init( std::weak_ptr<wpkgar::wpkgar_lock> log );
@@ -43,6 +44,7 @@ private:
     std::shared_ptr<wpkgar::wpkgar_lock>	f_lock;
     std::shared_ptr<wpkgar::wpkgar_manager>	f_manager;
     std::shared_ptr<wpkgar::wpkgar_install> f_installer;
+    std::shared_ptr<wpkgar::wpkgar_remove>  f_remover;
 };
 
 // vim: ts=4 sw=4 et

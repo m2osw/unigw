@@ -20,6 +20,7 @@
 
 #include "include_qt4.h"
 #include "ui_SourcesDialog.h"
+#include "MainWindow.h"
 
 #include <libdebpackages/wpkgar.h>
 
@@ -31,12 +32,12 @@ public:
     SourcesDialog( QWidget *p = 0 );
     ~SourcesDialog();
 
-	void SetManager( QSharedPointer<wpkgar::wpkgar_manager> mgr );
+    void SetManager( Manager::pointer_t mgr );
  
 private:
-    QStringListModel                       f_model;
-    QItemSelectionModel                    f_selectModel;
-    QSharedPointer<wpkgar::wpkgar_manager> f_manager;
+    QStringListModel     f_model;
+    QItemSelectionModel  f_selectModel;
+    Manager::pointer_t   f_manager;
 
 private slots:
     void OnSelectionChanged( const QItemSelection&, const QItemSelection& );

@@ -1,5 +1,5 @@
 //===============================================================================
-// Copyright:   Copyright (c) 2013 Made to Order Software Corp.
+// Copyright:	Copyright (c) 2015 Made to Order Software Corp.
 //
 // All Rights Reserved.
 //
@@ -16,23 +16,29 @@
 // COMPLETENESS OR PERFORMANCE.
 //===============================================================================
 
-#pragma once
+#include "UpdateThread.h"
 
-#include "include_qt4.h"
-#include "Manager.h"
-
-#include <libdebpackages/wpkgar.h>
+#include <libdebpackages/wpkg_output.h>
 #include <libdebpackages/wpkgar_repository.h>
 
-namespace RepoUtils
+UpdateThread::UpdateThread( QObject* p, Manager::pointer_t manager )
+    : QThread(p)
+    , f_manager(manager.lock())
 {
-    QString         SourceToQString  ( const wpkgar::source& src, const bool uri_only = false );
-    wpkgar::source  QStringToSource  ( const QString& str );
-    QStringList     ReadSourcesList  ( Manager::pointer_t manager, const bool uri_only = false );
-    void            WriteSourcesList ( Manager::pointer_t manager, const QStringList& contents );
 }
-// namespace
 
+void UpdateThread::run()
+{
+    wpkgar_repository repository( f_manager->GetManager().lock().get() );
+	try
+	{
+		repository.update();
+	}
+    catch( const std::runtime_error& except )
+	{
+        qCritical() << "std::runtime_error caught! what=" << except.what();
+        wpkg_output::log( except.what() ).level( wpkg_output::level_error );
+	}
+}
 
 // vim: ts=4 sw=4 et
-

@@ -19,6 +19,8 @@
 #pragma once
 
 #include "include_qt4.h"
+#include "Manager.h"
+
 #include <libdebpackages/wpkgar_install.h>
 
 #include "ui_InstallDialog.h"
@@ -29,9 +31,9 @@ class InstallDialog : public QDialog, private Ui::InstallDialog
     
 public:
     typedef enum { InstallMode, UpgradeMode } Mode;
-    explicit InstallDialog(
+    InstallDialog(
             QWidget *p,
-            QSharedPointer<wpkgar::wpkgar_manager> manager,
+            Manager::pointer_t manager,
             Mode mode = InstallMode
             );
     ~InstallDialog();
@@ -45,8 +47,7 @@ signals:
 private:
     QStandardItemModel                      f_model;
     QItemSelectionModel                     f_selectModel;
-    QSharedPointer<wpkgar::wpkgar_manager>  f_manager;
-    QSharedPointer<QThread>                 f_thread;
+    Manager::pointer_t                      f_manager;
     Mode                                    f_mode;
 
     //void StartThread();

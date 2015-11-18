@@ -34,7 +34,7 @@ class ImportDialog
     Q_OBJECT
     
 public:
-    ImportDialog( QWidget *p, std::shared_ptr<wpkgar::wpkgar_manager> manager );
+    ImportDialog( QWidget *p, Manager::pointer_t manager );
     ~ImportDialog();
 
     void AddPackages( const QStringList& package_list, const bool clear = false );

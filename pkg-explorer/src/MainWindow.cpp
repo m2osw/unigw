@@ -18,7 +18,6 @@
 
 #include "MainWindow.h"
 #include "ImportDialog.h"
-#include "InstallThread.h"
 #include "RemoveDialog.h"
 #include "PrefsDialog.h"
 #include "ProcessDialog.h"
@@ -543,118 +542,6 @@ void MainWindow::InitManager()
 }
 
 
-class InitThread : public QThread
-{
-public:
-    InitThread( QObject* p, wpkgar_manager* manager, const bool show_installed_only )
-        : QThread(p)
-		, f_manager(manager)
-		, f_showInstalledOnly(show_installed_only)
-	{}
-
-	typedef QList<QString>				ItemList;
-	typedef QList<ItemList>				PackageList;
-	typedef QMap<QString,PackageList>	SectionMap;
-	SectionMap GetSectionMap() const { return f_sectionMap; }
-
-    virtual void run();
-
-private:
-	std::shared_ptr<wpkgar_manager> f_manager;
-	SectionMap                      f_sectionMap;
-	bool                            f_showInstalledOnly;
-};
-
-
-namespace
-{
-	QString StatusToQString( wpkgar_manager::package_status_t status )
-	{
-		switch( status )
-		{
-			case wpkgar_manager::no_package		 : return QObject::tr("no_package");
-			case wpkgar_manager::unknown 		 : return QObject::tr("unknown");
-			case wpkgar_manager::not_installed	 : return QObject::tr("not_installed");
-			case wpkgar_manager::config_files	 : return QObject::tr("config_files");
-			case wpkgar_manager::installing		 : return QObject::tr("installing");
-			case wpkgar_manager::upgrading		 : return QObject::tr("upgrading");
-			case wpkgar_manager::half_installed	 : return QObject::tr("half_installed");
-			case wpkgar_manager::unpacked		 : return QObject::tr("unpacked");
-			case wpkgar_manager::half_configured : return QObject::tr("half_configured");
-			case wpkgar_manager::installed		 : return QObject::tr("installed");
-			case wpkgar_manager::removing		 : return QObject::tr("removing");
-			case wpkgar_manager::purging		 : return QObject::tr("purging");
-			case wpkgar_manager::listing		 : return QObject::tr("listing");
-			case wpkgar_manager::verifying		 : return QObject::tr("verifying");
-			case wpkgar_manager::ready			 : return QObject::tr("ready");
-		}
-
-		return QObject::tr("Unknown!");
-	}
-
-	void ResetErrorCount()
-	{
-		wpkg_output::output* output = wpkg_output::get_output();
-		if( output )
-		{
-			output->reset_error_count();
-		}
-	}
-}
-
-
-void InitThread::run()
-{
-	wpkgar_manager::package_list_t list;
-	try
-    {
-		ResetErrorCount();
-        f_manager->list_installed_packages( list );
-
-		Q_FOREACH( std::string package_name, list )
-		{
-			wpkgar_manager::package_status_t status( f_manager->package_status( package_name ) );
-
-			bool show_package = true;
-			//
-            if( f_showInstalledOnly && (status != wpkgar_manager::installed) )
-			{
-				switch( status )
-				{
-					case wpkgar_manager::installed:
-					case wpkgar_manager::half_installed:
-					case wpkgar_manager::half_configured:
-						show_package = true;
-						break;
-					default:
-						show_package = false;
-				}
-			}
-			//
-			if( show_package )
-			{
-				const std::string version( f_manager->get_field( package_name, "Version" ) );
-				std::string section("base"); // use a valid default
-				if( f_manager->field_is_defined( package_name, "Section" ) )
-				{
-					section = f_manager->get_field( package_name, "Section" );
-				}
-				ItemList pkg;
-				pkg << package_name.c_str();
-				pkg << StatusToQString( status );
-				pkg << version.c_str();
-				f_sectionMap[section.c_str()] << pkg;
-			}
-		}
-    }
-    catch( const std::runtime_error& except )
-    {
-        qCritical() << "std::runtime_error caught! what=" << except.what();
-		wpkg_output::log( except.what() ).level( wpkg_output::level_error );
-    }
-}
-
-
 void MainWindow::RefreshListing()
 {
     SetLock();
@@ -664,14 +551,12 @@ void MainWindow::RefreshListing()
     OnShowProcessDialog( true, false /*enable_cancel*/ );
 	f_packageModel.setRowCount( 0 );
 
-	f_thread = QSharedPointer<QThread>( static_cast<QThread*>(
-        new InitThread( this, f_manager.lock(), actionShowInstalled->isChecked() )
-		) );
-	f_thread->start();
+	f_initThread.reset( new InitThread( this, f_manager.lock(), actionShowInstalled->isChecked() ) );
+	f_initThread->start();
 
     connect
-        ( f_thread.data(), &QThread::finished
-        , this           , &MainWindow::OnRefreshListing
+        ( f_initThread.get(), &QThread::finished
+        , this              , &MainWindow::OnRefreshListing
         );
 }
 
@@ -703,13 +588,12 @@ void MainWindow::OnRefreshListing()
 
 	ActionsDisable ad( f_actionList );
 
-    InitThread* this_thread = dynamic_cast<InitThread*>(f_thread.data());
-    if( this_thread == 0 )
+    if( !f_initThread )
     {
         return;
     }
 
-    InitThread::SectionMap map = this_thread->GetSectionMap();
+    InitThread::SectionMap map = f_initThread->GetSectionMap();
     QList<QString> keys = map.keys();
     std::for_each( keys.begin(), keys.end(), [&]( const QString& key )
     {
@@ -842,7 +726,7 @@ void MainWindow::StartInstallThread( const QStringList& packages_list )
         f_installer->add_package( pkg.toStdString() );
     }
 
-	QSharedPointer<InstallThread> this_thread
+	f_installThread.reset
 		(
 			new InstallThread
 				( this
@@ -854,12 +738,11 @@ void MainWindow::StartInstallThread( const QStringList& packages_list )
     OnShowProcessDialog( true, true );
 
     connect
-        ( this_thread.data(), &QThread::finished
-        , this              , &MainWindow::OnInstallValidateComplete
+        ( f_installThread.get(), &QThread::finished
+        , this                 , &MainWindow::OnInstallValidateComplete
         );
 
-    f_thread = this_thread.staticCast<QThread>();
-    f_thread->start();
+    f_installThread->start();
 }
 
 
@@ -883,7 +766,7 @@ void MainWindow::OnInstallValidateComplete()
 
     OnShowProcessDialog( false, true );
 
-    if( f_thread.dynamicCast<InstallThread>()->get_state() == InstallThread::ThreadFailed )
+    if( f_installThread->get_state() == InstallThread::ThreadFailed )
     {
         QMessageBox::critical
                 ( this
@@ -984,7 +867,7 @@ void MainWindow::OnInstallValidateComplete()
     {
         SetLock();
 
-        QSharedPointer<InstallThread> this_thread
+        f_installThread.reset
 			(
 				new InstallThread
 					( this
@@ -1001,8 +884,7 @@ void MainWindow::OnInstallValidateComplete()
             , this              , &MainWindow::OnInstallComplete
             );
 
-        f_thread = this_thread.staticCast<QThread>();
-        f_thread->start();
+        f_installThread->start();
     }
 }
 
@@ -1011,7 +893,7 @@ void MainWindow::OnInstallComplete()
 {
     AutoUnlock au( this );
 
-    const bool failed = f_thread.dynamicCast<InstallThread>()->get_state() == InstallThread::ThreadFailed;
+    const bool failed = f_installThread->get_state() == InstallThread::ThreadFailed;
     if( failed )
     {
         QMessageBox::critical
@@ -1143,36 +1025,6 @@ void MainWindow::on_actionHistoryForward_triggered()
 }
 
 
-class UpdateThread : public QThread
-{
-public:
-    UpdateThread( QObject* p, wpkgar_manager* manager )
-        : QThread(p)
-		, f_manager(manager)
-	{}
-
-    virtual void run();
-
-private:
-	wpkgar_manager*	f_manager;
-};
-
-
-void UpdateThread::run()
-{
-    wpkgar_repository repository( f_manager );
-	try
-	{
-		repository.update();
-	}
-    catch( const std::runtime_error& except )
-	{
-        qCritical() << "std::runtime_error caught! what=" << except.what();
-        wpkg_output::log( except.what() ).level( wpkg_output::level_error );
-	}
-}
-
-
 void MainWindow::on_actionUpdate_triggered()
 {
     SetLock();
@@ -1180,12 +1032,12 @@ void MainWindow::on_actionUpdate_triggered()
 	ActionsDisable ad( f_actionList, false /*enable_on_destroy*/ );
     OnShowProcessDialog( true, false /*enable_cancel*/ );
 
-	f_thread = QSharedPointer<QThread>( static_cast<QThread*>( new UpdateThread( this, f_manager.data() ) ) );
-	f_thread->start();
+	f_updateThread.reset( new UpdateThread( this, f_manager.data() ) );
+	f_updateThread->start();
 
     connect
-        ( f_thread.data(), &QThread::finished
-        , this           , &MainWindow::OnUpdateFinished
+        ( f_updateThread.get(), &QThread::finished
+        , this                , &MainWindow::OnUpdateFinished
         );
 }
 

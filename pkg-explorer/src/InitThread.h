@@ -1,5 +1,5 @@
 //===============================================================================
-// Copyright:   Copyright (c) 2013 Made to Order Software Corp.
+// Copyright:	Copyright (c) 2015 Made to Order Software Corp.
 //
 // All Rights Reserved.
 //
@@ -21,18 +21,25 @@
 #include "include_qt4.h"
 #include "Manager.h"
 
-#include <libdebpackages/wpkgar.h>
-#include <libdebpackages/wpkgar_repository.h>
+#include <memory>
 
-namespace RepoUtils
+class InitThread : public QThread
 {
-    QString         SourceToQString  ( const wpkgar::source& src, const bool uri_only = false );
-    wpkgar::source  QStringToSource  ( const QString& str );
-    QStringList     ReadSourcesList  ( Manager::pointer_t manager, const bool uri_only = false );
-    void            WriteSourcesList ( Manager::pointer_t manager, const QStringList& contents );
-}
-// namespace
+public:
+    InitThread( QObject* p, Manager::pointer_t manager, const bool show_installed_only );
+
+	typedef QList<QString>				ItemList;
+	typedef QList<ItemList>				PackageList;
+	typedef QMap<QString,PackageList>	SectionMap;
+	SectionMap GetSectionMap() const { return f_sectionMap; }
+
+    virtual void run();
+
+private:
+	std::shared_ptr<Manager> f_manager;
+	SectionMap               f_sectionMap;
+	bool                     f_showInstalledOnly;
+};
 
 
-// vim: ts=4 sw=4 et
-
+// vim: ts=4 sw=4 noet

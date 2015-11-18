@@ -21,11 +21,13 @@
 #include <libdebpackages/wpkgar.h>
 #include <libdebpackages/wpkgar_install.h>
 
+#include "InitThread.h"
 #include "InstallDialog.h"
 #include "InstallThread.h"
 #include "LicenseBox.h"
 #include "Manager.h"
 #include "ProcessDialog.h"
+#include "UpdateThread.h"
 
 #include "ui_MainWindow.h"
 
@@ -50,11 +52,9 @@ private:
 	std::shared_ptr<Manager>				f_manager;
     QStandardItemModel						f_packageModel;
     QItemSelectionModel						f_selectModel;
-    //QSharedPointer<wpkgar::wpkgar_manager>	f_manager;
-    //QSharedPointer<wpkgar::wpkgar_install>  f_installer;
-    //QSharedPointer<wpkgar::wpkgar_lock>		f_lock;
-    //int                                     f_lockCount;
-    QSharedPointer<QThread>                 f_thread;
+    std::shared_ptr<InitThread>             f_initThread;
+    std::shared_ptr<InstallThread>          f_installThread;
+    std::shared_ptr<UpdateThread>           f_updateThread;
 	QScopedPointer<LicenseBox>				f_license_box;
     bool									f_showInstalledPackagesOnly;
 	QSharedPointer<QSystemTrayIcon>			f_sysTray;

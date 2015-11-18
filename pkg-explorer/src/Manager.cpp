@@ -49,7 +49,22 @@ std::weak_ptr<wpkgar::wpkgar_manager> Manager::GetManager() const
 std::weak_ptr<wpkgar::wpkgar_install>   GetInstaller() const
 {
 	QMutexLocker locker( &f_mutex );
+    if( !f_installer )
+    {
+        f_installer.reset( new wpkgar::wpkgar_install( f_manager.get() ) );
+    }
     return f_installer;
+}
+
+
+std::weak_ptr<wpkgar::wpkgar_remove>   GetRemover() const
+{
+    QMutexLocker locker( &f_mutex );
+    if( !f_remover )
+    {
+        f_remover.reset( new wpkgar::wpkgar_remove( f_manager.get() ) );
+    }
+    return f_remover;
 }
 
 

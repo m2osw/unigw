@@ -102,6 +102,8 @@ add_executable(
     include_qt4.h
 	ImportDialog.ui
 	ImportDialog.cpp
+	InitThread.cpp
+	InitThread.h
 	InstallDialog.ui
 	InstallDialog.cpp
 	InstallThread.h
@@ -126,6 +128,8 @@ add_executable(
 	SourceInfoDialog.cpp
 	SourcesDialog.ui
 	SourcesDialog.cpp
+	UpdateThread.cpp
+	UpdateThread.h
 	WebForm.ui
 	WebForm.cpp
 	LicenseBox.ui

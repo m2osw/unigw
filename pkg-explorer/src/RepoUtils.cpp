@@ -25,7 +25,7 @@ using namespace wpkgar;
 
 namespace RepoUtils
 {
-    wpkg_filename::uri_filename GetSourcesUri( wpkgar_manager* manager )
+    wpkg_filename::uri_filename GetSourcesUri( std::shared_ptr<wpkgar::wpkgar_manager> manager )
     {
         wpkg_filename::uri_filename name( manager->get_database_path() );
         return name.append_child( "core/sources.list" );
@@ -77,14 +77,17 @@ namespace RepoUtils
         return src;
     }
 
-    QStringList ReadSourcesList( wpkgar::wpkgar_manager* manager, const bool uri_only )
+    QStringList ReadSourcesList( Manager::pointer_t manager, const bool uri_only )
     {
+        auto p_manager( manager.lock()->GetManager().lock() );
+        Q_ASSERT( p_manager );
+
         QStringList sourceList;
-        wpkg_filename::uri_filename name( GetSourcesUri( manager ) );
+        wpkg_filename::uri_filename name( GetSourcesUri( p_manager ) );
         if( name.exists() )
         {
             memfile::memory_file				sources_file;
-            wpkgar_repository					repository( manager );
+            wpkgar_repository					repository( p_manager.get() );
             source_vector_t	sources;
 
             sources_file.read_file( name );
@@ -101,11 +104,14 @@ namespace RepoUtils
         return sourceList;
     }
 
-    void WriteSourcesList( wpkgar::wpkgar_manager* manager, const QStringList& contents )
+    void WriteSourcesList( Manager::pointer_t manager, const QStringList& contents )
     {
-		wpkgar_repository repository( manager );
+        auto p_manager( manager.lock()->GetManager().lock() );
+        Q_ASSERT( p_manager );
 
-        wpkg_filename::uri_filename name( GetSourcesUri( manager ) );
+        wpkgar_repository repository( p_manager.get() );
+
+        wpkg_filename::uri_filename name( GetSourcesUri( p_manager ) );
 
         source_vector_t sources;
 		memfile::memory_file sources_file;

@@ -20,15 +20,17 @@
 
 #include "include_qt4.h"
 #include "ui_RemoveDialog.h"
+#include "RemoveThread.h"
+#include "Manager.h"
 
-#include <libdebpackages/wpkgar_remove.h>
+#include <memory>
 
 class RemoveDialog : public QDialog, private Ui::RemoveDialog
 {
     Q_OBJECT
     
 public:
-    RemoveDialog( QWidget *p, QSharedPointer<wpkgar::wpkgar_manager> manager );
+    RemoveDialog( QWidget *p, Manager::pointer_t manager );
     ~RemoveDialog();
 
 	void SetPackagesToRemove( const QStringList& list );
@@ -49,11 +51,10 @@ private slots:
     void on_f_purgeCB_clicked();
 
 private:
-    QStringListModel                       f_model;
-    QItemSelectionModel                    f_selectModel;
-    QSharedPointer<wpkgar::wpkgar_manager> f_manager;
-    QSharedPointer<wpkgar::wpkgar_remove>  f_remover;
-    QSharedPointer<QThread>                f_thread;
+    QStringListModel                f_model;
+    QItemSelectionModel             f_selectModel;
+    Manager::pointer_t              f_manager;
+    std::shared_ptr<RemoveThread>	f_thread;
 
 	void SetSwitches();
 	void ChangeAllChecked();

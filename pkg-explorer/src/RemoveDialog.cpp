@@ -18,16 +18,17 @@
 
 #include "RemoveDialog.h"
 
+#include <libdebpackages/wpkgar_remove.h>
+
 #include <QtWidgets>
 
 using namespace wpkgar;
 
-RemoveDialog::RemoveDialog( QWidget *p, QSharedPointer<wpkgar_manager> manager )
+RemoveDialog::RemoveDialog( QWidget *p, Manager::pointer_t manager )
     : QDialog(p)
     , f_model(this)
     , f_selectModel(static_cast<QAbstractItemModel*>(&f_model))
     , f_manager(manager)
-    , f_remover(QSharedPointer<wpkgar_remove>(new wpkgar_remove(f_manager.data())))
 {
     setupUi(this);
     f_listView->setModel( &f_model );
@@ -135,9 +136,11 @@ void RemoveDialog::SetSwitches()
 	cb_map[wpkgar_remove::wpkgar_remove_force_remove_essentials] = f_forceRemoveEssentialCB;
 	cb_map[wpkgar_remove::wpkgar_remove_recursive]               = f_recursiveCB;
 
+    auto remover( f_manager.lock()->GetRemover().lock() );
+
 	foreach( wpkgar_remove::parameter_t key, cb_map.keys() )
 	{
-		f_remover->set_parameter
+        remover->set_parameter
 			( key
 			, cb_map[key]->checkState() == Qt::Checked
 			);
@@ -145,88 +148,12 @@ void RemoveDialog::SetSwitches()
 
     if( f_purgeCB->checkState() == Qt::Checked )
     {
-        f_remover->set_purging();
+        remover->set_purging();
     }
     //else -- you don't want that for --remove or --purge, only --deconfigure which we do not support yet
     //{
-    //    f_remover->set_deconfiguring();
+    //    remover->set_deconfiguring();
     //}
-}
-
-class RemoveThread : public QThread
-{
-public:
-	typedef enum { ThreadStopped, ThreadRunning, ThreadFailed, ThreadSucceeded } State;
-
-    RemoveThread( QObject* p, wpkgar_manager* manager, wpkgar_remove* remover )
-        : QThread(p)
-        , f_manager(manager)
-		, f_remover(remover)
-		, f_state(ThreadStopped)
-    {}
-
-    virtual void run();
-
-	State get_state() const
-	{
-		QMutexLocker locker( &f_mutex );
-		return f_state;
-	}
-
-private:
-    wpkgar_manager*	f_manager;
-	wpkgar_remove*  f_remover;
-	State			f_state;
-	mutable QMutex	f_mutex;
-
-	void set_state( const State new_state )
-	{
-		QMutexLocker locker( &f_mutex );
-		f_state = new_state;
-	}
-};
-
-
-void RemoveThread::run()
-{
-	set_state( ThreadRunning );
-
-    try
-    {
-        for(;;)
-		{
-			const int i( f_remover->remove() );
-			if(i < 0)
-			{
-				if( i == wpkgar_remove::WPKGAR_EOP )
-				{
-					wpkg_output::log( "Removal of packages complete!" ).level( wpkg_output::level_info );
-					set_state( ThreadSucceeded );
-				}
-				else
-				{
-					wpkg_output::log( "Removal of packages failed!" ).level( wpkg_output::level_error );
-					set_state( ThreadFailed );
-				}
-				break;
-			}
-			if(f_remover->get_purging())
-			{
-				if( !f_remover->deconfigure(i) )
-				{
-					wpkg_output::log( "Removal failed deconfiguration!" ).level( wpkg_output::level_error );
-					set_state( ThreadFailed );
-					break;
-				}
-			}
-		}
-    }
-    catch( const std::runtime_error& except )
-    {
-        qCritical() << "std::runtime_error caught! what=" << except.what();
-		wpkg_output::log( except.what() ).level( wpkg_output::level_error );
-		set_state( ThreadFailed );
-    }
 }
 
 
@@ -242,21 +169,23 @@ void RemoveDialog::on_f_buttonBox_clicked(QAbstractButton *button)
         ShowProcessDialog( true, false /*cancel_button*/ );
         SetSwitches();
 
+        auto remover( f_manager.lock()->GetRemover().lock() );
+
         QMap<QString,int> folders;
         const QStringList contents = f_model.stringList();
 		foreach( QString file, contents )
 		{
-            f_remover->add_package( file.toStdString() );
+            remover->add_package( file.toStdString() );
         }
 
-        if( f_remover->validate() )
+        if( remover->validate() )
 		{
-			f_thread = QSharedPointer<QThread>( static_cast<QThread*>( new RemoveThread( this, f_manager.data(), f_remover.data() ) ) );
+            f_thread.reset( new RemoveThread( this, f_manager ) );
 			f_thread->start();
 
 			connect
-				( f_thread.data(), SIGNAL(finished())
-				, this           , SLOT(OnRemoveComplete())
+				( f_thread.get(), SIGNAL(finished())
+				, this          , SLOT(OnRemoveComplete())
 				);
 		}
 		else
@@ -280,7 +209,7 @@ void RemoveDialog::on_f_buttonBox_clicked(QAbstractButton *button)
 
 void RemoveDialog::OnRemoveComplete()
 {
-	if( dynamic_cast<RemoveThread*>(f_thread.data())->get_state() == RemoveThread::ThreadFailed )
+	if( f_thread->get_state() == RemoveThread::ThreadFailed )
 	{
 		QMessageBox::critical
 			( this

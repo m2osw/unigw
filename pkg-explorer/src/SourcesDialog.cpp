@@ -34,14 +34,13 @@ SourcesDialog::~SourcesDialog()
 }
 
 
-void SourcesDialog::SetManager( QSharedPointer<wpkgar::wpkgar_manager> mgr )
+void SourcesDialog::SetManager( Manager::pointer_t mgr )
 {
 	f_manager = mgr;
-	Q_ASSERT( f_manager.data() );
 
     try
     {
-        f_model.setStringList( RepoUtils::ReadSourcesList( f_manager.data() ) );
+        f_model.setStringList( RepoUtils::ReadSourcesList( f_manager ) );
     }
     catch( const wpkgar::wpkgar_exception& _x )
     {
@@ -120,7 +119,7 @@ void SourcesDialog::on_f_buttonBox_clicked(QAbstractButton *button)
     {
         try
         {
-            RepoUtils::WriteSourcesList( f_manager.data(), f_model.stringList() );
+            RepoUtils::WriteSourcesList( f_manager, f_model.stringList() );
             accept();
         }
         catch( const wpkgar::wpkgar_exception& _x )

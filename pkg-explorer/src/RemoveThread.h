@@ -1,5 +1,5 @@
 //===============================================================================
-// Copyright:   Copyright (c) 2013 Made to Order Software Corp.
+// Copyright:	Copyright (c) 2015 Made to Order Software Corp.
 //
 // All Rights Reserved.
 //
@@ -21,18 +21,25 @@
 #include "include_qt4.h"
 #include "Manager.h"
 
-#include <libdebpackages/wpkgar.h>
-#include <libdebpackages/wpkgar_repository.h>
+#include <memory>
 
-namespace RepoUtils
+class RemoveThread : public QThread
 {
-    QString         SourceToQString  ( const wpkgar::source& src, const bool uri_only = false );
-    wpkgar::source  QStringToSource  ( const QString& str );
-    QStringList     ReadSourcesList  ( Manager::pointer_t manager, const bool uri_only = false );
-    void            WriteSourcesList ( Manager::pointer_t manager, const QStringList& contents );
-}
-// namespace
+public:
+	typedef enum { ThreadStopped, ThreadRunning, ThreadFailed, ThreadSucceeded } State;
 
+    RemoveThread( QObject* p, Manager::pointer_t manager );
 
-// vim: ts=4 sw=4 et
+    virtual void run();
 
+	State get_state() const;
+
+private:
+    std::shared_ptr<Manager>	f_manager;
+    State			            f_state;
+    mutable QMutex	            f_mutex;
+
+	void set_state( const State new_state );
+};
+
+// vim: ts=4 sw=4 noet
