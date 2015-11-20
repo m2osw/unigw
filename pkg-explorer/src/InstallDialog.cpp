@@ -17,7 +17,6 @@
 //===============================================================================
 
 #include "InstallDialog.h"
-#include "InstallThread.h"
 #include "RepoUtils.h"
 
 #include <libdebpackages/wpkgar_repository.h>

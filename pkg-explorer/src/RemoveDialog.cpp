@@ -165,7 +165,7 @@ void RemoveDialog::on_f_buttonBox_clicked(QAbstractButton *button)
 	//
     if( button == applyBtn )
 	{
-        ShowProcessDialog( true, false /*cancel_button*/ );
+        StartOperation();
         SetSwitches();
 
         auto remover( Manager::Instance()->GetRemover().lock() );
@@ -195,7 +195,7 @@ void RemoveDialog::on_f_buttonBox_clicked(QAbstractButton *button)
 				  , tr("One or more packages failed to validate for removal! See log pane for details...")
 				  , QMessageBox::Ok
 				);
-            ShowProcessDialog( false, true );
+            EndOperation();
             reject();
         }
     }
@@ -218,7 +218,7 @@ void RemoveDialog::OnRemoveComplete()
 			);
 	}
 
-    ShowProcessDialog( false, true );
+    EndOperation();
 	accept();
 }
 

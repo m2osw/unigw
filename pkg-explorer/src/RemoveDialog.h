@@ -36,7 +36,8 @@ public:
 	void SetPackagesToRemove( const QStringList& list );
 
 signals:
-    void ShowProcessDialog( bool show_it, bool enable_cancel );
+    void StartOperation();
+    void EndOperation();
 
 private slots:
 	void OnSelectionChanged( const QItemSelection &, const QItemSelection& );

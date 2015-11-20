@@ -37,15 +37,15 @@ public:
 
     virtual void run();
 
+signals:
+    void AddMessage( const QString& msg );
+
 private:
     std::string          f_html;
     QString              f_currentPackage;
 
 	void DependencyToLink( std::string& result, const std::string& package_name, const std::string& field_name ) const;
 	void GeneratePackageHtml();
-
-signals:
-    void AddMessage( const QString& msg );
 };
 
 

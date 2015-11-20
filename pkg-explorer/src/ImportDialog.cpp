@@ -58,31 +58,12 @@ void ImportDialog::ShowLogPane( const bool show_pane )
 {
     if( show_pane )
 	{
-		connect
-			( this      , SIGNAL(ShowProcessDialog(bool,bool))
-			, f_logForm , SLOT  (ShowProcessDialog(bool,bool))
-			);
-		//
-#if 0
-        // TODO: this needs to be fixed
-		wpkg_output::output* out = f_logForm->GetLogOutput();
-		Q_ASSERT( out );
-		wpkg_output::set_output( out );
-        out->set_debug_flags( wpkg_output::debug_flags::debug_progress );
-#endif
-
         f_logFrame->show();
 	}
 	else
 	{
         f_logFrame->hide();
-
 		wpkg_output::set_output( 0 );
-		//
-		connect
-			( this      , SIGNAL(ShowProcessDialog(bool,bool))
-			, f_logForm , SLOT  (ShowProcessDialog(bool,bool))
-			);
 	}
 }
 
@@ -308,7 +289,7 @@ void ImportDialog::on_f_buttonBox_clicked(QAbstractButton *button)
 	//
     if( button == applyBtn )
     {
-        ShowProcessDialog( true, true );
+        StartOperation();
         SetSwitches();
 
 		QMap<QString,int> folders;
@@ -359,7 +340,7 @@ void ImportDialog::OnInstallComplete()
         accept();
     }
 
-    ShowProcessDialog( false, true );
+    EndOperation();
 }
 
 

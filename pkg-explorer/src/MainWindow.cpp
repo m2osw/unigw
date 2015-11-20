@@ -300,18 +300,33 @@ void MainWindow::SaveSettings()
 }
 
 
-void MainWindow::OnShowProcessDialog( const bool show_it, const bool enable_cancel )
+void MainWindow::OnStartImportOperation()
 {
-    if( show_it )
-    {
-        f_procDlg.ShowLogPane( !f_immediateInstall.isEmpty() );
-        f_procDlg.show();
-        f_procDlg.EnableCancelButton( enable_cancel );
-    }
-    else
-    {
-        f_procDlg.hide();
-    }
+    f_procDlg.show();
+    f_procDlg.EnableCancelButton( true );
+}
+
+
+void MainWindow::OnEndImportOperation()
+{
+    f_procDlg.hide();
+    f_webForm->ClearHistory();
+    RefreshListing();
+}
+
+
+void MainWindow::OnStartRemoveOperation()
+{
+    f_procDlg.show();
+    f_procDlg.EnableCancelButton( true );
+}
+
+
+void MainWindow::OnEndRemoveOperation()
+{
+    f_procDlg.hide();
+    f_webForm->ClearHistory();
+    RefreshListing();
 }
 
 
@@ -431,7 +446,6 @@ void MainWindow::InitManager()
     }
 
     f_procDlg.AddMessage( tr("Please wait...") );
-    OnShowProcessDialog( true, false /*enable_cancel*/ );
 
     QSettings settings;
     const QString root_path = settings.value( "root_path" ).toString();
@@ -441,14 +455,14 @@ void MainWindow::InitManager()
     const QString rootMsg( QObject::tr("Database root: [%1]").arg(root_path) );
     f_statusLabel.setText( rootMsg );
 
-    OnShowProcessDialog( false, false /*enable_cancel*/ );
-
     if( f_immediateInstall.isEmpty() )
     {
         RefreshListing();
     }
     else
     {
+        f_procDlg.ShowLogPane( true );
+
         // Start install
         f_installMode = InstallDialog::InstallMode;
         StartInstallThread( f_immediateInstall );
@@ -458,11 +472,12 @@ void MainWindow::InitManager()
 
 void MainWindow::RefreshListing()
 {
-    OnShowProcessDialog( true, false /*enable_cancel*/ );
-
     ActionsDisable ad( f_actionList, false /*enable_remove_action*/ );
 
 	f_packageModel.setRowCount( 0 );
+
+    f_procDlg.show();
+    f_procDlg.EnableCancelButton( false );
 
     f_initThread.reset( new InitThread( this, actionShowInstalled->isChecked() ) );
 	f_initThread->start();
@@ -497,8 +512,6 @@ void MainWindow::UpdateActions()
 
 void MainWindow::OnRefreshListing()
 {
-    OnShowProcessDialog( false, true );
-
     ActionsDisable ad( f_actionList );
 
     if( f_initThread )
@@ -540,6 +553,8 @@ void MainWindow::OnRefreshListing()
 	}
 
 	UpdateActions();
+
+    f_procDlg.hide();
 
     // Destroy now that we're finished.
     Manager::Release();
@@ -642,6 +657,9 @@ void MainWindow::StartInstallThread( const QStringList& packages_list )
         installer->add_package( pkg.toStdString() );
     }
 
+    f_procDlg.show();
+    f_procDlg.EnableCancelButton( true );
+
 	f_installThread.reset
 		(
 			new InstallThread
@@ -649,7 +667,6 @@ void MainWindow::StartInstallThread( const QStringList& packages_list )
 				, InstallThread::ThreadValidateOnly
 				)
 		);
-    OnShowProcessDialog( true, true );
 
     connect
         ( f_installThread.get(), &QThread::finished
@@ -664,11 +681,13 @@ void MainWindow::HandleFailure()
 {
     if( f_immediateInstall.isEmpty() )
     {
+        RefreshListing();
         return;
     }
 
     f_immediateInstall.clear();
     show();
+    f_webForm->ClearHistory();
     RefreshListing();
     actionShowLog->trigger();
 }
@@ -676,7 +695,7 @@ void MainWindow::HandleFailure()
 
 void MainWindow::OnInstallValidateComplete()
 {
-    OnShowProcessDialog( false, true );
+    f_procDlg.hide();
 
     if( f_installThread->get_state() == InstallThread::ThreadFailed )
     {
@@ -687,6 +706,7 @@ void MainWindow::OnInstallValidateComplete()
                   , QMessageBox::Ok
                   );
         HandleFailure();
+        RefreshListing();
         return;
     }
 
@@ -785,7 +805,8 @@ void MainWindow::OnInstallValidateComplete()
 					)
 			);
 
-        OnShowProcessDialog( true, true );
+        f_procDlg.show();
+        f_procDlg.EnableCancelButton( true );
 
         connect
             ( f_installThread.get(), &QThread::finished
@@ -796,15 +817,14 @@ void MainWindow::OnInstallValidateComplete()
     }
     else
     {
-        // Destroy now that we're finished.
-        Manager::Release();
+        RefreshListing();
     }
 }
 
 
 void MainWindow::OnInstallComplete()
 {
-    OnShowProcessDialog( false, true );
+    f_procDlg.hide();
 
     const bool failed = f_installThread->get_state() == InstallThread::ThreadFailed;
     if( failed )
@@ -850,13 +870,14 @@ void MainWindow::on_actionFileImport_triggered()
 	ResetErrorCount();
     ImportDialog dlg( this );
     connect
-        ( &dlg , &ImportDialog::ShowProcessDialog
-        , this , &MainWindow::OnShowProcessDialog
+        ( &dlg , &ImportDialog::StartOperation
+        , this , &MainWindow::OnStartImportOperation
         );
-    if( dlg.exec() == QDialog::Accepted )
-    {
-        RefreshListing();
-    }
+    connect
+        ( &dlg , &ImportDialog::EndOperation
+        , this , &MainWindow::OnEndImportOperation
+        );
+    dlg.exec();
 }
 
 
@@ -865,10 +886,6 @@ void MainWindow::on_actionInstall_triggered()
     ActionsDisable ad( f_actionList );
 
     InstallDialog dlg( this );
-    connect
-        ( &dlg , &InstallDialog::ShowProcessDialog
-        , this , &MainWindow::OnShowProcessDialog
-        );
     if( dlg.exec() == QDialog::Accepted )
     {
         f_installMode = dlg.GetMode();
@@ -894,15 +911,15 @@ void MainWindow::on_actionRemove_triggered()
 	ResetErrorCount();
     RemoveDialog dlg( this );
     connect
-        ( &dlg , &RemoveDialog::ShowProcessDialog
-        , this , &MainWindow::OnShowProcessDialog
+        ( &dlg , &RemoveDialog::StartOperation
+        , this , &MainWindow::OnStartRemoveOperation
+        );
+    connect
+        ( &dlg , &RemoveDialog::EndOperation
+        , this , &MainWindow::OnEndRemoveOperation
         );
     dlg.SetPackagesToRemove( packages_to_remove );
-    if( dlg.exec() == QDialog::Accepted )
-    {
-        f_webForm->ClearHistory();
-        RefreshListing();
-    }
+    dlg.exec();
 }
 
 
@@ -939,8 +956,10 @@ void MainWindow::on_actionHistoryForward_triggered()
 
 void MainWindow::on_actionUpdate_triggered()
 {
-    OnShowProcessDialog( true, false /*enable_cancel*/ );
     ActionsDisable ad( f_actionList, false /*enable_on_destroy*/ );
+
+    f_procDlg.show();
+    f_procDlg.EnableCancelButton( true );
 
     f_updateThread.reset( new UpdateThread( this ) );
 	f_updateThread->start();
@@ -954,11 +973,18 @@ void MainWindow::on_actionUpdate_triggered()
 
 void MainWindow::OnUpdateFinished()
 {
-    OnShowProcessDialog( false, true );
     ActionsDisable ad( f_actionList );
+
+    f_procDlg.hide();
+
     if( f_doUpgrade )
     {
         actionUpgrade->trigger();
+    }
+    else
+    {
+        f_webForm->ClearHistory();
+        RefreshListing();
     }
 }
 
@@ -975,17 +1001,16 @@ void MainWindow::OnSystrayMessage( const QString& msg )
 void MainWindow::on_actionUpgrade_triggered()
 {
     ActionsDisable ad( f_actionList );
-    InstallDialog dlg( this, InstallDialog::UpgradeMode );
-    connect
-        ( &dlg , &InstallDialog::ShowProcessDialog
-        , this , &MainWindow::OnShowProcessDialog
-        );
-    if( dlg.exec() == QDialog::Accepted )
-    {
-        RefreshListing();
-    }
 
     f_doUpgrade = false;
+
+    InstallDialog dlg( this, InstallDialog::UpgradeMode );
+    if( dlg.exec() == QDialog::Accepted )
+    {
+        QStringList list;
+        dlg.GetPackageList( list );
+        StartInstallThread( list );
+    }
 }
 
 

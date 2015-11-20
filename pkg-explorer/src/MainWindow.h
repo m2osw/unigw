@@ -94,7 +94,10 @@ private:
     void DisplayPackage( const QString& package_name );
 
 public slots:
-    void OnShowProcessDialog( const bool show_it, const bool enable_cancel );
+    void OnStartImportOperation();
+    void OnEndImportOperation();
+    void OnStartRemoveOperation();
+    void OnEndRemoveOperation();
 
 private slots:
 	void OnAboutToQuit();

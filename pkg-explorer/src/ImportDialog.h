@@ -41,7 +41,8 @@ public:
 	void ShowLogPane( const bool show = true );
 
 signals:
-    void ShowProcessDialog( bool show_it, bool enable_cancel );
+    void StartOperation();
+    void EndOperation();
 
 private slots:
     void on_f_addButton_clicked();
