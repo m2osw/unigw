@@ -20,6 +20,8 @@
 
 #include <libdebpackages/wpkg_output.h>
 
+using namespace wpkgar;
+
 namespace
 {
     std::string html_template(
@@ -170,15 +172,35 @@ void DisplayThread::run()
 	try
 	{
         QMutexLocker locker( &Manager::Instance()->GetMutex() );
+
+        auto manager( Manager::Instance()->GetManager().lock() );
+
+        // Load the installed packages into memory
+        //
+        wpkgar_manager::package_list_t list;
+        manager->list_installed_packages( list );
+        for( auto pkg : list )
+        {
+            manager->load_package( pkg );
+        }
+
         GeneratePackageHtml();
 	}
-    catch( const wpkgar::wpkgar_exception& except )
+    catch( const wpkgar_exception& except )
     {
         qCritical() << "wpkgar_exception caught! what=" << except.what();
 		wpkg_output::message_t msg;
 		msg.set_level( wpkg_output::level_error );
 		msg.set_raw_message( except.what() );
 		wpkg_output::get_output()->log( msg );
+    }
+    catch( ... )
+    {
+        qCritical() << "unknown exception caught!";
+        wpkg_output::message_t msg;
+        msg.set_level( wpkg_output::level_error );
+        msg.set_raw_message( "unknown exception" );
+        wpkg_output::get_output()->log( msg );
     }
 
     // Destroy now that we're finished.

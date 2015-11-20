@@ -36,9 +36,12 @@ public:
     static pointer_t Instance();
     static void      Release();
 
+    std::weak_ptr<wpkgar::wpkgar_lock>      GetLock();
     std::weak_ptr<wpkgar::wpkgar_manager>   GetManager();
     std::weak_ptr<wpkgar::wpkgar_install>   GetInstaller();
     std::weak_ptr<wpkgar::wpkgar_remove>    GetRemover();
+
+    void ResetLock();
 
     QMutex& GetMutex();
 
@@ -46,7 +49,7 @@ private:
     Manager();
 
     void Init();
-    bool CreateLock();
+    void CreateLock();
 
     void LogFatal( const QString& msg );
 

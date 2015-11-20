@@ -21,6 +21,8 @@
 #include <libdebpackages/wpkg_output.h>
 #include <libdebpackages/wpkgar_repository.h>
 
+using namespace wpkgar;
+
 UpdateThread::UpdateThread( QObject* p )
     : QThread(p)
 {
@@ -32,8 +34,17 @@ void UpdateThread::run()
     {
         QMutexLocker locker( &Manager::Instance()->GetMutex() );
         auto manager( Manager::Instance()->GetManager().lock() );
-        wpkgar::wpkgar_repository repository( manager.get() );
 
+        // Load the installed packages into memory
+        //
+        wpkgar_manager::package_list_t list;
+        manager->list_installed_packages( list );
+        for( auto pkg : list )
+        {
+            manager->load_package( pkg );
+        }
+
+        wpkgar_repository repository( manager.get() );
         repository.update();
     }
     catch( const std::runtime_error& except )

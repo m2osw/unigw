@@ -123,9 +123,18 @@ void InstallThread::run()
         auto manager     ( Manager::Instance()->GetManager().lock()   );
         auto installer   ( Manager::Instance()->GetInstaller().lock() );
 
+        // Load the installed packages into memory
+        //
+        wpkgar_manager::package_list_t list;
+        manager->list_installed_packages( list );
+        for( auto pkg : list )
+        {
+            manager->load_package( pkg );
+        }
+
         if( f_mode == ThreadValidateOnly || f_mode == ThreadFullInstall )
         {
-            if( !Validate( manager, installer ) )
+            if( Validate( manager, installer ) )
             {
                 // Stop here if we are in full install mode. Don't delete the manager instance.
                 //

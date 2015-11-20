@@ -81,9 +81,17 @@ QMutex& Manager::GetMutex()
 }
 
 
+std::weak_ptr<wpkgar::wpkgar_lock> Manager::GetLock()
+{
+    QMutexLocker locker( &f_mutex );
+    return f_lock;
+}
+
+
 std::weak_ptr<wpkgar_manager> Manager::GetManager()
 {
 	QMutexLocker locker( &f_mutex );
+    Q_ASSERT( f_manager );
     return f_manager;
 }
 
@@ -107,6 +115,17 @@ std::weak_ptr<wpkgar_remove>   Manager::GetRemover()
         f_remover.reset( new wpkgar_remove( f_manager.get() ) );
     }
     return f_remover;
+}
+
+
+void Manager::ResetLock()
+{
+    Q_ASSERT( f_manager );
+    f_manager->remove_lock();
+
+    // Create the lock file
+    //
+    CreateLock();
 }
 
 
@@ -136,76 +155,30 @@ void Manager::Init()
     f_manager->set_database_path( database_path.toStdString() );
 	f_manager->add_sources_list();
 
-    if( !CreateLock() )
-    {
-        throw std::runtime_error( "Lock file not created!" );
-    }
+    CreateLock();
 }
 
 
-void Manager::LogFatal( const QString& msg )
+void Manager::CreateLock()
 {
-    f_logOutput->OutputToLog( wpkg_output::level_fatal, msg );
-    QMessageBox::critical
-        ( 0
-          , QObject::tr("Application Terminated!")
-          , msg
-          , QMessageBox::Ok
-        );
-    qFatal( "%s", msg.toStdString().c_str() );
-}
-
-
-bool Manager::CreateLock()
-{
-    bool lock_file_created = false;
-    while( !lock_file_created )
+    try
     {
-        try
-        {
-            f_lock.reset( new wpkgar_lock( f_manager.get(), "Package Explorer" ) );
-            lock_file_created = true;
-        }
-        catch( const wpkgar_exception_locked& except )
-        {
-            f_logOutput->OutputToLog( wpkg_output::level_error, except.what() );
-            QMessageBox::StandardButton result = QMessageBox::critical
-                    ( 0
-                      , QObject::tr("Database locked!")
-                      , QObject::tr("The database is locked. "
-                           "This means that either pkg-explorer terminated unexpectantly, "
-                           "or there is another instance accessing the database. Do you want to remove the lock?")
-                      , QMessageBox::Yes | QMessageBox::No
-                      );
-            if( result == QMessageBox::Yes )
-            {
-                try
-                {
-                    f_manager->remove_lock();
-                    f_logOutput->OutputToLog( wpkg_output::level_debug, "Lock file removed." );
-                }
-                catch( const std::runtime_error& _xcpt )
-                {
-                    LogFatal( _xcpt.what() );
-                    break;
-                }
-            }
-            else
-            {
-                // Quit the application ungracefully.
-                //
-                LogFatal( "Not removing the lock, so exiting application." );
-                break;
-            }
-        }
-        catch( const std::runtime_error& except )
-        {
-            LogFatal( except.what() );
-            break;
-        }
+        f_lock.reset( new wpkgar_lock( f_manager.get(), "Package Explorer" ) );
     }
-
-    return lock_file_created;
+    catch( const wpkgar_exception_locked& except )
+    {
+        f_logOutput->OutputToLog( wpkg_output::level_error, except.what() );
+    }
+    catch( const std::runtime_error& except )
+    {
+        f_logOutput->OutputToLog( wpkg_output::level_fatal, except.what() );
+        qFatal( "Error when locking database: [%s]", except.what() );
+    }
+    catch( ... )
+    {
+        f_logOutput->OutputToLog( wpkg_output::level_fatal, "Unknown error!" );
+        qFatal( "Unknown error when trying to lock database!" );
+    }
 }
 
 // vim: ts=4 sw=4 et

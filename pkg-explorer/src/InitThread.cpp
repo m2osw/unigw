@@ -70,51 +70,52 @@ InitThread::InitThread( QObject* p, const bool show_installed_only )
 
 void InitThread::run()
 {
-    QMutexLocker locker( &f_mutex );
-    QMutexLocker mgr_locker( &Manager::Instance()->GetMutex() );
-
-	wpkgar_manager::package_list_t list;
 	try
     {
+        QMutexLocker locker( &f_mutex );
+        QMutexLocker mgr_locker( &Manager::Instance()->GetMutex() );
+
+        wpkgar_manager::package_list_t list;
+
         auto manager( Manager::Instance()->GetManager().lock() );
-		ResetErrorCount();
+        ResetErrorCount();
         manager->list_installed_packages( list );
 
-		Q_FOREACH( std::string package_name, list )
-		{
-			wpkgar_manager::package_status_t status( manager->package_status( package_name ) );
+        Q_FOREACH( std::string package_name, list )
+        {
+            wpkgar_manager::package_status_t status( manager->package_status( package_name ) );
 
-			bool show_package = true;
-			//
+            bool show_package = true;
+            //
             if( f_showInstalledOnly && (status != wpkgar_manager::installed) )
-			{
-				switch( status )
-				{
-					case wpkgar_manager::installed:
-					case wpkgar_manager::half_installed:
-					case wpkgar_manager::half_configured:
-						show_package = true;
-						break;
-					default:
-						show_package = false;
-				}
-			}
-			//
-			if( show_package )
-			{
-				const std::string version( manager->get_field( package_name, "Version" ) );
-				std::string section("base"); // use a valid default
-				if( manager->field_is_defined( package_name, "Section" ) )
-				{
-					section = manager->get_field( package_name, "Section" );
-				}
-				ItemList pkg;
-				pkg << package_name.c_str();
-				pkg << StatusToQString( status );
-				pkg << version.c_str();
-				f_sectionMap[section.c_str()] << pkg;
-			}
-		}
+            {
+                switch( status )
+                {
+                case wpkgar_manager::installed:
+                case wpkgar_manager::half_installed:
+                case wpkgar_manager::half_configured:
+                    show_package = true;
+                    break;
+                default:
+                    show_package = false;
+                }
+            }
+            //
+            if( show_package )
+            {
+                const std::string version( manager->get_field( package_name, "Version" ) );
+                std::string section("base"); // use a valid default
+                if( manager->field_is_defined( package_name, "Section" ) )
+                {
+                    section = manager->get_field( package_name, "Section" );
+                }
+                ItemList pkg;
+                pkg << package_name.c_str();
+                pkg << StatusToQString( status );
+                pkg << version.c_str();
+                f_sectionMap[section.c_str()] << pkg;
+            }
+        }
     }
     catch( const std::runtime_error& except )
     {

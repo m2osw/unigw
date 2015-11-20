@@ -21,6 +21,8 @@
 #include <libdebpackages/wpkg_output.h>
 #include <libdebpackages/wpkgar_repository.h>
 
+using namespace wpkgar;
+
 RemoveThread::RemoveThread( QObject* p )
         : QThread(p)
 		, f_state(ThreadStopped)
@@ -47,15 +49,26 @@ void RemoveThread::run()
         QMutexLocker locker( &f_mutex );
         QMutexLocker mgr_locker( &(Manager::Instance()->GetMutex()) );
 
+        auto manager( Manager::Instance()->GetManager().lock() );
+        auto remover( Manager::Instance()->GetRemover().lock() );
+
         set_state( ThreadRunning );
 
-        auto remover( Manager::Instance()->GetRemover().lock() );
+        // Load the installed packages into memory
+        //
+        wpkgar_manager::package_list_t list;
+        manager->list_installed_packages( list );
+        for( auto pkg : list )
+        {
+            manager->load_package( pkg );
+        }
+
         for(;;)
 		{
             const int i( remover->remove() );
 			if(i < 0)
 			{
-                if( i == wpkgar::wpkgar_remove::WPKGAR_EOP )
+                if( i == wpkgar_remove::WPKGAR_EOP )
 				{
 					wpkg_output::log( "Removal of packages complete!" ).level( wpkg_output::level_info );
 					set_state( ThreadSucceeded );

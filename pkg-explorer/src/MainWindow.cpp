@@ -395,6 +395,41 @@ void MainWindow::LogFatal( const QString& msg )
 
 void MainWindow::InitManager()
 {
+    if( !Manager::Instance()->GetLock().lock() )
+    {
+        QMessageBox::StandardButton result = QMessageBox::critical
+              ( this
+              , QObject::tr("Database locked!")
+              , QObject::tr("The database is locked. "
+                            "This means that either pkg-explorer terminated unexpectantly, "
+                            "or there is another instance accessing the database. Do you want to remove the lock?")
+              , QMessageBox::Yes | QMessageBox::No
+              );
+        if( result == QMessageBox::Yes )
+        {
+            try
+            {
+                Manager::Instance()->ResetLock();
+                LogDebug( "Lock file removed and reset." );
+
+                if( !Manager::Instance()->GetLock().lock() )
+                {
+                    LogFatal( "Lock file is stubbornly refusing to be created!" );
+                }
+            }
+            catch( const std::runtime_error& _xcpt )
+            {
+                LogFatal( _xcpt.what() );
+            }
+        }
+        else
+        {
+            // Quit the application ungracefully.
+            //
+            LogFatal( "Not removing the lock, so exiting application." );
+        }
+    }
+
     f_procDlg.AddMessage( tr("Please wait...") );
     OnShowProcessDialog( true, false /*enable_cancel*/ );
 
@@ -465,11 +500,6 @@ void MainWindow::OnRefreshListing()
     OnShowProcessDialog( false, true );
 
     ActionsDisable ad( f_actionList );
-
-    if( !f_initThread )
-    {
-        return;
-    }
 
     if( f_initThread )
     {
