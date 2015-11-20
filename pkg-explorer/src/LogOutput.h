@@ -34,7 +34,10 @@ class LogOutput
 	Q_OBJECT
 
 public:
-    LogOutput();
+    typedef std::shared_ptr<LogOutput> pointer_t;
+
+    static pointer_t Instance();
+    static void      Release();
 
     virtual void           log_message( const wpkg_output::message_t& msg ) const;
     wpkg_output::level_t   get_level() const;
@@ -43,10 +46,16 @@ public:
     void                   set_level( wpkg_output::level_t level );
 	void                   clear();
 
+    void                   OutputToLog( wpkg_output::level_t level, const QString& msg );
+
 signals:
 	void                   AddProcessMessage( const QString& msg ) const;
 
 private:
+    LogOutput();
+
+    static pointer_t                            f_instance;
+
     wpkg_output::level_t	                    f_logLevel;
 	//
     mutable QMutex								f_mutex;

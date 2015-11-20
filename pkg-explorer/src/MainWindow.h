@@ -49,7 +49,6 @@ protected:
     void closeEvent( QCloseEvent* event );
     
 private:
-	std::shared_ptr<Manager>				f_manager;
     QStandardItemModel						f_packageModel;
     QItemSelectionModel						f_selectModel;
     std::shared_ptr<InitThread>             f_initThread;
@@ -61,7 +60,7 @@ private:
     QStringList                             f_immediateInstall;
     InstallDialog::Mode                     f_installMode;
     ProcessDialog                           f_procDlg;
-    QSharedPointer<LogOutput>               f_logOutput;
+    std::shared_ptr<LogOutput>              f_logOutput;
     bool                                    f_doUpgrade;
     QLabel                                  f_statusLabel;
     mutable QMutex        					f_mutex;
@@ -72,51 +71,10 @@ private:
 	typedef QList<QAction*> ActionList;
 	ActionList f_actionList;
 
-#if 0
-    bool SetLock();
-    void ReleaseLock();
-
-    class AutoLock
-    {
-    public:
-        AutoLock( MainWindow* mainWnd ) : f_mainWnd(mainWnd)
-        {
-            f_mainWnd->SetLock();
-        }
-
-        ~AutoLock()
-        {
-            f_mainWnd->ReleaseLock();
-        }
-
-    private:
-        MainWindow* f_mainWnd;
-    };
-    friend class AutoLock;
-
-    class AutoUnlock
-    {
-    public:
-        AutoUnlock( MainWindow* mainWnd ) : f_mainWnd(mainWnd)
-        {
-        }
-
-        ~AutoUnlock()
-        {
-            f_mainWnd->ReleaseLock();
-        }
-
-    private:
-        MainWindow* f_mainWnd;
-    };
-    friend class AutoUnlock;
-#endif
-
 	void LoadSettings();
 	void SaveSettings();
 
-	void OutputToLog( wpkg_output::level_t level, const QString& msg );
-	void LogDebug   ( const QString& msg );
+    void LogDebug   ( const QString& msg );
 	void LogInfo    ( const QString& msg );
 	void LogWarning ( const QString& msg );
 	void LogError   ( const QString& msg );
@@ -132,6 +90,8 @@ private:
     void ResetLogChecks( QAction* except );
 
     void StartInstallThread( const QStringList& packages_list );
+
+    void DisplayPackage( const QString& package_name );
 
 public slots:
     void OnShowProcessDialog( const bool show_it, const bool enable_cancel );

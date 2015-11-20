@@ -97,43 +97,59 @@ add_executable(
 	WIN32
 	MACOSX_BUNDLE
     ${PLATFORM_RESOURCES}
-	database.h
 	database.cpp
+	database.h
+	DisplayThread.cpp
+	DisplayThread.h
     include_qt4.h
-	ImportDialog.ui
 	ImportDialog.cpp
+	ImportDialog.h
+	ImportDialog.ui
 	InitThread.cpp
 	InitThread.h
-	InstallDialog.ui
 	InstallDialog.cpp
-	InstallThread.h
+	InstallDialog.h
+	InstallDialog.ui
 	InstallThread.cpp
+	InstallThread.h
     LicenseBox.ui
 	LogForm.ui
 	LogForm.cpp
+	LogForm.h
 	LogOutput.cpp
+	LogOutput.h
 	Manager.h
 	Manager.cpp
 	MainWindow.ui
 	MainWindow.cpp
+	MainWindow.h
 	PrefsDialog.ui
 	PrefsDialog.cpp
+	PrefsDialog.h
 	ProcessDialog.ui
 	ProcessDialog.cpp
+	ProcessDialog.h
 	RemoveDialog.ui
+	RemoveDialog.h
 	RemoveDialog.cpp
+	RemoveThread.cpp
+	RemoveThread.h
 	RepoUtils.h
 	RepoUtils.cpp
-	SourceInfoDialog.ui
 	SourceInfoDialog.cpp
+	SourceInfoDialog.h
+	SourceInfoDialog.ui
 	SourcesDialog.ui
 	SourcesDialog.cpp
+	SourcesDialog.h
 	UpdateThread.cpp
 	UpdateThread.h
 	WebForm.ui
 	WebForm.cpp
+	WebForm.h
 	LicenseBox.ui
 	LicenseBox.cpp
+	LicenseBox.h
 	main.cpp
     resources.qrc
 	)

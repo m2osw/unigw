@@ -22,29 +22,42 @@
 
 #include <libdebpackages/wpkgar.h>
 #include <libdebpackages/wpkgar_install.h>
+#include <libdebpackages/wpkgar_remove.h>
 
 #include <memory>
 
 class Manager
 {
 public:
-    typedef std::weak_ptr<Manager> pointer_t;
+    typedef std::shared_ptr<Manager> pointer_t;
 
-    Manager( std::weak_ptr<LogOutput> log );
+    ~Manager();
 
-    std::weak_ptr<wpkgar::wpkgar_manager>   GetManager() const;
-    std::weak_ptr<wpkgar::wpkgar_install>   GetInstaller() const;
-    std::weak_ptr<wpkgar::wpkgar_remove>    GetRemover() const;
+    static pointer_t Instance();
+    static void      Release();
+
+    std::weak_ptr<wpkgar::wpkgar_manager>   GetManager();
+    std::weak_ptr<wpkgar::wpkgar_install>   GetInstaller();
+    std::weak_ptr<wpkgar::wpkgar_remove>    GetRemover();
+
+    QMutex& GetMutex();
 
 private:
-    void Init( std::weak_ptr<wpkgar::wpkgar_lock> log );
+    Manager();
+
+    void Init();
     bool CreateLock();
+
+    void LogFatal( const QString& msg );
+
+    static pointer_t f_instance;
 
     mutable QMutex        					f_mutex;
     std::shared_ptr<wpkgar::wpkgar_lock>	f_lock;
     std::shared_ptr<wpkgar::wpkgar_manager>	f_manager;
     std::shared_ptr<wpkgar::wpkgar_install> f_installer;
     std::shared_ptr<wpkgar::wpkgar_remove>  f_remover;
+    std::shared_ptr<LogOutput>              f_logOutput;
 };
 
 // vim: ts=4 sw=4 et

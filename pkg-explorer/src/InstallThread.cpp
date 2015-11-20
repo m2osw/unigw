@@ -24,40 +24,38 @@ using namespace wpkgar;
 
 
 InstallThread::InstallThread
-		( QObject* p,
-		, Manager::pointer_t manager
+        ( QObject* p
 		, const Mode mode
 		)
 	: QThread(p)
-	, f_manager(manager.lock())
 	, f_state(ThreadStopped)
 	, f_mode(mode)
+    , f_mutex(QMutex::Recursive)
 {
 }
 
 
 InstallThread::State InstallThread::get_state() const
 {
-	QMutexLocker locker( &f_mutex );
+    QMutexLocker locker( &f_mutex );
 	return f_state;
 }
 
 
 void InstallThread::set_state( const State new_state )
 {
-	QMutexLocker locker( &f_mutex );
 	f_state = new_state;
 }
 
 
-bool InstallThread::Validate()
+bool InstallThread::Validate( std::shared_ptr<wpkgar_manager> manager, std::shared_ptr<wpkgar_install> installer )
 {
-	const bool succeeded = f_manager->GetInstaller().lock()->validate();
+    const bool succeeded = installer->validate();
 	if( !succeeded )
 	{
 		set_state( ThreadFailed );
 	}
-	else if( f_manager->GetManager().lock()->is_self() )
+    else if( manager->is_self() )
 	{
 		wpkg_output::log( "Unfortunately, you cannot manage the pkg-explorer installation from itself! To update pkg-explorer use the pkg-explorer-setup or wpkg in a console." ).level(wpkg_output::level_error );
 		set_state( ThreadFailed );
@@ -67,9 +65,9 @@ bool InstallThread::Validate()
 }
 
 
-bool InstallThread::Preconfigure()
+bool InstallThread::Preconfigure( std::shared_ptr<wpkgar_install> installer )
 {
-	const bool succeeded = f_manager->GetInstaller().lock()->pre_configure();
+    const bool succeeded = installer->pre_configure();
 	if( !succeeded )
 	{
 		set_state( ThreadFailed );
@@ -78,10 +76,8 @@ bool InstallThread::Preconfigure()
 }
 
 
-void InstallThread::InstallFiles()
+void InstallThread::InstallFiles( std::shared_ptr<wpkgar_install> installer )
 {
-	auto installer( f_manager->GetInstaller().lock() );
-
 	for(;;)
 	{
 		const std::string package_name( installer->get_package_name(0) );
@@ -115,26 +111,34 @@ void InstallThread::InstallFiles()
 
 void InstallThread::run()
 {
-	set_state( ThreadRunning );
-
     try
     {
-		if( f_mode == ThreadValidateOnly || f_mode == ThreadFullInstall )
-		{
-            if( !Validate() )
+        QMutexLocker locker( &f_mutex );
+        QMutexLocker mgr_locker( &(Manager::Instance()->GetMutex()) );
+
+        set_state( ThreadRunning );
+
+        // Lock these in place, which is thread-safe, during the thread lifetime.
+        //
+        auto manager     ( Manager::Instance()->GetManager().lock()   );
+        auto installer   ( Manager::Instance()->GetInstaller().lock() );
+
+        if( f_mode == ThreadValidateOnly || f_mode == ThreadFullInstall )
+        {
+            if( !Validate( manager, installer ) )
             {
-                // Stop here if we are in full install mode
+                // Stop here if we are in full install mode. Don't delete the manager instance.
                 //
                 return;
             }
         }
-		if( f_mode == ThreadInstallOnly || f_mode == ThreadFullInstall )
-		{
-			if( Preconfigure() )
-			{
-				InstallFiles();
-			}
-		}
+        if( f_mode == ThreadInstallOnly || f_mode == ThreadFullInstall )
+        {
+            if( Preconfigure( installer ) )
+            {
+                InstallFiles( installer );
+            }
+        }
     }
     catch( const std::runtime_error& x )
     {
@@ -142,6 +146,9 @@ void InstallThread::run()
         wpkg_output::log( x.what() ).level( wpkg_output::level_error );
 		set_state( ThreadFailed );
     }
+
+    // Destroy now that we're finished with the full install, or failure.
+    Manager::Release();
 }
 
 

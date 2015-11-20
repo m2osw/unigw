@@ -18,12 +18,15 @@
 
 #include "InitThread.h"
 
+#include <libdebpackages/wpkgar.h>
 #include <libdebpackages/wpkg_output.h>
 #include <libdebpackages/wpkgar_repository.h>
 
+using namespace wpkgar;
+
 namespace
 {
-	QString StatusToQString( wpkgar_manager::package_status_t status )
+    QString StatusToQString( wpkgar_manager::package_status_t status )
 	{
 		switch( status )
 		{
@@ -58,19 +61,22 @@ namespace
 }
 
 
-InitThread::InitThread( QObject* p, Manager::pointer_t manager, const bool show_installed_only )
+InitThread::InitThread( QObject* p, const bool show_installed_only )
     : QThread(p)
-    , f_manager(manager.lock())
     , f_showInstalledOnly(show_installed_only)
+    , f_mutex( QMutex::Recursive )
 {}
 
 
 void InitThread::run()
 {
+    QMutexLocker locker( &f_mutex );
+    QMutexLocker mgr_locker( &Manager::Instance()->GetMutex() );
+
 	wpkgar_manager::package_list_t list;
 	try
     {
-		auto manager( f_manager->GetManager().lock() );
+        auto manager( Manager::Instance()->GetManager().lock() );
 		ResetErrorCount();
         manager->list_installed_packages( list );
 
@@ -115,6 +121,16 @@ void InitThread::run()
         qCritical() << "std::runtime_error caught! what=" << except.what();
 		wpkg_output::log( except.what() ).level( wpkg_output::level_error );
     }
+
+    // Done with the manager, release it.
+    Manager::Release();
+}
+
+
+InitThread::SectionMap InitThread::GetSectionMap() const
+{
+    QMutexLocker locker( &f_mutex );
+    return f_sectionMap;
 }
 
 // vim: ts=4 sw=4 et

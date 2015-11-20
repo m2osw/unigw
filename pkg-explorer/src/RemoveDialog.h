@@ -30,7 +30,7 @@ class RemoveDialog : public QDialog, private Ui::RemoveDialog
     Q_OBJECT
     
 public:
-    RemoveDialog( QWidget *p, Manager::pointer_t manager );
+    RemoveDialog( QWidget *p );
     ~RemoveDialog();
 
 	void SetPackagesToRemove( const QStringList& list );
@@ -53,7 +53,6 @@ private slots:
 private:
     QStringListModel                f_model;
     QItemSelectionModel             f_selectModel;
-    Manager::pointer_t              f_manager;
     std::shared_ptr<RemoveThread>	f_thread;
 
 	void SetSwitches();

@@ -28,8 +28,8 @@ namespace RepoUtils
 {
     QString         SourceToQString  ( const wpkgar::source& src, const bool uri_only = false );
     wpkgar::source  QStringToSource  ( const QString& str );
-    QStringList     ReadSourcesList  ( Manager::pointer_t manager, const bool uri_only = false );
-    void            WriteSourcesList ( Manager::pointer_t manager, const QStringList& contents );
+    QStringList     ReadSourcesList  ( const bool uri_only = false );
+    void            WriteSourcesList ( const QStringList& contents );
 }
 // namespace
 

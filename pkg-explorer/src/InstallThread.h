@@ -20,6 +20,7 @@
 
 #include "include_qt4.h"
 #include "Manager.h"
+#include <libdebpackages/wpkgar.h>
 #include <libdebpackages/wpkgar_install.h>
 #include <memory>
 
@@ -30,8 +31,7 @@ public:
 	typedef enum { ThreadValidateOnly, ThreadInstallOnly, ThreadFullInstall } Mode;
 
     InstallThread
-		( QObject* p,
-		, Manager::pointer_t manager
+        ( QObject* p
 		, const Mode mode = ThreadFullInstall
 		);
 
@@ -39,16 +39,14 @@ public:
 
 	State get_state() const;
 
-
 private:
-    std::shared_ptr<Manager> f_manager;
-    State                    f_state;
-	Mode					 f_mode;
-    mutable QMutex        	 f_mutex;
+    State            f_state;
+    Mode             f_mode;
+    mutable QMutex   f_mutex;
 
-	bool Validate();
-	bool Preconfigure();
-	void InstallFiles();
+    bool Validate( std::shared_ptr<wpkgar::wpkgar_manager> manager, std::shared_ptr<wpkgar::wpkgar_install> installer );
+    bool Preconfigure( std::shared_ptr<wpkgar::wpkgar_install> installer );
+    void InstallFiles( std::shared_ptr<wpkgar::wpkgar_install> installer );
 
 	void set_state( const State new_state );
 };

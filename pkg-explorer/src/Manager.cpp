@@ -16,11 +16,18 @@
 // COMPLETENESS OR PERFORMANCE.
 //===============================================================================
 
+#include "include_qt4.h"
 #include "Manager.h"
+
+#include "ProcessDialog.h"
+
+#include <exception>
+
+using namespace wpkgar;
 
 namespace
 {
-	class ProcessInterrupt : public wpkgar::wpkgar_interrupt
+    class ProcessInterrupt : public wpkgar_interrupt
 	{
 		public:
 			virtual bool stop_now()
@@ -33,44 +40,81 @@ namespace
 }
 
 
-Manager::Manager( std::weak_ptr<LogOutput> log )
+Manager::pointer_t Manager::f_instance;
+
+
+Manager::Manager()
+    : f_mutex( QMutex::Recursive )
 {
-    Init( log );
+    Init();
 }
 
 
-std::weak_ptr<wpkgar::wpkgar_manager> Manager::GetManager() const
+Manager::~Manager()
+{
+    f_installer.reset();
+    f_remover.reset();
+    f_lock.reset();
+    f_manager.reset();
+}
+
+
+Manager::pointer_t Manager::Instance()
+{
+    if( !f_instance )
+    {
+        f_instance.reset( new Manager );
+    }
+    return f_instance;
+}
+
+
+void Manager::Release()
+{
+    f_instance.reset();
+}
+
+
+QMutex& Manager::GetMutex()
+{
+    return f_mutex;
+}
+
+
+std::weak_ptr<wpkgar_manager> Manager::GetManager()
 {
 	QMutexLocker locker( &f_mutex );
     return f_manager;
 }
 
 
-std::weak_ptr<wpkgar::wpkgar_install>   GetInstaller() const
+std::weak_ptr<wpkgar_install>   Manager::GetInstaller()
 {
 	QMutexLocker locker( &f_mutex );
     if( !f_installer )
     {
-        f_installer.reset( new wpkgar::wpkgar_install( f_manager.get() ) );
+        f_installer.reset( new wpkgar_install( f_manager.get() ) );
     }
     return f_installer;
 }
 
 
-std::weak_ptr<wpkgar::wpkgar_remove>   GetRemover() const
+std::weak_ptr<wpkgar_remove>   Manager::GetRemover()
 {
     QMutexLocker locker( &f_mutex );
     if( !f_remover )
     {
-        f_remover.reset( new wpkgar::wpkgar_remove( f_manager.get() ) );
+        f_remover.reset( new wpkgar_remove( f_manager.get() ) );
     }
     return f_remover;
 }
 
 
-void Manager::Init( std::weak_ptr<wpkgar::wpkgar_lock> log )
+void Manager::Init()
 {
 	QMutexLocker locker( &f_mutex );
+
+    f_logOutput = LogOutput::Instance();
 
     f_manager.reset( new wpkgar_manager );
 
@@ -81,17 +125,12 @@ void Manager::Init( std::weak_ptr<wpkgar::wpkgar_lock> log )
     f_manager->add_self("wpkg-gui");
     f_manager->add_self("wpkgguiqt4");
 
-    wpkg_output::set_output( log.lock().get() );
-    log.lock()->set_debug_flags( wpkg_output::debug_flags::debug_progress );
+    wpkg_output::set_output( f_logOutput.get() );
+    f_logOutput->set_debug_flags( wpkg_output::debug_flags::debug_progress );
 
 	QSettings settings;
 	const QString root_path = settings.value( "root_path" ).toString();
     const QString database_path = QString("%1/var/lib/wpkg").arg(root_path);
-
-    LogDebug( QString("Opening WPKG database %1").arg(root_path) );
-
-    const QString rootMsg( tr("Database root: [%1]").arg(root_path) );
-    f_statusLabel.setText( rootMsg );
 
     f_manager->set_root_path( root_path.toStdString() );
     f_manager->set_database_path( database_path.toStdString() );
@@ -99,8 +138,21 @@ void Manager::Init( std::weak_ptr<wpkgar::wpkgar_lock> log )
 
     if( !CreateLock() )
     {
-        throw std::exception( "Lock file not created!" );
+        throw std::runtime_error( "Lock file not created!" );
     }
+}
+
+
+void Manager::LogFatal( const QString& msg )
+{
+    f_logOutput->OutputToLog( wpkg_output::level_fatal, msg );
+    QMessageBox::critical
+        ( 0
+          , QObject::tr("Application Terminated!")
+          , msg
+          , QMessageBox::Ok
+        );
+    qFatal( "%s", msg.toStdString().c_str() );
 }
 
 
@@ -111,18 +163,16 @@ bool Manager::CreateLock()
     {
         try
         {
-            f_lock = reset( 
-                        new wpkgar_lock( f_manager.get(), "Package Explorer" )
-                        );
+            f_lock.reset( new wpkgar_lock( f_manager.get(), "Package Explorer" ) );
             lock_file_created = true;
         }
         catch( const wpkgar_exception_locked& except )
         {
-            LogError( except.what() );
+            f_logOutput->OutputToLog( wpkg_output::level_error, except.what() );
             QMessageBox::StandardButton result = QMessageBox::critical
-                    ( this
-                      , tr("Database locked!")
-                      , tr("The database is locked. "
+                    ( 0
+                      , QObject::tr("Database locked!")
+                      , QObject::tr("The database is locked. "
                            "This means that either pkg-explorer terminated unexpectantly, "
                            "or there is another instance accessing the database. Do you want to remove the lock?")
                       , QMessageBox::Yes | QMessageBox::No
@@ -132,7 +182,7 @@ bool Manager::CreateLock()
                 try
                 {
                     f_manager->remove_lock();
-                    LogDebug( "Lock file removed." );
+                    f_logOutput->OutputToLog( wpkg_output::level_debug, "Lock file removed." );
                 }
                 catch( const std::runtime_error& _xcpt )
                 {

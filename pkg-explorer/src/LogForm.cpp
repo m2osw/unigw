@@ -37,7 +37,7 @@ LogForm::~LogForm()
 }
 
 
-void LogForm::SetLogOutput( QSharedPointer<LogOutput> output )
+void LogForm::SetLogOutput( std::shared_ptr<LogOutput> output )
 {
     f_logOutput = output;
     f_timer.start( 100 );

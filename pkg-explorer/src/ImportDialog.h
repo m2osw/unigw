@@ -34,7 +34,7 @@ class ImportDialog
     Q_OBJECT
     
 public:
-    ImportDialog( QWidget *p, Manager::pointer_t manager );
+    ImportDialog( QWidget *p );
     ~ImportDialog();
 
     void AddPackages( const QStringList& package_list, const bool clear = false );

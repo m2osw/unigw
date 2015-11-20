@@ -16,34 +16,37 @@
 // COMPLETENESS OR PERFORMANCE.
 //===============================================================================
 
-#include "UpdateThread.h"
+#pragma once
 
-#include <libdebpackages/wpkg_output.h>
-#include <libdebpackages/wpkgar_repository.h>
+#include "include_qt4.h"
+#include "Manager.h"
 
-UpdateThread::UpdateThread( QObject* p )
-    : QThread(p)
+#include <memory>
+
+class DisplayThread : public QThread
 {
-}
+    Q_OBJECT
 
-void UpdateThread::run()
-{
-    try
-    {
-        QMutexLocker locker( &Manager::Instance()->GetMutex() );
-        auto manager( Manager::Instance()->GetManager().lock() );
-        wpkgar::wpkgar_repository repository( manager.get() );
+public:
+    DisplayThread
+		( QObject* p
+		, QString currentPkg
+		);
 
-        repository.update();
-    }
-    catch( const std::runtime_error& except )
-    {
-        qCritical() << "std::runtime_error caught! what=" << except.what();
-        wpkg_output::log( except.what() ).level( wpkg_output::level_error );
-    }
+	std::string GetHtml() const { return f_html; }
 
-    // Destroy now that we're finished.
-    Manager::Release();
-}
+    virtual void run();
 
-// vim: ts=4 sw=4 et
+private:
+    std::string          f_html;
+    QString              f_currentPackage;
+
+	void DependencyToLink( std::string& result, const std::string& package_name, const std::string& field_name ) const;
+	void GeneratePackageHtml();
+
+signals:
+    void AddMessage( const QString& msg );
+};
+
+
+// vim: ts=4 sw=4 noet

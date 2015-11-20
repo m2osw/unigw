@@ -26,19 +26,19 @@
 class InitThread : public QThread
 {
 public:
-    InitThread( QObject* p, Manager::pointer_t manager, const bool show_installed_only );
+    InitThread( QObject* p, const bool show_installed_only );
 
 	typedef QList<QString>				ItemList;
 	typedef QList<ItemList>				PackageList;
 	typedef QMap<QString,PackageList>	SectionMap;
-	SectionMap GetSectionMap() const { return f_sectionMap; }
+    SectionMap GetSectionMap() const;
 
     virtual void run();
 
 private:
-	std::shared_ptr<Manager> f_manager;
-	SectionMap               f_sectionMap;
+    SectionMap               f_sectionMap;
 	bool                     f_showInstalledOnly;
+    mutable QMutex           f_mutex;
 };
 
 

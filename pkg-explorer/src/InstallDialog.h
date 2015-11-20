@@ -33,7 +33,6 @@ public:
     typedef enum { InstallMode, UpgradeMode } Mode;
     InstallDialog(
             QWidget *p,
-            Manager::pointer_t manager,
             Mode mode = InstallMode
             );
     ~InstallDialog();
@@ -47,7 +46,6 @@ signals:
 private:
     QStandardItemModel                      f_model;
     QItemSelectionModel                     f_selectModel;
-    Manager::pointer_t                      f_manager;
     Mode                                    f_mode;
 
     //void StartThread();

@@ -21,11 +21,10 @@
 
 using namespace wpkgar;
 
-ImportDialog::ImportDialog( QWidget *p, Manager::pointer_t manager )
+ImportDialog::ImportDialog( QWidget *p )
 	: QDialog(p)
     , f_model(this)
     , f_selectModel(static_cast<QAbstractItemModel*>(&f_model))
-    , f_manager(manager)
 {
     setupUi(this);
     f_listView->setModel( &f_model );
@@ -285,7 +284,7 @@ void ImportDialog::SetSwitches()
     cb_map[wpkgar_install::wpkgar_install_force_overwrite_dir]    = f_forceOverwriteDirCB;
     cb_map[wpkgar_install::wpkgar_install_force_depends_version]  = f_forceDepVerCB;
 
-	auto installer( f_manager.lock()->GetInstaller().lock() );
+    auto installer( Manager::Instance()->GetInstaller().lock() );
 
 	foreach( wpkgar_install::parameter_t key, cb_map.keys() )
 	{
@@ -314,8 +313,7 @@ void ImportDialog::on_f_buttonBox_clicked(QAbstractButton *button)
 
 		QMap<QString,int> folders;
 		const QStringList contents = f_model.stringList();
-		auto manager  ( f_manager.lock()->GetManager().lock()   );
-		auto installer( f_manager.lock()->GetInstaller().lock() );
+        auto installer( Manager::Instance()->GetInstaller().lock() );
 		foreach( QString file, contents )
 		{
 			installer->add_package( file.toStdString() );
@@ -323,13 +321,7 @@ void ImportDialog::on_f_buttonBox_clicked(QAbstractButton *button)
 			folders[info.path()]++;
 		}
 
-        f_thread.reset
-			( new InstallThread
-			  ( this
-				, f_manager
-				, InstallThread::ThreadFullInstall
-			  )
-			);
+        f_thread.reset( new InstallThread( this, InstallThread::ThreadFullInstall ) );
 		f_thread->start();
 
 		connect
@@ -339,6 +331,7 @@ void ImportDialog::on_f_buttonBox_clicked(QAbstractButton *button)
     }
     else if( button == closeBtn )
     {
+        Manager::Release();
         reject();
     }
 }

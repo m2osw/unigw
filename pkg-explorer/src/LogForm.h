@@ -23,6 +23,8 @@
 #include "LogOutput.h"
 #include "ui_LogForm.h"
 
+#include <memory>
+
 class LogForm
     : public QWidget
     , private Ui::LogForm
@@ -33,11 +35,11 @@ public:
     LogForm( QWidget *p = 0 );
     ~LogForm();
 
-    void    SetLogOutput( QSharedPointer<LogOutput> out );
+    void    SetLogOutput( std::shared_ptr<LogOutput> out );
 
 private:
-    QSharedPointer<LogOutput>   f_logOutput;
-    QTimer					    f_timer;
+    std::shared_ptr<LogOutput>     f_logOutput;
+    QTimer					       f_timer;
 
 signals:
     void SetSystrayMessage( const QString& msg );

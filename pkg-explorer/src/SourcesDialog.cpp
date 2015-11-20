@@ -27,25 +27,20 @@ SourcesDialog::SourcesDialog( QWidget *p )
 	QPushButton* applyBtn = f_buttonBox->button( QDialogButtonBox::Apply );
 	Q_ASSERT( applyBtn != NULL );
 	applyBtn->setEnabled( false );
-}
-
-SourcesDialog::~SourcesDialog()
-{
-}
-
-
-void SourcesDialog::SetManager( Manager::pointer_t mgr )
-{
-	f_manager = mgr;
 
     try
     {
-        f_model.setStringList( RepoUtils::ReadSourcesList( f_manager ) );
+        f_model.setStringList( RepoUtils::ReadSourcesList() );
     }
     catch( const wpkgar::wpkgar_exception& _x )
     {
         QMessageBox::critical( this, tr("Error!"), tr("Error reading sources list: %1").arg(_x.what()) );
     }
+}
+
+
+SourcesDialog::~SourcesDialog()
+{
 }
 
 
@@ -119,7 +114,7 @@ void SourcesDialog::on_f_buttonBox_clicked(QAbstractButton *button)
     {
         try
         {
-            RepoUtils::WriteSourcesList( f_manager, f_model.stringList() );
+            RepoUtils::WriteSourcesList( f_model.stringList() );
             accept();
         }
         catch( const wpkgar::wpkgar_exception& _x )

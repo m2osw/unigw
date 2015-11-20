@@ -21,10 +21,10 @@
 #include <libdebpackages/wpkg_output.h>
 #include <libdebpackages/wpkgar_repository.h>
 
-RemoveThread::RemoveThread( QObject* p, Manager::pointer_t manager )
+RemoveThread::RemoveThread( QObject* p )
         : QThread(p)
-        , f_manager(manager.lock())
 		, f_state(ThreadStopped)
+        , f_mutex(QMutex::Recursive)
 {
 }
 
@@ -36,25 +36,26 @@ RemoveThread::State RemoveThread::get_state() const
 
 void RemoveThread::set_state( const State new_state )
 {
-    QMutexLocker locker( &f_mutex );
     f_state = new_state;
 }
 
 
 void RemoveThread::run()
 {
-	set_state( ThreadRunning );
-
-    auto remover( f_manager->GetRemover().lock() );
-
     try
     {
+        QMutexLocker locker( &f_mutex );
+        QMutexLocker mgr_locker( &(Manager::Instance()->GetMutex()) );
+
+        set_state( ThreadRunning );
+
+        auto remover( Manager::Instance()->GetRemover().lock() );
         for(;;)
 		{
             const int i( remover->remove() );
 			if(i < 0)
 			{
-				if( i == wpkgar_remove::WPKGAR_EOP )
+                if( i == wpkgar::wpkgar_remove::WPKGAR_EOP )
 				{
 					wpkg_output::log( "Removal of packages complete!" ).level( wpkg_output::level_info );
 					set_state( ThreadSucceeded );
@@ -83,6 +84,9 @@ void RemoveThread::run()
 		wpkg_output::log( except.what() ).level( wpkg_output::level_error );
 		set_state( ThreadFailed );
     }
+
+    // Destroy now that we're finished.
+    Manager::Release();
 }
 
 // vim: ts=4 sw=4 et

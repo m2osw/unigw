@@ -26,12 +26,11 @@
 class UpdateThread : public QThread
 {
 public:
-    UpdateThread( QObject* p, Manager::pointer_t manager );
+    UpdateThread( QObject* p );
 
     virtual void run();
 
 private:
-	std::shared_ptr<Manager>	f_manager;
 };
 
 

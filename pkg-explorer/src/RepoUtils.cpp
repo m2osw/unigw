@@ -77,9 +77,9 @@ namespace RepoUtils
         return src;
     }
 
-    QStringList ReadSourcesList( Manager::pointer_t manager, const bool uri_only )
+    QStringList ReadSourcesList( const bool uri_only )
     {
-        auto p_manager( manager.lock()->GetManager().lock() );
+        auto p_manager( Manager::Instance()->GetManager().lock() );
         Q_ASSERT( p_manager );
 
         QStringList sourceList;
@@ -101,12 +101,15 @@ namespace RepoUtils
             );
         }
 
+        // Destroy now that we're finished.
+        Manager::Release();
+
         return sourceList;
     }
 
-    void WriteSourcesList( Manager::pointer_t manager, const QStringList& contents )
+    void WriteSourcesList( const QStringList& contents )
     {
-        auto p_manager( manager.lock()->GetManager().lock() );
+        auto p_manager( Manager::Instance()->GetManager().lock() );
         Q_ASSERT( p_manager );
 
         wpkgar_repository repository( p_manager.get() );
@@ -124,6 +127,9 @@ namespace RepoUtils
 
 		repository.write_sources( sources_file, sources );
 		sources_file.write_file( name );
+
+        // Destroy now that we're finished.
+        Manager::Release();
     }
 }
 // namespace

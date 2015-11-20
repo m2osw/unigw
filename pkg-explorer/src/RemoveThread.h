@@ -28,16 +28,15 @@ class RemoveThread : public QThread
 public:
 	typedef enum { ThreadStopped, ThreadRunning, ThreadFailed, ThreadSucceeded } State;
 
-    RemoveThread( QObject* p, Manager::pointer_t manager );
+    RemoveThread( QObject* p );
 
     virtual void run();
 
 	State get_state() const;
 
 private:
-    std::shared_ptr<Manager>	f_manager;
-    State			            f_state;
-    mutable QMutex	            f_mutex;
+    State			    f_state;
+    mutable QMutex      f_mutex;
 
 	void set_state( const State new_state );
 };

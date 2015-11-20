@@ -32,12 +32,9 @@ public:
     SourcesDialog( QWidget *p = 0 );
     ~SourcesDialog();
 
-    void SetManager( Manager::pointer_t mgr );
- 
 private:
     QStringListModel     f_model;
     QItemSelectionModel  f_selectModel;
-    Manager::pointer_t   f_manager;
 
 private slots:
     void OnSelectionChanged( const QItemSelection&, const QItemSelection& );

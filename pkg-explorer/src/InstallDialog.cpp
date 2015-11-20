@@ -31,13 +31,11 @@ using namespace wpkgar;
 
 InstallDialog::InstallDialog(
             QWidget *p,
-            Manager::pointer_t manager,
             Mode mode
             )
     : QDialog(p)
     , f_model(this)
     , f_selectModel(static_cast<QAbstractItemModel*>(&f_model))
-    , f_manager(manager)
     , f_mode(mode)
 {
     setupUi(this);
@@ -109,7 +107,8 @@ void InstallDialog::PopulateTree( const QString& filterText )
 
     // Load up tree with packages that can be installed/upgraded
     //
-    wpkgar_repository repository( f_manager.lock().get() );
+    auto manager( Manager::Instance()->GetManager().lock() );
+    wpkgar_repository repository( manager.get() );
     const wpkgar_repository::wpkgar_package_list_t& list( repository.upgrade_list() );
     size_t _max(list.size());
     for( size_t i = 0; i < _max; ++i )

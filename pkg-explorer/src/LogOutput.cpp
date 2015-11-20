@@ -20,10 +20,27 @@
 
 #include <QApplication>
 
+LogOutput::pointer_t LogOutput::f_instance;
+
 LogOutput::LogOutput()
 	: f_logLevel(wpkg_output::level_info)
 {
 	set_program_name(QApplication::applicationName().toStdString());
+}
+
+
+LogOutput::pointer_t LogOutput::Instance()
+{
+    if( !f_instance )
+    {
+        f_instance.reset( new LogOutput );
+    }
+    return f_instance;
+}
+
+void LogOutput::Release()
+{
+    f_instance.reset();
 }
 
 
@@ -75,6 +92,15 @@ void LogOutput::clear()
 {
 	QMutexLocker locker( &f_mutex );
     f_messageFifo.clear();
+}
+
+
+void LogOutput::OutputToLog( wpkg_output::level_t level, const QString& msg )
+{
+    wpkg_output::message_t msg_obj;
+    msg_obj.set_level( level );
+    msg_obj.set_raw_message( msg.toStdString() );
+    log( msg_obj );
 }
 
 

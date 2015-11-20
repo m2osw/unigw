@@ -24,11 +24,10 @@
 
 using namespace wpkgar;
 
-RemoveDialog::RemoveDialog( QWidget *p, Manager::pointer_t manager )
+RemoveDialog::RemoveDialog( QWidget *p )
     : QDialog(p)
     , f_model(this)
     , f_selectModel(static_cast<QAbstractItemModel*>(&f_model))
-    , f_manager(manager)
 {
     setupUi(this);
     f_listView->setModel( &f_model );
@@ -136,7 +135,7 @@ void RemoveDialog::SetSwitches()
 	cb_map[wpkgar_remove::wpkgar_remove_force_remove_essentials] = f_forceRemoveEssentialCB;
 	cb_map[wpkgar_remove::wpkgar_remove_recursive]               = f_recursiveCB;
 
-    auto remover( f_manager.lock()->GetRemover().lock() );
+    auto remover( Manager::Instance()->GetRemover().lock() );
 
 	foreach( wpkgar_remove::parameter_t key, cb_map.keys() )
 	{
@@ -169,7 +168,7 @@ void RemoveDialog::on_f_buttonBox_clicked(QAbstractButton *button)
         ShowProcessDialog( true, false /*cancel_button*/ );
         SetSwitches();
 
-        auto remover( f_manager.lock()->GetRemover().lock() );
+        auto remover( Manager::Instance()->GetRemover().lock() );
 
         QMap<QString,int> folders;
         const QStringList contents = f_model.stringList();
@@ -180,7 +179,7 @@ void RemoveDialog::on_f_buttonBox_clicked(QAbstractButton *button)
 
         if( remover->validate() )
 		{
-            f_thread.reset( new RemoveThread( this, f_manager ) );
+            f_thread.reset( new RemoveThread( this ) );
 			f_thread->start();
 
 			connect
