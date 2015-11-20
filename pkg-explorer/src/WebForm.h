@@ -18,7 +18,6 @@
 #pragma once
 
 #include "DisplayThread.h"
-#include "ProcessDialog.h"
 #include "include_qt4.h"
 #include "ui_WebForm.h"
 
@@ -48,7 +47,6 @@ private:
     QString									f_currentPackage;
     QStack<QString>							f_backStack;
     QStack<QString>							f_fwdStack;
-    ProcessDialog							f_processDlg;
     std::shared_ptr<DisplayThread>			f_thread;
 
     void PrivateDisplayPackage();

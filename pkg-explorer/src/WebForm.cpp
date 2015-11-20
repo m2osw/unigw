@@ -26,7 +26,6 @@
 
 WebForm::WebForm(QWidget *p)
     : QWidget(p)
-    , f_processDlg(p)
 {
     setupUi(this);
 
@@ -119,16 +118,8 @@ void WebForm::OnLinkClicked( const QUrl& url )
 
 void WebForm::PrivateDisplayPackage()
 {
-    f_processDlg.show();
-    f_processDlg.EnableCancelButton( false );
-
     f_thread.reset( new DisplayThread( this, f_currentPackage ) );
 	f_thread->start();
-
-    connect
-        ( f_thread.get(), &DisplayThread::AddMessage
-        , &f_processDlg , &ProcessDialog::AddMessage
-        );
 
     connect
         ( f_thread.get(), &QThread::finished
@@ -140,7 +131,6 @@ void WebForm::PrivateDisplayPackage()
 void WebForm::OnPrivateDisplayPackage()
 {
     f_webView->setHtml( f_thread->GetHtml().c_str() );
-	f_processDlg.hide();
 }
 
 // vim: ts=4 sw=4 noet
