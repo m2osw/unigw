@@ -35,6 +35,7 @@ public:
 
     static pointer_t Instance();
     static void      Release();
+    static bool      InUse();
 
     std::weak_ptr<wpkgar::wpkgar_lock>      GetLock();
     std::weak_ptr<wpkgar::wpkgar_manager>   GetManager();

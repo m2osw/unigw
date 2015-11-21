@@ -95,6 +95,7 @@ MainWindow::MainWindow( const bool showSysTray )
     , f_installMode(InstallDialog::InstallMode)
     , f_procDlg(this)  // Make sure parent is this object's parent, in case LogForm is hidden.
     , f_doUpgrade(false)
+    , f_fsTimer(this)
 {
     setupUi(this);
 
@@ -206,6 +207,8 @@ MainWindow::MainWindow( const bool showSysTray )
     f_statusLabel.setText( "Please wait, initializing..." );
 
     setWindowTitle( tr("WPKG Package Explorer") );
+
+    connect( &f_fsTimer, &QTimer::timeout, this, &MainWindow::OnFsTimeout );
 
     QTimer::singleShot( 100, this, &MainWindow::OnInitTimer );
 }
@@ -447,6 +450,9 @@ void MainWindow::InitManager()
 
     f_procDlg.AddMessage( tr("Please wait...") );
 
+    // Start the FS check timer
+    f_fsTimer.start( 500 );
+
     QSettings settings;
     const QString root_path = settings.value( "root_path" ).toString();
 
@@ -489,27 +495,6 @@ void MainWindow::RefreshListing()
 }
 
 
-void MainWindow::UpdateActions()
-{
-	QModelIndexList selrows = f_selectModel.selectedRows();
-	bool enable_remove_action = false;
-	foreach( QModelIndex index, selrows )
-	{
-		QStandardItem* item = f_packageModel.itemFromIndex( index );
-		if( item->parent() )
-		{
-			enable_remove_action = true;
-		}
-		else
-		{
-			enable_remove_action = false;
-			break;
-		}
-	}
-	actionRemove->setEnabled( enable_remove_action );
-}
-
-
 void MainWindow::OnRefreshListing()
 {
     ActionsDisable ad( f_actionList );
@@ -536,23 +521,23 @@ void MainWindow::OnRefreshListing()
             f_packageModel.appendRow( _parent );
         });
     }
-	//
-	f_packageModel.sort( 0 );
-	f_treeView->expandAll();
+    //
+    f_packageModel.sort( 0 );
+    f_treeView->expandAll();
 
-	QStandardItem* root_item = f_packageModel.item( 0 );
-	if( root_item )
-	{
-		QStandardItem* item = root_item->child( 0 );
-		if( item )
-		{
-			f_selectModel.select( item->index(), QItemSelectionModel::SelectCurrent );
-			const QString package_name = item->text();
-			OnPackageClicked( package_name );
-		}
-	}
+    QStandardItem* root_item = f_packageModel.item( 0 );
+    if( root_item )
+    {
+        QStandardItem* item = root_item->child( 0 );
+        if( item )
+        {
+            f_selectModel.select( item->index(), QItemSelectionModel::SelectCurrent );
+            const QString package_name = item->text();
+            OnPackageClicked( package_name );
+        }
+    }
 
-	UpdateActions();
+    UpdateActions();
 
     f_procDlg.hide();
 
@@ -567,6 +552,39 @@ void MainWindow::OnRefreshListing()
         // Kick off update, then upgrade
         actionUpdate->trigger();
     }
+}
+
+
+void MainWindow::OnFsTimeout()
+{
+    if( Manager::InUse() )
+    {
+        f_sysTray->setIcon( QIcon(":/icons/locked_logo") );
+        return;
+    }
+
+    f_sysTray->setIcon( QIcon(":/icons/systray_icon") );
+}
+
+
+void MainWindow::UpdateActions()
+{
+	QModelIndexList selrows = f_selectModel.selectedRows();
+	bool enable_remove_action = false;
+	foreach( QModelIndex index, selrows )
+	{
+		QStandardItem* item = f_packageModel.itemFromIndex( index );
+		if( item->parent() )
+		{
+			enable_remove_action = true;
+		}
+		else
+		{
+			enable_remove_action = false;
+			break;
+		}
+	}
+	actionRemove->setEnabled( enable_remove_action );
 }
 
 

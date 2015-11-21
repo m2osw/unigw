@@ -7,6 +7,7 @@
         <file alias="exit">icons/48px-Crystal_Clear_action_exit.png</file>
         <file alias="demo">icons/48px-Crystal_Clear_app_demo.png</file>
         <file alias="logo">icons/logo.png</file>
+        <file alias="locked_logo">icons/locked_logo.png</file>
 		<file alias="systray_icon">icons/logo_systray.png</file>
         <file alias="back_button">icons/Crystal_Clear_action_1leftarrow.png</file>
         <file alias="fwd_button">icons/Crystal_Clear_action_player_play.png</file>

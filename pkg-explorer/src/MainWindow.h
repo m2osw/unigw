@@ -64,6 +64,7 @@ private:
     bool                                    f_doUpgrade;
     QLabel                                  f_statusLabel;
     mutable QMutex        					f_mutex;
+    QTimer                                  f_fsTimer;
 
     typedef QMap<wpkg_output::level_t,QAction*> level_to_action_t;
 	level_to_action_t	f_levelToAction;
@@ -112,6 +113,7 @@ private slots:
     void OnSystrayMessage( const QString& );
     void OnInstallValidateComplete();
     void OnInstallComplete();
+    void OnFsTimeout();
     void on_actionFileImport_triggered();
     void on_actionRemove_triggered();
     void on_actionDatabaseRoot_triggered();

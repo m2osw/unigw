@@ -75,6 +75,12 @@ void Manager::Release()
 }
 
 
+bool Manager::InUse()
+{
+    return f_instance.use_count() > 0;
+}
+
+
 QMutex& Manager::GetMutex()
 {
     return f_mutex;
