@@ -20,6 +20,8 @@
 
 #include <libdebpackages/wpkg_output.h>
 
+#include <time.h>
+
 using namespace wpkgar;
 
 namespace

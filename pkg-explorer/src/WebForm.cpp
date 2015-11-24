@@ -21,7 +21,6 @@
 
 #include <QtWebKit>
 
-#include <time.h>
 #include <libdebpackages/wpkgar.h>
 
 WebForm::WebForm(QWidget *p)
