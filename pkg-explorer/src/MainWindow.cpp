@@ -37,44 +37,20 @@
 #	undef close
 #endif
 
-
 using namespace wpkgar;
-
 
 namespace
 {
-	class ActionsDisable
-	{
-	public:
-		ActionsDisable( QList<QAction*> actionList, const bool enable_on_destroy = true )
-			: f_actionList(actionList)
-			, f_enableOnDestroy(enable_on_destroy)
-		{
-			std::for_each( f_actionList.begin(), f_actionList.end(), []( QAction* act ) { act->setEnabled(false); } );
-		}
-		~ActionsDisable()
-		{
-			if( f_enableOnDestroy )
-			{
-				std::for_each( f_actionList.begin(), f_actionList.end(), []( QAction* act ) { act->setEnabled(true); } );
-			}
-		}
+    class ProcessInterrupt : public wpkgar::wpkgar_interrupt
+    {
+        public:
+            virtual bool stop_now()
+            {
+                return ProcessDialog::CancelClicked();
+            }
+    };
 
-	private:
-		QList<QAction*> f_actionList;
-		bool			f_enableOnDestroy;
-	};
-
-	class ProcessInterrupt : public wpkgar::wpkgar_interrupt
-	{
-		public:
-			virtual bool stop_now()
-			{
-				return ProcessDialog::CancelClicked();
-			}
-	};
-
-	ProcessInterrupt interrupt;
+    ProcessInterrupt interrupt;
 
     void ResetErrorCount()
     {
@@ -84,8 +60,51 @@ namespace
             output->reset_error_count();
         }
     }
+
+
+    class ActionsDisable
+    {
+    public:
+        ActionsDisable( QList<QAction*> actionList, const bool enable_on_destroy = true )
+            : f_actionList(actionList)
+            , f_enableOnDestroy(enable_on_destroy)
+        {
+            auto systray( MainWindow::GetSysTray().lock() );
+            if( systray )
+            {
+                systray->setIcon( QIcon(":/icons/locked_logo") );
+            }
+            std::for_each( f_actionList.begin(), f_actionList.end(), []( QAction* act ) { act->setEnabled(false); } );
+        }
+        ~ActionsDisable()
+        {
+            if( f_enableOnDestroy )
+            {
+                try
+                {
+                    auto systray( MainWindow::GetSysTray().lock() );
+                    if( systray )
+                    {
+                        systray->setIcon( QIcon(":/icons/systray_icon") );
+                    }
+                    std::for_each( f_actionList.begin(), f_actionList.end(), []( QAction* act ) { act->setEnabled(true); } );
+                }
+                catch( ... )
+                {
+                    // Can't throw!
+                }
+            }
+        }
+
+    private:
+        QList<QAction*> f_actionList;
+        bool			f_enableOnDestroy;
+    };
 }
 //namespace
+
+
+std::shared_ptr<QSystemTrayIcon>    MainWindow::f_sysTray;
 
 
 MainWindow::MainWindow( const bool showSysTray )
@@ -105,9 +124,9 @@ MainWindow::MainWindow( const bool showSysTray )
 
     if( QSystemTrayIcon::isSystemTrayAvailable() && showSysTray )
     {
-        f_sysTray = QSharedPointer<QSystemTrayIcon>( new QSystemTrayIcon( this ) );
-		//
-		QMenu* stMenu = new QMenu( this );
+        f_sysTray.reset( new QSystemTrayIcon( this ) );
+        //
+        QMenu* stMenu = new QMenu( this );
         stMenu->addAction( actionShowApplication );
         stMenu->addSeparator();
         stMenu->addAction( actionFileImport );
@@ -118,9 +137,11 @@ MainWindow::MainWindow( const bool showSysTray )
         stMenu->addSeparator();
         stMenu->addAction( actionQuit );
         //
-		f_sysTray->setContextMenu( stMenu );
-		f_sysTray->setIcon( QIcon(":/icons/systray_icon") );
+        f_sysTray->setContextMenu( stMenu );
+        f_sysTray->setIcon( QIcon(":/icons/systray_icon") );
         f_sysTray->show();
+
+        //f_sysTray->showMessage( tr("This is a test message"), tr("Look at this awesome message!"), QSystemTrayIcon::Information, 5000 );
     }
 
 	LoadSettings();
@@ -208,7 +229,7 @@ MainWindow::MainWindow( const bool showSysTray )
 
     setWindowTitle( tr("WPKG Package Explorer") );
 
-    connect( &f_fsTimer, &QTimer::timeout, this, &MainWindow::OnFsTimeout );
+    //connect( &f_fsTimer, &QTimer::timeout, this, &MainWindow::OnFsTimeout );
 
     QTimer::singleShot( 100, this, &MainWindow::OnInitTimer );
 }
@@ -216,9 +237,15 @@ MainWindow::MainWindow( const bool showSysTray )
 
 MainWindow::~MainWindow()
 {
+    f_sysTray.reset();
     wpkg_output::set_output( 0 );
 }
 
+
+std::weak_ptr<QSystemTrayIcon> MainWindow::GetSysTray()
+{
+    return f_sysTray;
+}
 
 void MainWindow::SetInstallPackages( const QStringList& list )
 {
@@ -451,7 +478,7 @@ void MainWindow::InitManager()
     f_procDlg.AddMessage( tr("Please wait...") );
 
     // Start the FS check timer
-    f_fsTimer.start( 500 );
+    //f_fsTimer.start( 500 );
 
     QSettings settings;
     const QString root_path = settings.value( "root_path" ).toString();

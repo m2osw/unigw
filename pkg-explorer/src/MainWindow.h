@@ -31,6 +31,7 @@
 
 #include "ui_MainWindow.h"
 
+
 class MainWindow : public QMainWindow, private Ui::MainWindow
 {
     Q_OBJECT
@@ -42,6 +43,8 @@ public:
     void SetInstallPackages( const QStringList& list );
     void SetDoUpgrade( const bool val = true );
     void RunCommand( const QString& command );
+
+    static std::weak_ptr<QSystemTrayIcon> GetSysTray();
 
 protected:
     void showEvent ( QShowEvent * event );
@@ -56,7 +59,6 @@ private:
     std::shared_ptr<UpdateThread>           f_updateThread;
 	QScopedPointer<LicenseBox>				f_license_box;
     bool									f_showInstalledPackagesOnly;
-	QSharedPointer<QSystemTrayIcon>			f_sysTray;
     QStringList                             f_immediateInstall;
     InstallDialog::Mode                     f_installMode;
     ProcessDialog                           f_procDlg;
@@ -65,6 +67,8 @@ private:
     QLabel                                  f_statusLabel;
     mutable QMutex        					f_mutex;
     QTimer                                  f_fsTimer;
+
+    static std::shared_ptr<QSystemTrayIcon>	f_sysTray;
 
     typedef QMap<wpkg_output::level_t,QAction*> level_to_action_t;
 	level_to_action_t	f_levelToAction;
