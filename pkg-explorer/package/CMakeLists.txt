@@ -43,11 +43,17 @@ if( NOT EXISTS "${WPKG_ROOT}" )
 endif()
 
 if( MO_WINDOWS )
+    set( QT_CONF "${CMAKE_CURRENT_BINARY_DIR}/qt.conf" )
+    if( NOT EXISTS "${QT_CONF}" )
+        file( WRITE "${QT_CONF}" "[Paths]\nPrefix=..\n" )
+    endif()
+
     file( GLOB BINARY_FILES "${QT5_INSTALL_PATH}/bin/*.dll" )
 
     install(
         FILES
             ${BINARY_FILES}
+            ${QT_CONF}
         DESTINATION
             bin
         COMPONENT
