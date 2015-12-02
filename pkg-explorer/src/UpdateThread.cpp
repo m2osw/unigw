@@ -25,6 +25,7 @@ using namespace wpkgar;
 
 UpdateThread::UpdateThread( QObject* p )
     : QThread(p)
+    , f_manager(Manager::WeakInstance())
 {
 }
 

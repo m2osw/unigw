@@ -126,10 +126,10 @@ add_executable(
 	PrefsDialog.ui
 	PrefsDialog.cpp
 	PrefsDialog.h
-	ProcessDialog.ui
-	ProcessDialog.cpp
-	ProcessDialog.h
-	RemoveDialog.ui
+    ProcessDialog.ui
+    ProcessDialog.cpp
+    ProcessDialog.h
+    RemoveDialog.ui
 	RemoveDialog.h
 	RemoveDialog.cpp
 	RemoveThread.cpp

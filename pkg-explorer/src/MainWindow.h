@@ -42,9 +42,9 @@ public:
 
     void SetInstallPackages( const QStringList& list );
     void SetDoUpgrade( const bool val = true );
-    void RunCommand( const QString& command );
 
     static std::weak_ptr<QSystemTrayIcon> GetSysTray();
+    static bool StopClicked();
 
 protected:
     void showEvent ( QShowEvent * event );
@@ -61,15 +61,18 @@ private:
     bool									f_showInstalledPackagesOnly;
     QStringList                             f_immediateInstall;
     InstallDialog::Mode                     f_installMode;
-    ProcessDialog                           f_procDlg;
+    QSharedPointer<ProcessDialog>           f_procDlg;
     std::shared_ptr<LogOutput>              f_logOutput;
     bool                                    f_doUpgrade;
     QLabel                                  f_statusLabel;
+    QLabel                                  f_logLabel;
     Manager::pointer_t                      f_manager;
-    mutable QMutex        					f_mutex;
-    QTimer                                  f_fsTimer;
+    QVector<QString>     	                f_messageFifo;
+    QTimer                                  f_timer;
 
+    static QMutex        					f_mutex;
     static std::shared_ptr<QSystemTrayIcon>	f_sysTray;
+    static bool                             f_stopClicked;
 
     typedef QMap<wpkg_output::level_t,QAction*> level_to_action_t;
 	level_to_action_t	f_levelToAction;
@@ -77,6 +80,7 @@ private:
 	typedef QList<QAction*> ActionList;
 	ActionList f_actionList;
 
+    void EnableStopButton( const bool enabled = true );
 	void LoadSettings();
 	void SaveSettings();
 
@@ -88,6 +92,7 @@ private:
 
     void HandleFailure();
 
+    void UpdateWindowCaption();
     void InitManager();
     void RefreshListing();
     void SelectFromModel( const QString& package_name );
@@ -119,6 +124,8 @@ private slots:
     void OnInstallValidateComplete();
     void OnInstallComplete();
     void OnFsTimeout();
+    void OnAddLogMessage( const QString& message );
+    void OnDisplayMessages();
     void on_actionFileImport_triggered();
     void on_actionRemove_triggered();
     void on_actionDatabaseRoot_triggered();
@@ -139,6 +146,7 @@ private slots:
     void on_actionViewLogInfo_triggered();
     void on_actionViewLogWarning_triggered();
     void on_actionViewLogError_triggered();
+    void on_actionStop_triggered();
 };
 
 // vim: ts=4 sw=4 noet

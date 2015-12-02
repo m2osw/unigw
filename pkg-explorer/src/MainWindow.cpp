@@ -20,9 +20,8 @@
 #include "ImportDialog.h"
 #include "RemoveDialog.h"
 #include "PrefsDialog.h"
-#include "ProcessDialog.h"
-#include "SourcesDialog.h"
 #include "LicenseBox.h"
+#include "SourcesDialog.h"
 
 #include <QtWidgets>
 
@@ -46,7 +45,7 @@ namespace
         public:
             virtual bool stop_now()
             {
-                return ProcessDialog::CancelClicked();
+                return MainWindow::StopClicked();
             }
     };
 
@@ -60,51 +59,13 @@ namespace
             output->reset_error_count();
         }
     }
-
-
-    class ActionsDisable
-    {
-    public:
-        ActionsDisable( QList<QAction*> actionList, const bool enable_on_destroy = true )
-            : f_actionList(actionList)
-            , f_enableOnDestroy(enable_on_destroy)
-        {
-            auto systray( MainWindow::GetSysTray().lock() );
-            if( systray )
-            {
-                systray->setIcon( QIcon(":/icons/locked_logo") );
-            }
-            std::for_each( f_actionList.begin(), f_actionList.end(), []( QAction* act ) { act->setEnabled(false); } );
-        }
-        ~ActionsDisable()
-        {
-            if( f_enableOnDestroy )
-            {
-                try
-                {
-                    auto systray( MainWindow::GetSysTray().lock() );
-                    if( systray )
-                    {
-                        systray->setIcon( QIcon(":/icons/systray_icon") );
-                    }
-                    std::for_each( f_actionList.begin(), f_actionList.end(), []( QAction* act ) { act->setEnabled(true); } );
-                }
-                catch( ... )
-                {
-                    // Can't throw!
-                }
-            }
-        }
-
-    private:
-        QList<QAction*> f_actionList;
-        bool			f_enableOnDestroy;
-    };
 }
 //namespace
 
 
 std::shared_ptr<QSystemTrayIcon>    MainWindow::f_sysTray;
+QMutex                              MainWindow::f_mutex;
+bool                                MainWindow::f_stopClicked = false;
 
 
 MainWindow::MainWindow( const bool showSysTray )
@@ -112,15 +73,13 @@ MainWindow::MainWindow( const bool showSysTray )
 	, f_packageModel(this)
 	, f_selectModel(&f_packageModel)
     , f_installMode(InstallDialog::InstallMode)
-    , f_procDlg(this)  // Make sure parent is this object's parent, in case LogForm is hidden.
     , f_doUpgrade(false)
-    , f_fsTimer(this)
+    , f_timer(this)
 {
     setupUi(this);
 
     f_logOutput = LogOutput::Instance();
     f_logForm->SetLogOutput( f_logOutput );
-    f_procDlg.GetLogForm()->SetLogOutput( f_logOutput );
 
     if( QSystemTrayIcon::isSystemTrayAvailable() && showSysTray )
     {
@@ -220,16 +179,18 @@ MainWindow::MainWindow( const bool showSysTray )
     connect
         ( f_logOutput.get()
         , &LogOutput::AddProcessMessage
-        , &f_procDlg
-        , &ProcessDialog::AddMessage
+        , this
+        , &MainWindow::OnAddLogMessage
         );
 
-    statusBar()->addWidget( &f_statusLabel );
+    statusBar()->addWidget( &f_logLabel );
+    statusBar()->addPermanentWidget( &f_statusLabel );
     f_statusLabel.setText( "Please wait, initializing..." );
 
     setWindowTitle( tr("WPKG Package Explorer") );
 
-    //connect( &f_fsTimer, &QTimer::timeout, this, &MainWindow::OnFsTimeout );
+    connect( &f_timer, &QTimer::timeout, this, &MainWindow::OnDisplayMessages );
+    f_timer.start( 100 );
 
     QTimer::singleShot( 100, this, &MainWindow::OnInitTimer );
 }
@@ -247,6 +208,37 @@ std::weak_ptr<QSystemTrayIcon> MainWindow::GetSysTray()
     return f_sysTray;
 }
 
+
+bool MainWindow::StopClicked()
+{
+    QMutexLocker locker( &f_mutex );
+    return f_stopClicked;
+}
+
+
+void MainWindow::EnableStopButton( const bool enabled )
+{
+    QMutexLocker locker( &f_mutex );
+    f_stopClicked = false;
+
+    auto systray( MainWindow::GetSysTray().lock() );
+    if( systray )
+    {
+        systray->setIcon( enabled
+            ? QIcon(":/icons/locked_logo")
+            : QIcon(":/icons/systray_icon")
+            );
+    }
+
+    std::for_each( f_actionList.begin(), f_actionList.end(), [enabled]( QAction* act )
+    {
+        act->setEnabled(!enabled);
+    });
+
+    actionStop->setEnabled( enabled );
+}
+
+
 void MainWindow::SetInstallPackages( const QStringList& list )
 {
     f_immediateInstall = list;
@@ -256,43 +248,6 @@ void MainWindow::SetInstallPackages( const QStringList& list )
 void MainWindow::SetDoUpgrade( const bool val )
 {
     f_doUpgrade = val;
-}
-
-
-void MainWindow::RunCommand( const QString& command )
-{
-	if( command == "import" )
-	{
-		on_actionFileImport_triggered();
-	}
-	else if( command == "remove" )
-	{
-		on_actionRemove_triggered();
-	}
-	else if( command == "install" )
-	{
-		on_actionInstall_triggered();
-	}
-	else if( command == "update" )
-	{
-		on_actionUpdate_triggered();
-	}
-	else if( command == "upgrade" )
-	{
-		on_actionUpgrade_triggered();
-	}
-	else if( command == "manage" )
-	{
-		on_actionManageRepositories_triggered();
-	}
-	else if( command == "database" )
-	{
-		on_actionDatabaseRoot_triggered();
-	}
-	else
-	{
-		LogError( tr("Unknown command '") + command + tr("'!") );
-	}
 }
 
 
@@ -332,14 +287,13 @@ void MainWindow::SaveSettings()
 
 void MainWindow::OnStartImportOperation()
 {
-    f_procDlg.show();
-    f_procDlg.EnableCancelButton( true );
+    EnableStopButton();
 }
 
 
 void MainWindow::OnEndImportOperation()
 {
-    f_procDlg.hide();
+    EnableStopButton( false );
     f_webForm->ClearHistory();
     RefreshListing();
 }
@@ -347,14 +301,13 @@ void MainWindow::OnEndImportOperation()
 
 void MainWindow::OnStartRemoveOperation()
 {
-    f_procDlg.show();
-    f_procDlg.EnableCancelButton( true );
+    EnableStopButton();
 }
 
 
 void MainWindow::OnEndRemoveOperation()
 {
-    f_procDlg.hide();
+    EnableStopButton( false );
     f_webForm->ClearHistory();
     RefreshListing();
 }
@@ -438,6 +391,14 @@ void MainWindow::LogFatal( const QString& msg )
 }
 
 
+void MainWindow::UpdateWindowCaption()
+{
+    QSettings settings;
+    const QString root_path = settings.value( "root_path" ).toString();
+    const QString rootMsg( QObject::tr("Database root: [%1]").arg(root_path) );
+    f_statusLabel.setText( rootMsg );
+}
+
 void MainWindow::InitManager()
 {
     f_manager = Manager::WeakInstance();
@@ -476,18 +437,9 @@ void MainWindow::InitManager()
         }
     }
 
-    f_procDlg.AddMessage( tr("Please wait...") );
+    f_logLabel.setText( tr("Please wait...") );
 
-    // Start the FS check timer
-    //f_fsTimer.start( 500 );
-
-    QSettings settings;
-    const QString root_path = settings.value( "root_path" ).toString();
-
-    LogDebug( QString("Opening WPKG database %1").arg(root_path) );
-
-    const QString rootMsg( QObject::tr("Database root: [%1]").arg(root_path) );
-    f_statusLabel.setText( rootMsg );
+    UpdateWindowCaption();
 
     if( f_immediateInstall.isEmpty() )
     {
@@ -495,7 +447,15 @@ void MainWindow::InitManager()
     }
     else
     {
-        f_procDlg.ShowLogPane( true );
+        f_procDlg.reset( new ProcessDialog( this ) );
+        connect
+            ( f_logOutput.get()
+            , &LogOutput::AddProcessMessage
+            , f_procDlg.data()
+            , &ProcessDialog::AddMessage
+            );
+        f_procDlg->ShowLogPane(true);
+        f_procDlg->show();
 
         // Start install
         f_installMode = InstallDialog::InstallMode;
@@ -506,12 +466,9 @@ void MainWindow::InitManager()
 
 void MainWindow::RefreshListing()
 {
-    ActionsDisable ad( f_actionList, false /*enable_remove_action*/ );
+    EnableStopButton();
 
-	f_packageModel.setRowCount( 0 );
-
-    f_procDlg.show();
-    f_procDlg.EnableCancelButton( false );
+    f_packageModel.setRowCount( 0 );
 
     if( !f_initThread )
     {
@@ -528,8 +485,6 @@ void MainWindow::RefreshListing()
 
 void MainWindow::OnRefreshListing()
 {
-    ActionsDisable ad( f_actionList );
-
     if( f_initThread )
     {
         InitThread::SectionMap map = f_initThread->GetSectionMap();
@@ -575,10 +530,10 @@ void MainWindow::OnRefreshListing()
 
     UpdateActions();
 
-    f_procDlg.hide();
-
     // Destroy now that we're finished. This releases the database lock.
     f_manager.reset();
+
+    EnableStopButton( false );
 
     if( f_doUpgrade )
     {
@@ -600,6 +555,24 @@ void MainWindow::OnFsTimeout()
     }
 
     f_sysTray->setIcon( QIcon(":/icons/systray_icon") );
+}
+
+
+void MainWindow::OnAddLogMessage( const QString& message )
+{
+    QMutexLocker locker( &f_mutex );
+    f_messageFifo.push_back( message );
+}
+
+
+void MainWindow::OnDisplayMessages()
+{
+    QMutexLocker locker( &f_mutex );
+    while( !f_messageFifo.isEmpty() )
+    {
+        f_logLabel.setText( f_messageFifo.front() );
+        f_messageFifo.pop_front();
+    }
 }
 
 
@@ -712,11 +685,10 @@ void MainWindow::StartInstallThread( const QStringList& packages_list )
         installer->add_package( pkg.toStdString() );
     }
 
-    f_procDlg.show();
-    f_procDlg.EnableCancelButton( true );
-
     if( !f_installThread )
     {
+        EnableStopButton();
+
         f_manager = Manager::WeakInstance();
         f_installThread.reset
             (
@@ -745,7 +717,15 @@ void MainWindow::HandleFailure()
     }
 
     f_immediateInstall.clear();
+
+    if( f_procDlg.data() )
+    {
+        f_procDlg->hide();
+        f_procDlg.reset();
+    }
+
     show();
+
     f_webForm->ClearHistory();
     RefreshListing();
     actionShowLog->trigger();
@@ -754,8 +734,6 @@ void MainWindow::HandleFailure()
 
 void MainWindow::OnInstallValidateComplete()
 {
-    f_procDlg.hide();
-
     if( f_installThread->get_state() == InstallThread::ThreadFailed )
     {
         QMessageBox::critical
@@ -869,9 +847,6 @@ void MainWindow::OnInstallValidateComplete()
 					)
 			);
 
-        f_procDlg.show();
-        f_procDlg.EnableCancelButton( true );
-
         connect
             ( f_installThread.get(), &QThread::finished
             , this                 , &MainWindow::OnInstallComplete
@@ -888,8 +863,6 @@ void MainWindow::OnInstallValidateComplete()
 
 void MainWindow::OnInstallComplete()
 {
-    f_procDlg.hide();
-
     const bool failed = f_installThread->get_state() == InstallThread::ThreadFailed;
     if( failed )
     {
@@ -933,8 +906,7 @@ void MainWindow::OnInstallComplete()
 
 void MainWindow::on_actionFileImport_triggered()
 {
-    ActionsDisable ad( f_actionList );
-	ResetErrorCount();
+    ResetErrorCount();
     ImportDialog dlg( this );
     connect
         ( &dlg , &ImportDialog::StartOperation
@@ -950,8 +922,6 @@ void MainWindow::on_actionFileImport_triggered()
 
 void MainWindow::on_actionInstall_triggered()
 {
-    ActionsDisable ad( f_actionList );
-
     InstallDialog dlg( this );
     if( dlg.exec() == QDialog::Accepted )
     {
@@ -965,7 +935,7 @@ void MainWindow::on_actionInstall_triggered()
 
 void MainWindow::on_actionRemove_triggered()
 {
-    ActionsDisable ad( f_actionList );
+    EnableStopButton();
 	QStringList packages_to_remove;
 	QModelIndexList selrows = f_selectModel.selectedRows();
 	foreach( QModelIndex index, selrows )
@@ -992,12 +962,12 @@ void MainWindow::on_actionRemove_triggered()
 
 void MainWindow::on_actionDatabaseRoot_triggered()
 {
-    ActionsDisable ad( f_actionList );
     PrefsDialog prefsDlg;
     if( prefsDlg.exec() == QDialog::Accepted )
     {
         // Recreate and refresh...
         //
+        UpdateWindowCaption();
         RefreshListing();
     }
 }
@@ -1023,14 +993,10 @@ void MainWindow::on_actionHistoryForward_triggered()
 
 void MainWindow::on_actionUpdate_triggered()
 {
-    ActionsDisable ad( f_actionList, false /*enable_on_destroy*/ );
-
-    f_procDlg.show();
-    f_procDlg.EnableCancelButton( true );
-
 	if( !f_updateThread )
 	{
-		f_updateThread.reset( new UpdateThread( this ) );
+        EnableStopButton();
+        f_updateThread.reset( new UpdateThread( this ) );
 		f_updateThread->start();
 
 		connect
@@ -1043,10 +1009,6 @@ void MainWindow::on_actionUpdate_triggered()
 
 void MainWindow::OnUpdateFinished()
 {
-    ActionsDisable ad( f_actionList );
-
-    f_procDlg.hide();
-
 	f_updateThread->wait();
 	f_updateThread.reset();
 
@@ -1073,7 +1035,7 @@ void MainWindow::OnSystrayMessage( const QString& msg )
 
 void MainWindow::on_actionUpgrade_triggered()
 {
-    ActionsDisable ad( f_actionList );
+    EnableStopButton();
 
     f_doUpgrade = false;
 
@@ -1084,12 +1046,15 @@ void MainWindow::on_actionUpgrade_triggered()
         dlg.GetPackageList( list );
         StartInstallThread( list );
     }
+    else
+    {
+        EnableStopButton( false );
+    }
 }
 
 
 void MainWindow::on_actionManageRepositories_triggered()
 {
-    ActionsDisable ad( f_actionList );
 	SourcesDialog dlg( this );
 	if( dlg.exec() == QDialog::Accepted )
 	{
@@ -1228,6 +1193,13 @@ void MainWindow::on_actionViewLogError_triggered()
     ResetLogChecks( actionViewLogError );
     f_logOutput->set_level( wpkg_output::level_error );
     f_statusbar->showMessage( tr("Error Log Level Set") );
+}
+
+
+void MainWindow::on_actionStop_triggered()
+{
+    QMutexLocker locker( &f_mutex );
+    f_stopClicked = true;
 }
 
 

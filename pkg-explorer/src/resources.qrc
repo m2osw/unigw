@@ -8,7 +8,7 @@
         <file alias="demo">icons/48px-Crystal_Clear_app_demo.png</file>
         <file alias="logo">icons/logo.png</file>
         <file alias="locked_logo">icons/locked_logo.png</file>
-		<file alias="systray_icon">icons/logo_systray.png</file>
+        <file alias="systray_icon">icons/logo_systray.png</file>
         <file alias="back_button">icons/Crystal_Clear_action_1leftarrow.png</file>
         <file alias="fwd_button">icons/Crystal_Clear_action_player_play.png</file>
         <file alias="folder">icons/Crystal_Clear_filesystem_folder_grey_open.png</file>
@@ -19,5 +19,6 @@
         <file alias="settings">icons/Crystal_Clear_action_share.png</file>
         <file alias="help_about">icons/Crystal_Clear_action_info.png</file>
         <file alias="update">icons/Crystal_Clear_action_db_update.png</file>
+        <file alias="stop">icons/Canada_Stop_sign.svg.png</file>
     </qresource>
 </RCC>

@@ -79,6 +79,8 @@
     <addaction name="actionInstall"/>
     <addaction name="actionRemove"/>
     <addaction name="actionUpgrade"/>
+    <addaction name="separator"/>
+    <addaction name="actionStop"/>
    </widget>
    <widget class="QMenu" name="menu_History">
     <property name="title">
@@ -157,7 +159,7 @@
    <addaction name="actionHistoryBack"/>
    <addaction name="actionHistoryForward"/>
    <addaction name="separator"/>
-   <addaction name="actionHelp"/>
+   <addaction name="actionStop"/>
    <addaction name="separator"/>
    <addaction name="actionQuit"/>
   </widget>
@@ -421,8 +423,7 @@
   <action name="actionHelp">
    <property name="icon">
     <iconset theme="help">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Help</string>
@@ -613,6 +614,24 @@
    </property>
    <property name="statusTip">
     <string>Show/hide application.</string>
+   </property>
+  </action>
+  <action name="actionStop">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/stop</normaloff>:/icons/stop</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Stop</string>
+   </property>
+   <property name="toolTip">
+    <string>Stop current operation</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
  </widget>
