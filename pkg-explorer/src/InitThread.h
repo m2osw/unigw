@@ -27,6 +27,7 @@ class InitThread : public QThread
 {
 public:
     InitThread( QObject* p, const bool show_installed_only );
+    ~InitThread();
 
 	typedef QList<QString>				ItemList;
 	typedef QList<ItemList>				PackageList;
@@ -38,6 +39,7 @@ public:
 private:
     SectionMap               f_sectionMap;
 	bool                     f_showInstalledOnly;
+    Manager::pointer_t       f_manager;
     mutable QMutex           f_mutex;
 };
 

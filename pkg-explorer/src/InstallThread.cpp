@@ -30,6 +30,7 @@ InstallThread::InstallThread
 	: QThread(p)
 	, f_state(ThreadStopped)
 	, f_mode(mode)
+    , f_manager(Manager::WeakInstance())
     , f_mutex(QMutex::Recursive)
 {
 }
@@ -114,14 +115,14 @@ void InstallThread::run()
     try
     {
         QMutexLocker locker( &f_mutex );
-        QMutexLocker mgr_locker( &(Manager::Instance()->GetMutex()) );
+        QMutexLocker mgr_locker( &(f_manager->GetMutex()) );
 
         set_state( ThreadRunning );
 
         // Lock these in place, which is thread-safe, during the thread lifetime.
         //
-        auto manager     ( Manager::Instance()->GetManager().lock()   );
-        auto installer   ( Manager::Instance()->GetInstaller().lock() );
+        auto manager     ( f_manager->GetManager().lock()   );
+        auto installer   ( f_manager->GetInstaller().lock() );
 
         // Load the installed packages into memory
         //
@@ -155,9 +156,6 @@ void InstallThread::run()
         wpkg_output::log( x.what() ).level( wpkg_output::level_error );
 		set_state( ThreadFailed );
     }
-
-    // Destroy now that we're finished with the full install, or failure.
-    Manager::Release();
 }
 
 

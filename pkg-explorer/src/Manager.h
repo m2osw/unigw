@@ -33,8 +33,7 @@ public:
 
     ~Manager();
 
-    static pointer_t Instance();
-    static void      Release();
+    static pointer_t WeakInstance();
     static bool      InUse();
 
     std::weak_ptr<wpkgar::wpkgar_lock>      GetLock();
@@ -54,7 +53,9 @@ private:
 
     void LogFatal( const QString& msg );
 
-    static pointer_t f_instance;
+    // Basically, this means that the instance doesn't stick around
+    // unless the caller of WeakInstance() holds onto the shared_ptr.
+    static std::weak_ptr<Manager> f_instance;
 
     mutable QMutex        					f_mutex;
     std::shared_ptr<wpkgar::wpkgar_lock>	f_lock;

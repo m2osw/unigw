@@ -40,7 +40,7 @@ namespace
 }
 
 
-Manager::pointer_t Manager::f_instance;
+std::weak_ptr<Manager> Manager::f_instance;
 
 
 Manager::Manager()
@@ -59,20 +59,25 @@ Manager::~Manager()
 }
 
 
-Manager::pointer_t Manager::Instance()
+Manager::pointer_t Manager::WeakInstance()
 {
-    if( !f_instance )
+    if( !f_instance.lock() )
     {
-        f_instance.reset( new Manager );
+        pointer_t instance;
+        instance.reset( new Manager );
+        f_instance = instance;
+        return instance;
     }
-    return f_instance;
+    return f_instance.lock();
 }
 
 
+#if 0
 void Manager::Release()
 {
     f_instance.reset();
 }
+#endif
 
 
 bool Manager::InUse()

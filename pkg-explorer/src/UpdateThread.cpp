@@ -32,8 +32,8 @@ void UpdateThread::run()
 {
     try
     {
-        QMutexLocker locker( &Manager::Instance()->GetMutex() );
-        auto manager( Manager::Instance()->GetManager().lock() );
+        QMutexLocker locker( &f_manager->GetMutex() );
+        auto manager( f_manager->GetManager().lock() );
 
         // Load the installed packages into memory
         //
@@ -52,9 +52,6 @@ void UpdateThread::run()
         qCritical() << "std::runtime_error caught! what=" << except.what();
         wpkg_output::log( except.what() ).level( wpkg_output::level_error );
     }
-
-    // Destroy now that we're finished.
-    Manager::Release();
 }
 
 // vim: ts=4 sw=4 et

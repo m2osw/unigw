@@ -106,7 +106,7 @@ void InstallDialog::PopulateTree( const QString& filterText )
 
     // Load up tree with packages that can be installed/upgraded
     //
-    auto manager( Manager::Instance()->GetManager().lock() );
+    auto manager( Manager::WeakInstance()->GetManager().lock() );
     wpkgar_repository repository( manager.get() );
     const wpkgar_repository::wpkgar_package_list_t& list( repository.upgrade_list() );
     size_t _max(list.size());

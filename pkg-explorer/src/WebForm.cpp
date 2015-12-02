@@ -117,19 +117,28 @@ void WebForm::OnLinkClicked( const QUrl& url )
 
 void WebForm::PrivateDisplayPackage()
 {
-    f_thread.reset( new DisplayThread( this, f_currentPackage ) );
-	f_thread->start();
+    if( !f_thread )
+    {
+        f_thread.reset( new DisplayThread( this, f_currentPackage ) );
+        f_thread->start();
 
-    connect
-        ( f_thread.get(), &QThread::finished
-        , this          , &WebForm::OnPrivateDisplayPackage
-        );
+        connect
+            ( f_thread.get(), &QThread::finished
+            , this          , &WebForm::OnPrivateDisplayPackage
+            );
+    }
 }
 
 
 void WebForm::OnPrivateDisplayPackage()
 {
     f_webView->setHtml( f_thread->GetHtml().c_str() );
+
+    // Destroy manager object now that we're finished.
+    //
+    f_thread->wait();
+    f_thread.reset();
+    //Manager::Release();
 }
 
 // vim: ts=4 sw=4 noet

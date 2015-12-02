@@ -31,6 +31,7 @@ public:
     virtual void run();
 
 private:
+    Manager::pointer_t f_manager;
 };
 
 

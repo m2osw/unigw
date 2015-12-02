@@ -135,7 +135,7 @@ void RemoveDialog::SetSwitches()
 	cb_map[wpkgar_remove::wpkgar_remove_force_remove_essentials] = f_forceRemoveEssentialCB;
 	cb_map[wpkgar_remove::wpkgar_remove_recursive]               = f_recursiveCB;
 
-    auto remover( Manager::Instance()->GetRemover().lock() );
+    auto remover( Manager::WeakInstance()->GetRemover().lock() );
 
 	foreach( wpkgar_remove::parameter_t key, cb_map.keys() )
 	{
@@ -168,7 +168,7 @@ void RemoveDialog::on_f_buttonBox_clicked(QAbstractButton *button)
         StartOperation();
         SetSwitches();
 
-        auto remover( Manager::Instance()->GetRemover().lock() );
+        auto remover( Manager::WeakInstance()->GetRemover().lock() );
 
         QMap<QString,int> folders;
         const QStringList contents = f_model.stringList();

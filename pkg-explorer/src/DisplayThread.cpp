@@ -72,7 +72,7 @@ namespace
             "<tr><td class=\"field-name\">Package:</td><td class=\"field-value\">@PROVIDES@</td></tr>"
             "<tr><td class=\"field-name\">Version:</td><td class=\"field-value\">@VERSION@</td></tr>"
             "<tr><td class=\"field-name\">Architecture:</td><td class=\"field-value\">@ARCHITECTURE@</td></tr>"
-            //"<tr><td class=\"field-name\">Distribution:</td><td class=\"field-value\">@DISTRIBUTION@</td></tr>" -- currently unused (may be re-added in 0.9.0)
+            "<tr><td class=\"field-name\">Distribution:</td><td class=\"field-value\">@DISTRIBUTION@</td></tr>"
             "<tr><td class=\"field-name\">Maintainer:</td><td class=\"field-value\">@MAINTAINER@</td></tr>"
             "<tr><td class=\"field-name\">Priority:</td><td class=\"field-value\">@PRIORITY@</td></tr>"
             "<tr><td class=\"field-name\">Urgency:</td><td class=\"field-value\">@URGENCY@</td></tr>"
@@ -165,6 +165,8 @@ DisplayThread::DisplayThread
     )
         : QThread(p)
         , f_currentPackage(currentPkg)
+        , f_mainManager(Manager::WeakInstance())
+        , f_manager(f_mainManager->GetManager().lock() )
 {
 }
 
@@ -173,17 +175,15 @@ void DisplayThread::run()
 {
 	try
 	{
-        QMutexLocker locker( &Manager::Instance()->GetMutex() );
-
-        auto manager( Manager::Instance()->GetManager().lock() );
+        QMutexLocker locker( &Manager::WeakInstance()->GetMutex() );
 
         // Load the installed packages into memory
         //
         wpkgar_manager::package_list_t list;
-        manager->list_installed_packages( list );
+        f_manager->list_installed_packages( list );
         for( auto pkg : list )
         {
-            manager->load_package( pkg );
+            f_manager->load_package( pkg );
         }
 
         GeneratePackageHtml();
@@ -204,9 +204,6 @@ void DisplayThread::run()
         msg.set_raw_message( "unknown exception" );
         wpkg_output::get_output()->log( msg );
     }
-
-    // Destroy now that we're finished.
-    Manager::Release();
 }
 
 
@@ -214,9 +211,7 @@ void DisplayThread::DependencyToLink(
 	std::string& result, const std::string& package_name, const std::string& field_name
 	) const
 {
-    auto manager( Manager::Instance()->GetManager().lock() );
-
-    if(manager->field_is_defined(package_name, field_name))
+    if(f_manager->field_is_defined(package_name, field_name))
     {
         if(!result.empty())
         {
@@ -224,7 +219,7 @@ void DisplayThread::DependencyToLink(
         }
         result += field_name + ": ";
 
-        wpkg_dependencies::dependencies deps(manager->get_dependencies(package_name, field_name));
+        wpkg_dependencies::dependencies deps(f_manager->get_dependencies(package_name, field_name));
 
         std::string comma;
         const int max_deps(deps.size());
@@ -268,8 +263,6 @@ void DisplayThread::DependencyToLink(
 
 void DisplayThread::GeneratePackageHtml()
 {
-    auto manager( Manager::Instance()->GetManager().lock() );
-
     f_html = html_template;
     emit AddMessage( QString("Reading package %1").arg(f_currentPackage) );
 	const std::string package_name = f_currentPackage.toStdString();
@@ -277,7 +270,7 @@ void DisplayThread::GeneratePackageHtml()
     // TODO: sort the filenames with the newest version first
 
     // first take care of global entries
-    const std::string package(manager->get_field(package_name, "Package"));
+    const std::string package(f_manager->get_field(package_name, "Package"));
     replace(f_html, "@TITLE@", package);
     time_t tt;
     time(&tt);
@@ -295,7 +288,7 @@ void DisplayThread::GeneratePackageHtml()
     }
 
     std::string long_description;
-    std::string description(str_to_html(manager->get_description(package_name, "Description", long_description)));
+    std::string description(str_to_html(f_manager->get_description(package_name, "Description", long_description)));
     replace(f_html, "@DESCRIPTION@", description);
 
     std::string::size_type _start(f_html.find("@START@"));
@@ -324,52 +317,51 @@ void DisplayThread::GeneratePackageHtml()
         replace(o, "@PACKAGE@", package_name);
 
         // Package (mandatory field), Provides (optional), Essential, Priority
-        std::string package_names(manager->get_field(package_name, "Package"));
-        if(manager->field_is_defined(package_name, "Provides"))
+        std::string package_names(f_manager->get_field(package_name, "Package"));
+        if(f_manager->field_is_defined(package_name, "Provides"))
         {
-            package_names += ", " + manager->get_field(package_name, "Provides");
+            package_names += ", " + f_manager->get_field(package_name, "Provides");
         }
         bool required(false);
-        if(manager->field_is_defined(package_name, "Priority"))
+        if(f_manager->field_is_defined(package_name, "Priority"))
         {
-            case_insensitive::case_insensitive_string _priority(manager->get_field(package_name, "Priority"));
+            case_insensitive::case_insensitive_string _priority(f_manager->get_field(package_name, "Priority"));
             required = _priority == "required";
         }
         if(required)
         {
             package_names = "<strong style=\"color: red;\">" + package_names + " (Required)</strong>";
         }
-        else if(manager->field_is_defined(package_name, "Essential") && manager->get_field_boolean(package_name, "Essential"))
+        else if(f_manager->field_is_defined(package_name, "Essential") && f_manager->get_field_boolean(package_name, "Essential"))
         {
             package_names = "<strong>" + package_names + " (Essential)</strong>";
         }
         replace(o, "@PROVIDES@", package_names);
 
         // Version (mandatory field)
-        replace(o, "@VERSION@", str_to_html(manager->get_field(package_name, "Version")));
+        replace(o, "@VERSION@", str_to_html(f_manager->get_field(package_name, "Version")));
 
         // Architecture (mandatory field)
-        replace(o, "@ARCHITECTURE@", str_to_html(manager->get_field(package_name, "Architecture")));
+        replace(o, "@ARCHITECTURE@", str_to_html(f_manager->get_field(package_name, "Architecture")));
 
-		// TODO: This will show the distribution + component information in a source
         // Distribution
-        //if(manager->field_is_defined(package_name, "Distribution"))
-        //{
-        //    replace(o, "@DISTRIBUTION@", str_to_html(manager->get_field(package_name, "Distribution")));
-        //}
-        //else
-        //{
-        //    replace(o, "@DISTRIBUTION@", "not specified");
-        //}
+        if( f_manager->field_is_defined(package_name, "Distribution") )
+        {
+            replace(o, "@DISTRIBUTION@", str_to_html(f_manager->get_field(package_name, "Distribution")));
+        }
+        else
+        {
+            replace(o, "@DISTRIBUTION@", "not specified");
+        }
 
         // Maintainer (mandatory field)
         // TODO transform with a mailto:...
-        replace(o, "@MAINTAINER@", str_to_html(manager->get_field(package_name, "Maintainer")));
+        replace(o, "@MAINTAINER@", str_to_html(f_manager->get_field(package_name, "Maintainer")));
 
         // Priority
-        if(manager->field_is_defined(package_name, "Priority"))
+        if(f_manager->field_is_defined(package_name, "Priority"))
         {
-            replace(o, "@PRIORITY@", str_to_html(manager->get_field(package_name, "Priority")));
+            replace(o, "@PRIORITY@", str_to_html(f_manager->get_field(package_name, "Priority")));
         }
         else
         {
@@ -377,10 +369,10 @@ void DisplayThread::GeneratePackageHtml()
         }
 
         // Urgency
-        if(manager->field_is_defined(package_name, "Urgency"))
+        if(f_manager->field_is_defined(package_name, "Urgency"))
         {
             // XXX -- only show the first line in this placement?
-            replace(o, "@URGENCY@", str_to_html(manager->get_field(package_name, "Urgency")));
+            replace(o, "@URGENCY@", str_to_html(f_manager->get_field(package_name, "Urgency")));
         }
         else
         {
@@ -388,9 +380,9 @@ void DisplayThread::GeneratePackageHtml()
         }
 
         // Section
-        if(manager->field_is_defined(package_name, "Section"))
+        if(f_manager->field_is_defined(package_name, "Section"))
         {
-            replace(o, "@SECTION@", str_to_html(manager->get_field(package_name, "Section")));
+            replace(o, "@SECTION@", str_to_html(f_manager->get_field(package_name, "Section")));
         }
         else
         {
@@ -398,9 +390,9 @@ void DisplayThread::GeneratePackageHtml()
         }
 
         // X-PrimarySection
-        if(manager->field_is_defined(package_name, "X-PrimarySection"))
+        if(f_manager->field_is_defined(package_name, "X-PrimarySection"))
         {
-            replace(o, "@PRIMARY_SECTION@", str_to_html(manager->get_field(package_name, "X-PrimarySection")));
+            replace(o, "@PRIMARY_SECTION@", str_to_html(f_manager->get_field(package_name, "X-PrimarySection")));
         }
         else
         {
@@ -408,9 +400,9 @@ void DisplayThread::GeneratePackageHtml()
         }
 
         // X-SecondarySection
-        if(manager->field_is_defined(package_name, "X-SecondarySection"))
+        if(f_manager->field_is_defined(package_name, "X-SecondarySection"))
         {
-            replace(o, "@SECONDARY_SECTION", str_to_html(manager->get_field(package_name, "X-SecondarySection")));
+            replace(o, "@SECONDARY_SECTION", str_to_html(f_manager->get_field(package_name, "X-SecondarySection")));
         }
         else
         {
@@ -427,33 +419,33 @@ void DisplayThread::GeneratePackageHtml()
 
         // Links (Homepage, Bugs, Vcs-Browser)
         std::string links;
-        if(manager->field_is_defined(package_name, "Homepage"))
+        if(f_manager->field_is_defined(package_name, "Homepage"))
         {
             // MAKE SURE TO KEEP THIS ONE FIRST!
-            if(manager->field_is_defined(package_name, "Origin"))
+            if(f_manager->field_is_defined(package_name, "Origin"))
             {
-                links = "<a href=\"" + manager->get_field(package_name, "Homepage") + "\">" + str_to_html(manager->get_field(package_name, "Origin")) + "</a>";
+                links = "<a href=\"" + f_manager->get_field(package_name, "Homepage") + "\">" + str_to_html(f_manager->get_field(package_name, "Origin")) + "</a>";
             }
             else
             {
-                links = "<a href=\"" + manager->get_field(package_name, "Homepage") + "\">Homepage</a>";
+                links = "<a href=\"" + f_manager->get_field(package_name, "Homepage") + "\">Homepage</a>";
             }
         }
-        if(manager->field_is_defined(package_name, "Bugs"))
+        if(f_manager->field_is_defined(package_name, "Bugs"))
         {
             if(!links.empty())
             {
                 links += ", ";
             }
-            links += "<a href=\"" + manager->get_field(package_name, "Bugs") + "\">Bugs</a>";
+            links += "<a href=\"" + f_manager->get_field(package_name, "Bugs") + "\">Bugs</a>";
         }
-        if(manager->field_is_defined(package_name, "Vcs-Browser"))
+        if(f_manager->field_is_defined(package_name, "Vcs-Browser"))
         {
             if(!links.empty())
             {
                 links += ", ";
             }
-            links += ", <a href=\"" + manager->get_field(package_name, "Vcs-Browser") + "\">Source Version Control System</a>";
+            links += ", <a href=\"" + f_manager->get_field(package_name, "Vcs-Browser") + "\">Source Version Control System</a>";
         }
         if(links.empty())
         {
@@ -502,10 +494,10 @@ void DisplayThread::GeneratePackageHtml()
         replace(o, "@OTHER_DEPENDENCIES@", other_dependencies);
 
         // Installed-Size
-        if(manager->field_is_defined(package_name, "Installed-Size"))
+        if(f_manager->field_is_defined(package_name, "Installed-Size"))
         {
-            replace(o, "@INSTALLED_SIZE@", manager->get_field(package_name, "Installed-Size") + "Kb");
-            uint32_t installed_size(manager->get_field_integer(package_name, "Installed-Size") * 1024);
+            replace(o, "@INSTALLED_SIZE@", f_manager->get_field(package_name, "Installed-Size") + "Kb");
+            uint32_t installed_size(f_manager->get_field_integer(package_name, "Installed-Size") * 1024);
             char buf[16];
             snprintf(buf, sizeof(buf), "%d", installed_size);
             buf[(sizeof(buf) / sizeof(buf[0])) - 1] = '\0';
@@ -518,9 +510,9 @@ void DisplayThread::GeneratePackageHtml()
         }
 
         // Packager-Version
-        if(manager->field_is_defined(package_name, "Packager-Version"))
+        if(f_manager->field_is_defined(package_name, "Packager-Version"))
         {
-            replace(o, "@PACKAGER_VERSION@", manager->get_field(package_name, "Packager-Version"));
+            replace(o, "@PACKAGER_VERSION@", f_manager->get_field(package_name, "Packager-Version"));
         }
         else
         {
@@ -531,11 +523,11 @@ void DisplayThread::GeneratePackageHtml()
         std::string files_list("<pre class=\"files\">");
         memfile::memory_file files;
         std::string data_filename("data.tar");
-        manager->get_control_file(files, package_name, data_filename, false);
+        f_manager->get_control_file(files, package_name, data_filename, false);
         bool use_drive_letter(false);
-        if(manager->field_is_defined(package_name, "X-Drive-Letter"))
+        if(f_manager->field_is_defined(package_name, "X-Drive-Letter"))
         {
-            use_drive_letter = manager->get_field_boolean(package_name, "X-Drive-Letter");
+            use_drive_letter = f_manager->get_field_boolean(package_name, "X-Drive-Letter");
         }
         files.dir_rewind();
         for(;;) {
@@ -588,7 +580,7 @@ void DisplayThread::GeneratePackageHtml()
                 buf[(sizeof(buf) / sizeof(buf[0])) - 1] = '\0';
                 files_list += buf;
             }
-            files_list += "  " + info.get_date() + (manager->is_conffile(package_name, filename) ? " *" : "  ") + filename;
+            files_list += "  " + info.get_date() + (f_manager->is_conffile(package_name, filename) ? " *" : "  ") + filename;
             if(info.get_file_type() == memfile::memory_file::file_info::symbolic_link) {
                 files_list += " -> " + info.get_link();
             }

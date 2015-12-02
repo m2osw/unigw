@@ -65,6 +65,7 @@ private:
     std::shared_ptr<LogOutput>              f_logOutput;
     bool                                    f_doUpgrade;
     QLabel                                  f_statusLabel;
+    Manager::pointer_t                      f_manager;
     mutable QMutex        					f_mutex;
     QTimer                                  f_fsTimer;
 

@@ -440,7 +440,8 @@ void MainWindow::LogFatal( const QString& msg )
 
 void MainWindow::InitManager()
 {
-    if( !Manager::Instance()->GetLock().lock() )
+    f_manager = Manager::WeakInstance();
+    if( !f_manager->GetLock().lock() )
     {
         QMessageBox::StandardButton result = QMessageBox::critical
               ( this
@@ -454,10 +455,10 @@ void MainWindow::InitManager()
         {
             try
             {
-                Manager::Instance()->ResetLock();
+                f_manager->ResetLock();
                 LogDebug( "Lock file removed and reset." );
 
-                if( !Manager::Instance()->GetLock().lock() )
+                if( !f_manager->GetLock().lock() )
                 {
                     LogFatal( "Lock file is stubbornly refusing to be created!" );
                 }
@@ -512,13 +513,16 @@ void MainWindow::RefreshListing()
     f_procDlg.show();
     f_procDlg.EnableCancelButton( false );
 
-    f_initThread.reset( new InitThread( this, actionShowInstalled->isChecked() ) );
-	f_initThread->start();
+    if( !f_initThread )
+    {
+        f_initThread.reset( new InitThread( this, actionShowInstalled->isChecked() ) );
+        f_initThread->start();
 
-    connect
-        ( f_initThread.get(), &QThread::finished
-        , this              , &MainWindow::OnRefreshListing
-        );
+        connect
+           ( f_initThread.get(), &QThread::finished
+           , this              , &MainWindow::OnRefreshListing
+           );
+    }
 }
 
 
@@ -547,6 +551,11 @@ void MainWindow::OnRefreshListing()
             });
             f_packageModel.appendRow( _parent );
         });
+
+        // Done with the initThread object
+        //
+        f_initThread->wait();
+        f_initThread.reset();
     }
     //
     f_packageModel.sort( 0 );
@@ -568,8 +577,8 @@ void MainWindow::OnRefreshListing()
 
     f_procDlg.hide();
 
-    // Destroy now that we're finished.
-    Manager::Release();
+    // Destroy now that we're finished. This releases the database lock.
+    f_manager.reset();
 
     if( f_doUpgrade )
     {
@@ -692,7 +701,8 @@ void MainWindow::OnSelectionChanged( const QItemSelection &/*selected*/, const Q
 void MainWindow::StartInstallThread( const QStringList& packages_list )
 {
     wpkg_output::get_output()->reset_error_count();
-    auto installer( Manager::Instance()->GetInstaller().lock() );
+    f_manager = Manager::WeakInstance();
+    auto installer( f_manager->GetInstaller().lock() );
 
     // always force the chown/chmod because under Unix that doesn't work well otherwise
     installer->set_parameter( wpkgar_install::wpkgar_install_force_file_info, true );
@@ -705,20 +715,24 @@ void MainWindow::StartInstallThread( const QStringList& packages_list )
     f_procDlg.show();
     f_procDlg.EnableCancelButton( true );
 
-	f_installThread.reset
-		(
-			new InstallThread
-				( this
-				, InstallThread::ThreadValidateOnly
-				)
-		);
+    if( !f_installThread )
+    {
+        f_manager = Manager::WeakInstance();
+        f_installThread.reset
+            (
+                new InstallThread
+                    ( this
+                    , InstallThread::ThreadValidateOnly
+                    )
+            );
 
-    connect
-        ( f_installThread.get(), &QThread::finished
-        , this                 , &MainWindow::OnInstallValidateComplete
-        );
+        connect
+            ( f_installThread.get(), &QThread::finished
+            , this                 , &MainWindow::OnInstallValidateComplete
+            );
 
-    f_installThread->start();
+        f_installThread->start();
+    }
 }
 
 
@@ -750,12 +764,14 @@ void MainWindow::OnInstallValidateComplete()
                   , tr("One or more packages failed to validate! See log pane for details...")
                   , QMessageBox::Ok
                   );
+		f_installThread->wait();
+		f_installThread.reset();
         HandleFailure();
         RefreshListing();
         return;
     }
 
-    wpkgar_install::install_info_list_t install_list = Manager::Instance()->GetInstaller().lock()->get_install_list();
+    wpkgar_install::install_info_list_t install_list = f_manager->GetInstaller().lock()->get_install_list();
 
     QStringList msg;
     switch( f_installMode )
@@ -832,6 +848,9 @@ void MainWindow::OnInstallValidateComplete()
             break;
     }
 
+	f_installThread->wait();
+	f_installThread.reset();
+
     msg << tr("\nDo you want to continue?");
     if( QMessageBox::question
             ( this
@@ -890,6 +909,9 @@ void MainWindow::OnInstallComplete()
             , QMessageBox::Ok
             );
 	}
+
+	f_installThread->wait();
+	f_installThread.reset();
 
 	if( f_immediateInstall.isEmpty() )
 	{
@@ -1006,13 +1028,16 @@ void MainWindow::on_actionUpdate_triggered()
     f_procDlg.show();
     f_procDlg.EnableCancelButton( true );
 
-    f_updateThread.reset( new UpdateThread( this ) );
-	f_updateThread->start();
+	if( !f_updateThread )
+	{
+		f_updateThread.reset( new UpdateThread( this ) );
+		f_updateThread->start();
 
-    connect
-        ( f_updateThread.get(), &QThread::finished
-        , this                , &MainWindow::OnUpdateFinished
-        );
+		connect
+			( f_updateThread.get(), &QThread::finished
+			, this                , &MainWindow::OnUpdateFinished
+			);
+	}
 }
 
 
@@ -1021,6 +1046,9 @@ void MainWindow::OnUpdateFinished()
     ActionsDisable ad( f_actionList );
 
     f_procDlg.hide();
+
+	f_updateThread->wait();
+	f_updateThread.reset();
 
     if( f_doUpgrade )
     {

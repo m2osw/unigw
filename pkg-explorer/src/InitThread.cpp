@@ -64,8 +64,15 @@ namespace
 InitThread::InitThread( QObject* p, const bool show_installed_only )
     : QThread(p)
     , f_showInstalledOnly(show_installed_only)
-    , f_mutex( QMutex::Recursive )
+    , f_manager(Manager::WeakInstance())
+    , f_mutex(QMutex::Recursive)
 {}
+
+
+InitThread::~InitThread()
+{
+    f_manager.reset();
+}
 
 
 void InitThread::run()
@@ -73,11 +80,11 @@ void InitThread::run()
 	try
     {
         QMutexLocker locker( &f_mutex );
-        QMutexLocker mgr_locker( &Manager::Instance()->GetMutex() );
+        QMutexLocker mgr_locker( &f_manager->GetMutex() );
 
         wpkgar_manager::package_list_t list;
 
-        auto manager( Manager::Instance()->GetManager().lock() );
+        auto manager( f_manager->GetManager().lock() );
         ResetErrorCount();
         manager->list_installed_packages( list );
 
@@ -122,9 +129,6 @@ void InitThread::run()
         qCritical() << "std::runtime_error caught! what=" << except.what();
 		wpkg_output::log( except.what() ).level( wpkg_output::level_error );
     }
-
-    // Done with the manager, release it.
-    Manager::Release();
 }
 
 

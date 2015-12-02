@@ -43,6 +43,8 @@ signals:
 private:
     std::string          f_html;
     QString              f_currentPackage;
+    Manager::pointer_t   f_mainManager;
+    std::shared_ptr<wpkgar::wpkgar_manager> f_manager;
 
 	void DependencyToLink( std::string& result, const std::string& package_name, const std::string& field_name ) const;
 	void GeneratePackageHtml();

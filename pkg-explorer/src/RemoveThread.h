@@ -36,6 +36,7 @@ public:
 
 private:
     State			    f_state;
+    Manager::pointer_t  f_manager;
     mutable QMutex      f_mutex;
 
 	void set_state( const State new_state );

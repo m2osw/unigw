@@ -265,7 +265,7 @@ void ImportDialog::SetSwitches()
     cb_map[wpkgar_install::wpkgar_install_force_overwrite_dir]    = f_forceOverwriteDirCB;
     cb_map[wpkgar_install::wpkgar_install_force_depends_version]  = f_forceDepVerCB;
 
-    auto installer( Manager::Instance()->GetInstaller().lock() );
+    auto installer( Manager::WeakInstance()->GetInstaller().lock() );
 
 	foreach( wpkgar_install::parameter_t key, cb_map.keys() )
 	{
@@ -294,7 +294,7 @@ void ImportDialog::on_f_buttonBox_clicked(QAbstractButton *button)
 
 		QMap<QString,int> folders;
 		const QStringList contents = f_model.stringList();
-        auto installer( Manager::Instance()->GetInstaller().lock() );
+        auto installer( Manager::WeakInstance()->GetInstaller().lock() );
 		foreach( QString file, contents )
 		{
 			installer->add_package( file.toStdString() );
@@ -302,17 +302,20 @@ void ImportDialog::on_f_buttonBox_clicked(QAbstractButton *button)
 			folders[info.path()]++;
 		}
 
-        f_thread.reset( new InstallThread( this, InstallThread::ThreadFullInstall ) );
-		f_thread->start();
+        if( !f_thread )
+        {
+            f_thread.reset( new InstallThread( this, InstallThread::ThreadFullInstall ) );
+            f_thread->start();
 
-		connect
-			( f_thread.get(), &InstallThread::finished
-			, this          , &ImportDialog::OnInstallComplete
-			);
+            connect
+                ( f_thread.get(), &InstallThread::finished
+                , this          , &ImportDialog::OnInstallComplete
+                );
+        }
     }
     else if( button == closeBtn )
     {
-        Manager::Release();
+        f_manager.reset();
         reject();
     }
 }
@@ -339,6 +342,13 @@ void ImportDialog::OnInstallComplete()
             );
         accept();
     }
+
+    f_thread->wait();
+    f_thread.reset();
+
+    // Destroy now that we're finished.
+    //
+    f_manager.reset();
 
     EndOperation();
 }

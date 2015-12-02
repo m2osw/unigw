@@ -40,9 +40,10 @@ public:
 	State get_state() const;
 
 private:
-    State            f_state;
-    Mode             f_mode;
-    mutable QMutex   f_mutex;
+    State              f_state;
+    Mode               f_mode;
+    Manager::pointer_t f_manager;
+    mutable QMutex     f_mutex;
 
     bool Validate( std::shared_ptr<wpkgar::wpkgar_manager> manager, std::shared_ptr<wpkgar::wpkgar_install> installer );
     bool Preconfigure( std::shared_ptr<wpkgar::wpkgar_install> installer );

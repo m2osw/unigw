@@ -26,6 +26,7 @@ using namespace wpkgar;
 RemoveThread::RemoveThread( QObject* p )
         : QThread(p)
 		, f_state(ThreadStopped)
+        , f_manager(Manager::WeakInstance())
         , f_mutex(QMutex::Recursive)
 {
 }
@@ -47,10 +48,10 @@ void RemoveThread::run()
     try
     {
         QMutexLocker locker( &f_mutex );
-        QMutexLocker mgr_locker( &(Manager::Instance()->GetMutex()) );
+        QMutexLocker mgr_locker( &(f_manager->GetMutex()) );
 
-        auto manager( Manager::Instance()->GetManager().lock() );
-        auto remover( Manager::Instance()->GetRemover().lock() );
+        auto manager( f_manager->GetManager().lock() );
+        auto remover( f_manager->GetRemover().lock() );
 
         set_state( ThreadRunning );
 
@@ -97,9 +98,6 @@ void RemoveThread::run()
 		wpkg_output::log( except.what() ).level( wpkg_output::level_error );
 		set_state( ThreadFailed );
     }
-
-    // Destroy now that we're finished.
-    Manager::Release();
 }
 
 // vim: ts=4 sw=4 et
