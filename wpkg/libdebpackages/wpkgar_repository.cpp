@@ -1127,7 +1127,7 @@ const wpkgar_repository::wpkgar_package_list_t& wpkgar_repository::upgrade_list(
         f_manager->load_package("core");
         f_manager->list_installed_packages(f_installed_packages);
 
-        for( auto idx(0); idx < f_update_index.size(); ++idx )
+        for( wpkgar_package_list_t::size_type idx(0); idx < f_update_index.size(); ++idx )
         {
             auto& entry( f_update_index[idx] );
             // make sure we had at least one successful read

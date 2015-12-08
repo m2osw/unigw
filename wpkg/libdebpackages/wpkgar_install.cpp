@@ -2889,7 +2889,7 @@ void wpkgar_install::trim_available_packages()
 {
     // start by removing all the available packages that are in conflict with
     // the explicit packages because we'll never be able to use them
-    for( auto idx(0); idx < f_packages.size(); ++idx)
+    for( wpkgar_package_list_t::size_type idx(0); idx < f_packages.size(); ++idx)
     {
         auto& pkg( f_packages[idx] );
         // start from the top level (i.e. only check explicit dependencies)
@@ -2967,7 +2967,7 @@ wpkgar_install::validation_return_t wpkgar_install::find_explicit_dependency(wpk
     // check whether it is part of the list of packages the user
     // specified on the command line (explicit)
     wpkgar_package_list_t::size_type found(static_cast<wpkgar_package_list_t::size_type>(-1));
-    for( auto idx(0); idx < f_packages.size(); ++idx)
+    for( wpkgar_package_list_t::size_type idx(0); idx < f_packages.size(); ++idx)
     {
         auto& pkg( f_packages[idx] );
         if(index != idx // skip myself
@@ -3072,7 +3072,7 @@ wpkgar_install::validation_return_t wpkgar_install::find_installed_dependency(wp
     // check whether it is part of the list of packages the user
     // specified on the command line (explicit)
     wpkgar_package_list_t::size_type found(static_cast<wpkgar_package_list_t::size_type>(-1));
-    for( auto idx(0); idx < f_packages.size(); ++idx)
+    for( wpkgar_package_list_t::size_type idx(0); idx < f_packages.size(); ++idx)
     {
         auto& pkg( f_packages[idx] );
         if(index != idx // skip myself
@@ -3188,7 +3188,7 @@ wpkgar_install::validation_return_t wpkgar_install::validate_installed_dependenc
     // result is success by default
     validation_return_t result(validation_return_success);
 
-    for( auto idx(0); idx < f_packages.size(); ++idx )
+    for( wpkgar_package_list_t::size_type idx(0); idx < f_packages.size(); ++idx )
     {
         auto& pkg( f_packages[idx] );
         if(pkg.get_type() == package_item_t::package_type_explicit)
@@ -3562,7 +3562,7 @@ bool wpkgar_install::verify_tree( wpkgar_package_list_t& tree, wpkgar_dependency
     // also, in this case "available" dependencies that are required
     // get the new type "implicit" so we know we have to install them
     // and we can save the correct status in the package once installed
-    for( auto idx(0); idx < tree.size(); ++idx )
+    for( wpkgar_package_list_t::size_type idx(0); idx < tree.size(); ++idx )
     {
         if(tree[idx].get_type() == package_item_t::package_type_explicit)
         {
@@ -3764,7 +3764,7 @@ void wpkgar_install::output_tree(int file_count, const wpkgar_package_list_t& tr
                     ctime(&now),
                     sub_title.c_str());
 
-    for( auto idx(0); idx < tree.size(); ++idx )
+    for( wpkgar_package_list_t::size_type idx(0); idx < tree.size(); ++idx )
     {
         const auto& tree_pkg( tree[idx] );
         f_manager->check_interrupt();
@@ -4753,7 +4753,7 @@ bool wpkgar_install::find_essential_file(std::string filename, const size_t skip
     if(!f_read_essentials)
     {
         f_read_essentials = true;
-        for( auto idx = 0; idx < f_packages.size(); ++idx )
+        for( wpkgar_package_list_t::size_type idx = 0; idx < f_packages.size(); ++idx )
         {
             auto& pkg( f_packages[idx] );
             if(static_cast<wpkgar_package_list_t::size_type>(skip_idx) == idx)
@@ -5125,7 +5125,7 @@ void wpkgar_install::sort_package_dependencies(const std::string& name, wpkgar_p
         return;
     }
 
-    for( auto idx(0); idx < f_packages.size(); ++idx )
+    for( wpkgar_package_list_t::size_type idx(0); idx < f_packages.size(); ++idx )
     {
         auto& pkg( f_packages[idx] );
         if(pkg.get_name() == name)
@@ -6996,7 +6996,7 @@ int wpkgar_install::reconfigure()
     for( auto iter = f_packages.begin(); iter != f_packages.end(); ++iter, ++idx )
     {
         // the sort is probably not useful here
-        wpkgar_package_list_t::size_type idx(f_sorted_packages[idx]);
+        wpkgar_package_list_t::size_type sorted_idx(f_sorted_packages[idx]);
         auto& pkg( *iter );
         if(!pkg.is_unpacked())
         {
@@ -7014,7 +7014,7 @@ int wpkgar_install::reconfigure()
                     return WPKGAR_ERROR;
                 }
 
-                return static_cast<int>(idx);
+                return static_cast<int>(sorted_idx);
 
             default:
                 // anything else cannot be reconfigured anyway
