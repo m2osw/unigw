@@ -843,7 +843,7 @@ void wpkgar_install::add_package( const std::string& package, const std::string&
 
             if( version.empty() )
             {
-                const auto greatest_version( version_map.rbegin()->second() );
+                auto greatest_version( version_map.rbegin()->first );
                 if( version_map.size() > 1 )
                 {
                     wpkg_output::log("package '%1' has multiple versions available in the selected repositories. Selected the greatest version '%2'.")
@@ -857,7 +857,7 @@ void wpkgar_install::add_package( const std::string& package, const std::string&
 
                 // Select the greatest version
                 //
-                add_package( greatest_version, force_reinstall );
+                add_package( version_map.rbegin()->second, force_reinstall );
             }
             else
             {
