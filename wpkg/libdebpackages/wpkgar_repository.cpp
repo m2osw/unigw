@@ -99,6 +99,16 @@ namespace wpkgar
  * invalid by your version of wpkg, an error is raised before the object
  * get finalized.
  */
+wpkgar_repository::package_item_t::package_item_t()
+    : f_manager(0)
+    //, f_status(invalid) -- auto-init
+    //, f_info(empty)
+    // the following control file comes from a binary package
+    //, f_control(0)
+    , f_cause_for_rejection("wpkgar_repository::package_item_t is not properly initialized!")
+{
+}
+
 wpkgar_repository::package_item_t::package_item_t(wpkgar_manager *manager, const memfile::memory_file::file_info& info, const memfile::memory_file& data)
     : f_manager(manager)
     //, f_status(invalid) -- auto-init
@@ -1117,16 +1127,16 @@ const wpkgar_repository::wpkgar_package_list_t& wpkgar_repository::upgrade_list(
         f_manager->load_package("core");
         f_manager->list_installed_packages(f_installed_packages);
 
-        const size_t max(f_update_index.size());
-        for(size_t i(0); i < max; ++i)
+        for( auto idx(0); idx < f_update_index.size(); ++idx )
         {
+            auto& entry( f_update_index[idx] );
             // make sure we had at least one successful read
             // otherwise there is no index for that entry
-            if(f_update_index[i].get_time(update_entry_t::last_success) != 0)
+            if(entry.get_time(update_entry_t::last_success) != 0)
             {
                 wpkg_filename::uri_filename name(f_manager->get_database_path());
                 std::stringstream s;
-                s << f_update_index[i].get_index();
+                s << entry.get_index();
                 name = name.append_child("core/indexes/update-" + s.str() + ".index.gz");
                 memfile::memory_file index_file;
                 index_file.read_file(name);
@@ -1138,7 +1148,7 @@ const wpkgar_repository::wpkgar_package_list_t& wpkgar_repository::upgrade_list(
                 }
 
                 // we have an index, go ahead and upgrade
-                upgrade_index(i, index_file);
+                upgrade_index(idx, index_file);
             }
         }
     }

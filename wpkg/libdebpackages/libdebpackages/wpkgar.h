@@ -212,6 +212,7 @@ public:
     bool                                    is_self() const;
 
     void                                    list_installed_packages(package_list_t& list);
+    void                                    load_installed_packages();
     void                                    add_repository( const source& source_repo );
     void                                    add_repository( const wpkg_filename::uri_filename& repository );
     void                                    set_repositories(const wpkg_filename::filename_list_t& repositories);
@@ -292,6 +293,7 @@ private:
     self_packages_t                                     f_selves;
     controlled_vars::fbool_t                            f_include_selves;
     std::shared_ptr<wpkgar_tracker_interface>           f_tracker;
+    package_list_t                                      f_installed_packages;
 };
 
 

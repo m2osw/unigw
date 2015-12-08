@@ -109,14 +109,11 @@ void InstallDialog::PopulateTree( const QString& filterText )
     auto manager( Manager::WeakInstance()->GetManager().lock() );
     wpkgar_repository repository( manager.get() );
     const wpkgar_repository::wpkgar_package_list_t& list( repository.upgrade_list() );
-    size_t _max(list.size());
-    for( size_t i = 0; i < _max; ++i )
+    for( auto entry : list )
     {
-        if( list[i].get_status() == itemStatus )
+        if( entry.get_status() == itemStatus )
         {
-            // Yes, I know this isn't exception safe, but these items shouldn't throw at all.
-            //
-            const QString name( list[i].get_name().c_str() );
+            const QString name( entry.get_name().c_str() );
             bool add_item(true);
             //
             if( !filterText.isEmpty() )
@@ -126,14 +123,16 @@ void InstallDialog::PopulateTree( const QString& filterText )
             //
             if( add_item )
             {
+                // Yes, I know this isn't exception safe, but these items shouldn't throw at all.
+                //
                 QList<QStandardItem*> itemList;
                 QStandardItem* install_item = new QStandardItem;
                 install_item->setCheckable( true );
                 install_item->setCheckState( checkState );
-                install_item->setData( name );
+                install_item->setData( QString("%1:%2").arg(name).arg(entry.get_version().c_str()) );
                 itemList << install_item;
                 itemList << new QStandardItem( QIcon(":/icons/file"), name );
-                itemList << new QStandardItem( list[i].get_version().c_str() );
+                itemList << new QStandardItem( entry.get_version().c_str() );
                 f_model.appendRow( itemList );
 
                 f_buttonBox->button( QDialogButtonBox::Apply )->setEnabled( f_mode == UpgradeMode );

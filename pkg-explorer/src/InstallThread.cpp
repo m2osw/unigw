@@ -126,12 +126,7 @@ void InstallThread::run()
 
         // Load the installed packages into memory
         //
-        wpkgar_manager::package_list_t list;
-        manager->list_installed_packages( list );
-        for( auto pkg : list )
-        {
-            manager->load_package( pkg );
-        }
+        manager->load_installed_packages();
 
         if( f_mode == ThreadValidateOnly || f_mode == ThreadFullInstall )
         {

@@ -682,7 +682,8 @@ void MainWindow::StartInstallThread( const QStringList& packages_list )
 
     for( auto pkg : packages_list )
     {
-        installer->add_package( pkg.toStdString() );
+        QStringList pkg( pkg.split(":") );
+        installer->add_package( pkg[0].toStdString(), pkg[1].toStdString() );
     }
 
     if( !f_installThread )

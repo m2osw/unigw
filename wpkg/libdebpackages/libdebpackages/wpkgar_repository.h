@@ -108,6 +108,7 @@ public:
             invalid
         };
 
+        package_item_t();
         package_item_t(wpkgar_manager *manager, const memfile::memory_file::file_info& info, const memfile::memory_file& data);
 
         void check_installed_package(bool exists);

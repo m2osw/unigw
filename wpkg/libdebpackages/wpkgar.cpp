@@ -1096,7 +1096,7 @@ void wpkgar_manager::lock(const std::string& status)
         {
             throw wpkgar_exception_locked("the lock file could not be created, this usually means another process is already working on this installation. If you are sure that it is not the case, then you may use the --remove-database-lock command line option to force the release of the lock.");
         }
-        // it worked, change the database status
+        // it worked, load the core package, and change the database status
         load_package("core");
 
         // is the packager environment "ready"?
@@ -1110,7 +1110,7 @@ void wpkgar_manager::lock(const std::string& status)
             // TBD -- the unlock will restore the core package status to "Ready"...
             //        is it sensible here to do that automatically?
             unlock();
-            throw wpkgar_exception_parameter("the packager environment is not ready");
+            throw wpkgar_exception_parameter("the packager environment is not ready: cannot load the core package!");
         }
 
         set_field("core", wpkg_control::control_file::field_xstatus_factory_t::canonicalized_name(), status, true);
@@ -1130,7 +1130,7 @@ void wpkgar_manager::unlock()
     if(f_lock_count == 0)
     {
         // restore the status also
-        load_package("core");
+        //load_package("core");
         set_field("core", wpkg_control::control_file::field_xstatus_factory_t::canonicalized_name(), "Ready", true);
         // release the lock
         close(f_lock_fd);
@@ -1194,7 +1194,7 @@ bool wpkgar_manager::remove_lock()
     lock_filename.os_unlink();
 
     // restore the status also
-    load_package("core");
+    //load_package("core");
     set_field("core", wpkg_control::control_file::field_xstatus_factory_t::canonicalized_name(), "Ready", true);
 
     // we had to unlock the database and it worked!
@@ -1486,6 +1486,7 @@ void wpkgar_manager::load_package(const wpkg_filename::uri_filename& filename, b
     package->read_package();
     f_packages[filename.basename()] = package;
 }
+
 
 /** \brief Internal function called when loading a non-installed package.
  *
@@ -1829,27 +1830,47 @@ bool wpkgar_manager::is_self() const
  */
 void wpkgar_manager::list_installed_packages(package_list_t& list)
 {
-    list.clear();
-    memfile::memory_file packages;
-    packages.dir_rewind(get_database_path(), false);
-    memfile::memory_file::file_info info;
-    while(packages.dir_next(info))
+    if( f_installed_packages.empty() )
     {
-        if(info.get_file_type() == memfile::memory_file::file_info::directory)
+        memfile::memory_file packages;
+        packages.dir_rewind(get_database_path(), false);
+        memfile::memory_file::file_info info;
+        while(packages.dir_next(info))
         {
-            const std::string& name(info.get_basename());
-            // /tmp/wpkg-<pid>/packages includes all the temporarily extracted
-            // packages; note that by default this is deleted on exit
-            //
-            // "core" is used for the global status of the installation
-            // also a name must be a valid package name
-            if(name != "core" && wpkg_util::is_package_name(name))
+            if(info.get_file_type() == memfile::memory_file::file_info::directory)
             {
-                list.push_back(name);
+                const std::string& name(info.get_basename());
+                // /tmp/wpkg-<pid>/packages includes all the temporarily extracted
+                // packages; note that by default this is deleted on exit
+                //
+                // "core" is used for the global status of the installation
+                // also a name must be a valid package name
+                if(name != "core" && wpkg_util::is_package_name(name))
+                {
+                    f_installed_packages.push_back(name);
+                }
             }
         }
+        std::sort(f_installed_packages.begin(), f_installed_packages.end());
     }
-    std::sort(list.begin(), list.end());
+
+    list = f_installed_packages;
+}
+
+
+/** \brief Load installed packages.
+ *
+ * This function loads all installed packages into memory.
+ *
+ */
+void wpkgar_manager::load_installed_packages()
+{
+    package_list_t list;
+    list_installed_packages( list );
+    for( auto pkg : list )
+    {
+        load_package( pkg );
+    }
 }
 
 
@@ -2300,7 +2321,7 @@ void wpkgar_manager::add_global_hook(const wpkg_filename::uri_filename& script_n
     script.read_file(script_name);
 
     // we'll need to have the core package ready
-    load_package("core");
+    //load_package("core");
     const std::shared_ptr<wpkgar_package> core(get_package("core"));
     const wpkg_filename::uri_filename& core_package_path(core->get_package_path());
     const wpkg_filename::uri_filename hooks_path(core_package_path.append_child("hooks"));
@@ -2335,7 +2356,7 @@ bool wpkgar_manager::remove_global_hook(const wpkg_filename::uri_filename& scrip
     }
 
     // we'll need to have the core package ready
-    load_package("core");
+    //load_package("core");
     const std::shared_ptr<wpkgar_package> core(get_package("core"));
     const wpkg_filename::uri_filename& core_package_path(core->get_package_path());
     const wpkg_filename::uri_filename hooks_path(core_package_path.append_child("hooks"));
@@ -2357,7 +2378,7 @@ bool wpkgar_manager::remove_global_hook(const wpkg_filename::uri_filename& scrip
 void wpkgar_manager::install_hooks(const std::string& package_name)
 {
     // we'll need to have the core package ready
-    load_package("core");
+    //load_package("core");
     const std::shared_ptr<wpkgar_package> core(get_package("core"));
     const wpkg_filename::uri_filename& core_package_path(core->get_package_path());
     const wpkg_filename::uri_filename hooks_path(core_package_path.append_child("hooks"));

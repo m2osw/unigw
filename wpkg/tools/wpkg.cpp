@@ -3116,7 +3116,7 @@ void init_installer
             for(int i(0); i < max; ++i)
             {
                 const std::string& name( cl.get_string( option, i ) );
-                pkg_install.add_package( name, cl.opt().is_defined( "force-reinstall" ) );
+                pkg_install.add_package( name, std::string(), cl.opt().is_defined( "force-reinstall" ) );
             }
 
             if( pkg_install.count() == 0 )

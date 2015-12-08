@@ -32,6 +32,7 @@
 #ifndef WPKGAR_INSTALL_H
 #define WPKGAR_INSTALL_H
 #include    "libdebpackages/wpkgar.h"
+#include    "libdebpackages/wpkgar_repository.h"
 #include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
 namespace wpkg_backup
@@ -114,7 +115,8 @@ public:
     void set_reconfiguring();
     void set_unpacking();
     void add_field_validation(const std::string& expression);
-    void add_package( const std::string& package, const bool force_reinstall = false );
+    void add_package( const std::string& package, const std::string& version = std::string(), const bool force_reinstall = false );
+    void add_package( wpkgar_repository::package_item_t entry, const bool force_reinstall = false );
     const std::string& get_package_name( const int idx ) const;
     int count() const;
 
