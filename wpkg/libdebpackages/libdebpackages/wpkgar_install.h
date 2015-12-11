@@ -112,13 +112,13 @@ public:
 
         progress_record_t();
 
-        int         get_current_progress() const;   // What count we are on
-        int         get_progress_max() const;       // Total progress
+        uint64_t    get_current_progress() const;   // What count we are on
+        uint64_t    get_progress_max() const;       // Total progress
         std::string get_progress_what() const;      // String detailing current operation
 
     private:
-        controlled_vars::zuint32_t          f_current_progress;
-        controlled_vars::zuint32_t          f_progress_max;
+        controlled_vars::zuint64_t          f_current_progress;
+        controlled_vars::zuint64_t          f_progress_max;
         std::string                         f_progress_what;
     };
 
@@ -337,7 +337,22 @@ private:
     // configuration sub-functions
     bool configure_package(package_item_t *item);
 
-    void add_progess_record( const std::string& what, const uint32_t max );
+    class progress_scope
+    {
+    public:
+        progress_scope( wpkgar_install* inst
+                      , const std::string& what
+                      , const uint64_t max );
+        ~progress_scope();
+
+    private:
+        wpkgar_install* f_installer;
+    };
+
+    friend class progress_scope;
+
+    void add_progess_record( const std::string& what, const uint64_t max );
+    void pop_progess_record();
     void increment_progress();
 
     wpkgar_manager *                    f_manager;

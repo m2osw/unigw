@@ -892,10 +892,13 @@ bool wpkgar_install::validate_directories()
         return true;
     }
 
+    progress_scope s( this, "validate_directories", f_packages.size() * 2 );
+
     // now go through all of those and add dependencies as expected
     for(wpkgar_package_list_t::size_type i(0); i < f_packages.size(); ++i)
     {
         f_manager->check_interrupt();
+        increment_progress();
 
         // if we cannot access that file, it's probably a direct package
         // name in which case we're done here (another error should occur
@@ -951,6 +954,7 @@ bool wpkgar_install::validate_directories()
     int size(0);
     for(wpkgar_package_list_t::size_type i(0); i < f_packages.size(); ++i)
     {
+        increment_progress();
         if(f_packages[i].get_type() == package_item_t::package_type_explicit
         || f_packages[i].get_type() == package_item_t::package_type_implicit)
         {
@@ -977,9 +981,12 @@ bool wpkgar_install::validate_directories()
 // installing, unpacking, checking an install: only new package names
 void wpkgar_install::validate_package_names()
 {
+    progress_scope s( this, "validate_package_names", f_packages.size() * 2 );
+
     for( auto& pkg : f_packages )
     {
         f_manager->check_interrupt();
+        increment_progress();
 
         if(!pkg.get_filename().is_deb())
         {
@@ -1337,6 +1344,8 @@ void wpkgar_install::validate_package_names()
 
 void wpkgar_install::installing_source()
 {
+    progress_scope s( this, "installing_source", f_packages.size() );
+
     f_install_source = false;
 
     // if not installing (--configure, --reconfigure) then there is nothing to test here
@@ -1345,6 +1354,7 @@ void wpkgar_install::installing_source()
         for( auto& pkg : f_packages )
         {
             f_manager->check_interrupt();
+            increment_progress();
 
             const std::string architecture(pkg.get_architecture());
             if(architecture == "src" || architecture == "source")
@@ -1359,10 +1369,13 @@ void wpkgar_install::installing_source()
 
 void wpkgar_install::validate_installed_packages()
 {
+    progress_scope s( this, "validate_installed_packages", f_list_installed_packages.size() );
+
     // read the names of all the installed packages
     for( auto& pkg : f_list_installed_packages )
     {
         f_manager->check_interrupt();
+        increment_progress();
 
         try
         {
@@ -1739,6 +1752,8 @@ void wpkgar_install::validate_installed_packages()
  */
 void wpkgar_install::validate_distribution()
 {
+    progress_scope s( this, "validate_distribution", f_packages.size() );
+
     // if the Distribution field is not defined for that target
     // then we're done here
     if(!f_manager->field_is_defined("core", "Distribution"))
@@ -1750,6 +1765,7 @@ void wpkgar_install::validate_distribution()
     for( const auto& package : f_packages )
     {
         f_manager->check_interrupt();
+        increment_progress();
 
         switch(package.get_type())
         {
@@ -1833,9 +1849,12 @@ void wpkgar_install::validate_distribution()
 
 void wpkgar_install::validate_architecture()
 {
+    progress_scope s( this, "validate_architecture", f_packages.size() );
+
     for( auto& pkg : f_packages )
     {
         f_manager->check_interrupt();
+        increment_progress();
 
         if(pkg.get_type() == package_item_t::package_type_explicit)
         {
@@ -2063,6 +2082,8 @@ bool wpkgar_install::find_installed_predependency(const wpkg_filename::uri_filen
 
 void wpkgar_install::validate_predependencies()
 {
+    progress_scope s( this, "validate_predependencies", f_packages.size() );
+
     // note: at this point we have not read repositories yet
 
     // already installed packages must have already been loaded for this
@@ -2070,6 +2091,7 @@ void wpkgar_install::validate_predependencies()
     for( auto& pkg : f_packages )
     {
         f_manager->check_interrupt();
+        increment_progress();
 
         if(pkg.get_type() == package_item_t::package_type_explicit)
         {
@@ -2096,11 +2118,14 @@ void wpkgar_install::read_repositories()
     // load the files once
     if(!f_repository_packages_loaded)
     {
+
         f_repository_packages_loaded = true;
         const auto& repositories(f_manager->get_repositories());
+        progress_scope s( this, "repositories", repositories.size() );
         for( auto& pkg : repositories )
         {
             f_manager->check_interrupt();
+            increment_progress();
 
             // repository must include an index, if not and the repository
             // is a direct filename then we attempt to create the index now
@@ -2889,10 +2914,14 @@ void wpkgar_install::trim_available( package_item_t& item, wpkgar_package_ptrs_t
 
 void wpkgar_install::trim_available_packages()
 {
+    progress_scope s( this, "trim_available_packages", f_packages.size() );
+
     // start by removing all the available packages that are in conflict with
     // the explicit packages because we'll never be able to use them
     for( wpkgar_package_list_t::size_type idx(0); idx < f_packages.size(); ++idx)
     {
+        increment_progress();
+
         auto& pkg( f_packages[idx] );
         // start from the top level (i.e. only check explicit dependencies)
         switch(pkg.get_type())
@@ -3152,9 +3181,11 @@ wpkgar_install::validation_return_t wpkgar_install::validate_installed_depends_f
 
     // we already checked that the field existed in the previous function
     wpkg_dependencies::dependencies depends(f_packages[idx].get_field(field_name));
+    progress_scope s( this, "validate_installed_depends_field", depends.size() );
     for(int i(0); i < depends.size(); ++i)
     {
         f_manager->check_interrupt();
+        increment_progress();
 
         const wpkg_dependencies::dependencies::dependency_t& d(depends.get_dependency(i));
         validation_return_t r(find_explicit_dependency(idx, filename, d, field_name));
@@ -3190,9 +3221,12 @@ wpkgar_install::validation_return_t wpkgar_install::validate_installed_dependenc
     // result is success by default
     validation_return_t result(validation_return_success);
 
+    progress_scope s( this, "validate_installed_dependencies", f_packages.size() );
+
     for( wpkgar_package_list_t::size_type idx(0); idx < f_packages.size(); ++idx )
     {
         auto& pkg( f_packages[idx] );
+        increment_progress();
         if(pkg.get_type() == package_item_t::package_type_explicit)
         {
             // full path to package
@@ -3556,6 +3590,8 @@ bool wpkgar_install::verify_tree( wpkgar_package_list_t& tree, wpkgar_dependency
         return true;
     }
 
+    progress_scope s( this, "verify_tree", tree.size() );
+
     // save so we know whether any dependencies are missing
     wpkgar_dependency_list_t::size_type missing_count(missing.size());
     wpkgar_dependency_list_t::size_type held_count(held.size());
@@ -3566,6 +3602,8 @@ bool wpkgar_install::verify_tree( wpkgar_package_list_t& tree, wpkgar_dependency
     // and we can save the correct status in the package once installed
     for( wpkgar_package_list_t::size_type idx(0); idx < tree.size(); ++idx )
     {
+        increment_progress();
+
         if(tree[idx].get_type() == package_item_t::package_type_explicit)
         {
             find_dependencies(tree, idx, missing, held );
@@ -4004,9 +4042,11 @@ void wpkgar_install::validate_dependencies()
     // lists to be complete... (explicit + implicit); other lists are
     // ignored except the available while we search for dependencies
 
+    progress_scope s( this, "validate_dependencies", f_packages.size() );
     wpkgar_package_list_t best;
     for(tree_generator tree_gen(f_packages);;)
     {
+        increment_progress();
         wpkgar_package_list_t tree(tree_gen.next());
         if(tree.empty())
         {
@@ -4827,11 +4867,15 @@ bool wpkgar_install::find_essential_file(std::string filename, const size_t skip
 
 void wpkgar_install::validate_packager_version()
 {
+    progress_scope s( this, "validate_packager_version", f_packages.size() );
+
     // note: at this point we have one valid tree to be installed
 
     // already installed packages are ignore here
     for( auto& pkg : f_packages )
     {
+        increment_progress();
+
         switch(pkg.get_type())
         {
         case package_item_t::package_type_explicit:
@@ -4926,11 +4970,15 @@ void wpkgar_install::validate_installed_size_and_overwrite()
     details::disk_list_t     disks(f_manager, this);
 #endif
 
+    progress_scope s( this, "validate_installed_size_and_overwrite", f_packages.size() );
+
     const wpkg_filename::uri_filename root(f_manager->get_inst_path());
     controlled_vars::zuint32_t total;
     int32_t idx = -1;
     for( auto& outer_pkg : f_packages )
     {
+        increment_progress();
+
         ++idx;
         int factor(0);
         memfile::memory_file *upgrade(NULL);
@@ -5181,10 +5229,13 @@ void wpkgar_install::sort_package_dependencies(const std::string& name, wpkgar_p
  */
 void wpkgar_install::sort_packages()
 {
+    progress_scope s( this, "sort_packages", f_packages.size() );
+
     wpkgar_package_listed_t listed;
 
     for( auto& pkg : f_packages )
     {
+        increment_progress();
         sort_package_dependencies(pkg.get_name(), listed);
     }
 }
@@ -5212,12 +5263,16 @@ void wpkgar_install::sort_packages()
  */
 void wpkgar_install::validate_scripts()
 {
+    progress_scope s( this, "validate_scripts", f_packages.size() );
+
     // run the package validation script of the packages being installed
     // or upgraded and as we're at it generate the list of package names
     int errcnt(0);
     std::string package_names;
     for( auto& pkg : f_packages )
     {
+        increment_progress();
+
         switch(pkg.get_type())
         {
         case package_item_t::package_type_explicit:
@@ -5279,13 +5334,13 @@ wpkgar_install::progress_record_t::progress_record_t()
 }
 
 
-int wpkgar_install::progress_record_t::get_current_progress() const
+uint64_t wpkgar_install::progress_record_t::get_current_progress() const
 {
     return f_current_progress;
 }
 
 
-int wpkgar_install::progress_record_t::get_progress_max() const
+uint64_t wpkgar_install::progress_record_t::get_progress_max() const
 {
     return f_progress_max;
 }
@@ -5303,7 +5358,23 @@ wpkgar_install::progress_record_t wpkgar_install::get_current_progress() const
 }
 
 
-void wpkgar_install::add_progess_record( const std::string& what, const uint32_t max )
+wpkgar_install::progress_scope::progress_scope
+    ( wpkgar_install* inst
+    , const std::string& what
+    , const uint64_t max )
+        : f_installer( inst )
+{
+    f_installer->add_progess_record( what, max );
+}
+
+
+wpkgar_install::progress_scope::~progress_scope()
+{
+    f_installer->pop_progess_record();
+}
+
+
+void wpkgar_install::add_progess_record( const std::string& what, const uint64_t max )
 {
     progress_record_t record;
     record.f_progress_what = what;
@@ -5329,6 +5400,23 @@ void wpkgar_install::increment_progress()
     if( f_progress_notifier )
     {
         f_progress_notifier->on_change( f_progress_stack.top() );
+    }
+}
+
+
+void wpkgar_install::pop_progess_record()
+{
+    if( f_progress_stack.empty() )
+    {
+        return;
+    }
+
+    progress_record_t record( f_progress_stack.top() );
+    f_progress_stack.pop();
+
+    if( f_progress_notifier )
+    {
+        f_progress_notifier->on_change( record );
     }
 }
 
@@ -5443,7 +5531,7 @@ void wpkgar_install::register_progress_notifier( std::shared_ptr<progress_notifi
  */
 bool wpkgar_install::validate()
 {
-    add_progess_record( "validate", 13 );
+    progress_scope s( this, "validate", 13 );
 
     // the caller is responsible for locking the database
     if(!f_manager->was_locked())
