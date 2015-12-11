@@ -134,9 +134,9 @@ void Manager::ResetLock()
     Q_ASSERT( f_manager );
     f_manager->remove_lock();
 
-    // Create the lock file
+    // Create the lock file by reinitializing
     //
-    CreateLock();
+    Init();
 }
 
 

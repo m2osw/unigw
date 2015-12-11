@@ -58,7 +58,7 @@ bool InstallThread::Validate( std::shared_ptr<wpkgar_manager> manager, std::shar
 	}
     else if( manager->is_self() )
 	{
-		wpkg_output::log( "Unfortunately, you cannot manage the pkg-explorer installation from itself! To update pkg-explorer use the pkg-explorer-setup or wpkg in a console." ).level(wpkg_output::level_error );
+        wpkg_output::log( "Unfortunately, you cannot manage the pkg-explorer installation from itself! To update pkg-explorer use the pkg-explorer-setup or wpkg in a console." ).level(wpkg_output::level_error );
 		set_state( ThreadFailed );
 		return false;
 	}
@@ -89,21 +89,21 @@ void InstallThread::InstallFiles( std::shared_ptr<wpkgar_install> installer )
 		{
 			if( i == wpkgar_install::WPKGAR_EOP )
 			{
-				wpkg_output::log( "Install complete!" );
+                wpkg_output::log( "Install complete!" );
 				set_state( ThreadSucceeded );
 			}
 			else
 			{
-				wpkg_output::log( "Install failed!" ).level( wpkg_output::level_error );
-				set_state( ThreadFailed );
+                wpkg_output::log( "Install failed!" ).level( wpkg_output::level_error );
+                set_state( ThreadFailed );
 			}
 			break;
 		}
 		//
 		if(!installer->configure(i))
 		{
-			wpkg_output::log( "Configuration failed!" ).level( wpkg_output::level_error );
-			set_state( ThreadFailed );
+            wpkg_output::log( "Configuration failed!" ).level( wpkg_output::level_error );
+            set_state( ThreadFailed );
 			break;
 		}
 	}
@@ -148,8 +148,8 @@ void InstallThread::run()
     catch( const std::runtime_error& x )
     {
         qCritical() << "std::runtime_error caught! what=" << x.what();
-        wpkg_output::log( x.what() ).level( wpkg_output::level_error );
-		set_state( ThreadFailed );
+        LogOutput::Instance()->OutputToLog( wpkg_output::level_error, x.what() );
+        set_state( ThreadFailed );
     }
 }
 

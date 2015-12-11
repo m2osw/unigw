@@ -267,6 +267,8 @@ public:
     debug_flags::debug_t    get_debug_flags() const;
     uint32_t                error_count() const;
     void                    reset_error_count();
+    void                    set_exception_on_error( const bool val = true );
+    bool                    get_exception_on_error() const;
 
     void                    log(const message_t& message) const;
 
@@ -279,6 +281,7 @@ private:
     std::string                         f_program_name;
     debug_flags::safe_debug_t           f_debug_flags;
     mutable controlled_vars::zuint32_t  f_error_count;
+    controlled_vars::zbool_t            f_exception_on_error;
 };
 
 

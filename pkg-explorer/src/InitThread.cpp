@@ -127,7 +127,7 @@ void InitThread::run()
     catch( const std::runtime_error& except )
     {
         qCritical() << "std::runtime_error caught! what=" << except.what();
-		wpkg_output::log( except.what() ).level( wpkg_output::level_error );
+        LogOutput::Instance()->OutputToLog( wpkg_output::level_error, except.what() );
     }
 }
 

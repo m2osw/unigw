@@ -35,6 +35,8 @@
 #include    "libdebpackages/wpkgar_repository.h"
 #include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
+#include <stack>
+
 namespace wpkg_backup
 {
 class DEBIAN_PACKAGE_EXPORT wpkgar_backup;
@@ -103,10 +105,36 @@ public:
         controlled_vars::fbool_t    f_is_upgrade;
     };
 
+    class DEBIAN_PACKAGE_EXPORT progress_record_t
+    {
+    public:
+        friend class wpkgar_install;
+
+        progress_record_t();
+
+        int         get_current_progress() const;   // What count we are on
+        int         get_progress_max() const;       // Total progress
+        std::string get_progress_what() const;      // String detailing current operation
+
+    private:
+        controlled_vars::zuint32_t          f_current_progress;
+        controlled_vars::zuint32_t          f_progress_max;
+        std::string                         f_progress_what;
+    };
+
+
+    struct DEBIAN_PACKAGE_EXPORT progress_notifier_t
+    {
+        virtual void on_change( progress_record_t record ) = 0;
+    };
+
+
     wpkgar_install(wpkgar_manager *manager);
 
     typedef std::vector<install_info_t> install_info_list_t;
     install_info_list_t get_install_list();
+
+    void register_progress_notifier( std::shared_ptr<progress_notifier_t> notifier );
 
     void set_parameter(parameter_t flag, int value);
     int get_parameter(parameter_t flag, int default_value) const;
@@ -128,6 +156,8 @@ public:
 
     // functions used internally
     bool find_essential_file(std::string filename, const size_t skip_idx);
+
+    progress_record_t get_current_progress() const;
 
 private:
     friend class details::disk_list_t;
@@ -307,6 +337,9 @@ private:
     // configuration sub-functions
     bool configure_package(package_item_t *item);
 
+    void add_progess_record( const std::string& what, const uint32_t max );
+    void increment_progress();
+
     wpkgar_manager *                    f_manager;
     wpkgar_manager::package_list_t      f_list_installed_packages;
     wpkgar_flags_t                      f_flags;
@@ -325,6 +358,11 @@ private:
     wpkgar_list_of_strings_t            f_field_names;
     controlled_vars::fbool_t            f_read_essentials;
     controlled_vars::fbool_t            f_install_source;
+
+    typedef std::stack<progress_record_t> progress_stack_t;
+    progress_stack_t                    f_progress_stack;
+
+    std::shared_ptr<progress_notifier_t> f_progress_notifier;
 };
 
 }   // namespace wpkgar

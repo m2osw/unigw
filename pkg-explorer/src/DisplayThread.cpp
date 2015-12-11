@@ -191,18 +191,12 @@ void DisplayThread::run()
     catch( const wpkgar_exception& except )
     {
         qCritical() << "wpkgar_exception caught! what=" << except.what();
-		wpkg_output::message_t msg;
-		msg.set_level( wpkg_output::level_error );
-		msg.set_raw_message( except.what() );
-		wpkg_output::get_output()->log( msg );
+        LogOutput::Instance()->OutputToLog( wpkg_output::level_error, except.what() );
     }
     catch( ... )
     {
         qCritical() << "unknown exception caught!";
-        wpkg_output::message_t msg;
-        msg.set_level( wpkg_output::level_error );
-        msg.set_raw_message( "unknown exception" );
-        wpkg_output::get_output()->log( msg );
+        LogOutput::Instance()->OutputToLog( wpkg_output::level_error, "unknown exception!" );
     }
 }
 
@@ -298,8 +292,8 @@ void DisplayThread::GeneratePackageHtml()
 		wpkg_output::message_t msg;
 		msg.set_level( wpkg_output::level_error );
 		msg.set_package_name( package_name );
-		msg.set_raw_message( "error: template does not include the @START@ and/or @END@ markers" );
-		wpkg_output::get_output()->log( msg );
+        msg.set_raw_message( "error: template does not include the @START@ and/or @END@ markers" );
+        wpkg_output::get_output()->log( msg );
         return;
     }
 

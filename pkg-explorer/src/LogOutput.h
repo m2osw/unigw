@@ -47,6 +47,7 @@ public:
 	void                   clear();
 
     void                   OutputToLog( wpkg_output::level_t level, const QString& msg );
+    void                   OutputToLog( wpkg_output::level_t level, const wpkg_output::message_t& msg_obj );
 
 signals:
 	void                   AddProcessMessage( const QString& msg ) const;

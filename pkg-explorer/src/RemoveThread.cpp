@@ -95,8 +95,8 @@ void RemoveThread::run()
     catch( const std::runtime_error& except )
     {
         qCritical() << "std::runtime_error caught! what=" << except.what();
-		wpkg_output::log( except.what() ).level( wpkg_output::level_error );
-		set_state( ThreadFailed );
+        LogOutput::Instance()->OutputToLog( wpkg_output::level_error, except.what() );
+        set_state( ThreadFailed );
     }
 }
 

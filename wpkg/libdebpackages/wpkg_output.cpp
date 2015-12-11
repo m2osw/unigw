@@ -1776,6 +1776,16 @@ const std::string& output::get_program_name() const
     return f_program_name;
 }
 
+void output::set_exception_on_error( const bool val )
+{
+    f_exception_on_error = val;
+}
+
+bool output::get_exception_on_error() const
+{
+    return f_exception_on_error;
+}
+
 
 /** \brief Send a log message.
  *
@@ -1794,6 +1804,9 @@ const std::string& output::get_program_name() const
  * a level of error or more (level_error and level_fatal).
  *
  * \param[in] message  The message to send to the log_impl() function.
+ *
+ * \note if f_exception_on_error is set, the first error detected will throw
+ * an exception. Useful if your error toleratance is low (like for pkg-explorer).
  */
 void output::log(const message_t& message) const
 {
@@ -1811,6 +1824,11 @@ void output::log(const message_t& message) const
     || (message.get_debug_flags() & f_debug_flags) != 0)
     {
         output_message(message);
+    }
+
+    if( f_exception_on_error && f_error_count )
+    {
+        throw wpkg_output_exception( message.get_full_message().c_str() );
     }
 }
 

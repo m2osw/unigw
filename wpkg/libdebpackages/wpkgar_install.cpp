@@ -689,24 +689,24 @@ int wpkgar_install::get_parameter(parameter_t flag, int default_value) const
 
 void wpkgar_install::set_installing()
 {
-    f_installing_packages = true;
-    f_unpacking_packages = false;
+    f_installing_packages    = true;
+    f_unpacking_packages     = false;
     f_reconfiguring_packages = false;
 }
 
 
 void wpkgar_install::set_configuring()
 {
-    f_installing_packages = false;
-    f_unpacking_packages = false;
+    f_installing_packages    = false;
+    f_unpacking_packages     = false;
     f_reconfiguring_packages = false;
 }
 
 
 void wpkgar_install::set_reconfiguring()
 {
-    f_installing_packages = false;
-    f_unpacking_packages = false;
+    f_installing_packages    = false;
+    f_unpacking_packages     = false;
     f_reconfiguring_packages = true;
 }
 
@@ -777,7 +777,9 @@ void wpkgar_install::add_package( wpkgar_repository::package_item_t entry, const
     {
         install_it = true;
     }
-    else if( entry.get_status() == wpkgar_repository::package_item_t::not_installed )
+    else if( (entry.get_status() == wpkgar_repository::package_item_t::not_installed)
+          || (entry.get_status() == wpkgar_repository::package_item_t::need_upgrade)
+          )
     {
         install_it = true;
     }
@@ -5272,6 +5274,71 @@ void wpkgar_install::validate_scripts()
 }
 
 
+wpkgar_install::progress_record_t::progress_record_t()
+{
+}
+
+
+int wpkgar_install::progress_record_t::get_current_progress() const
+{
+    return f_current_progress;
+}
+
+
+int wpkgar_install::progress_record_t::get_progress_max() const
+{
+    return f_progress_max;
+}
+
+
+std::string wpkgar_install::progress_record_t::get_progress_what() const
+{
+    return f_progress_what;
+}
+
+
+wpkgar_install::progress_record_t wpkgar_install::get_current_progress() const
+{
+    return f_progress_stack.top();
+}
+
+
+void wpkgar_install::add_progess_record( const std::string& what, const uint32_t max )
+{
+    progress_record_t record;
+    record.f_progress_what = what;
+    record.f_progress_max  = max;
+    f_progress_stack.push( record );
+
+    if( f_progress_notifier )
+    {
+        f_progress_notifier->on_change( record );
+    }
+}
+
+
+void wpkgar_install::increment_progress()
+{
+    if( f_progress_stack.empty() )
+    {
+        return;
+    }
+
+    f_progress_stack.top().f_current_progress++;
+
+    if( f_progress_notifier )
+    {
+        f_progress_notifier->on_change( f_progress_stack.top() );
+    }
+}
+
+
+void wpkgar_install::register_progress_notifier( std::shared_ptr<progress_notifier_t> notifier )
+{
+    f_progress_notifier = notifier;
+}
+
+
 /** \brief Validate one or more packages for installation.
  *
  * The --install, --unpack, --configure, --check-install commands means the
@@ -5376,6 +5443,8 @@ void wpkgar_install::validate_scripts()
  */
 bool wpkgar_install::validate()
 {
+    add_progess_record( "validate", 13 );
+
     // the caller is responsible for locking the database
     if(!f_manager->was_locked())
     {
@@ -5411,6 +5480,9 @@ bool wpkgar_install::validate()
         // just return since there is really nothing more we can do
         return false;
     }
+
+    increment_progress();
+
 //printf("list packages (nearly) at the start:\n");
 //for(wpkgar_package_list_t::size_type idx(0); idx < f_packages.size(); ++idx)
 //{
@@ -5425,6 +5497,7 @@ bool wpkgar_install::validate()
         .debug(wpkg_output::debug_flags::debug_progress)
         .module(wpkg_output::module_validate_installation);
     validate_package_names();
+    increment_progress();
 
     // check whether some packages are source packages;
     wpkg_output::log("validate installation type (source/binary)")
@@ -5432,6 +5505,7 @@ bool wpkgar_install::validate()
         .debug(wpkg_output::debug_flags::debug_progress)
         .module(wpkg_output::module_validate_installation);
     installing_source();
+    increment_progress();
     if(f_install_source)
     {
         // IMPORTANT NOTE:
@@ -5453,6 +5527,7 @@ bool wpkgar_install::validate()
         .debug(wpkg_output::debug_flags::debug_progress)
         .module(wpkg_output::module_validate_installation);
     validate_installed_packages();
+    increment_progress();
 
     // make sure that all the packages to be installed have the same
     // architecture as defined in the core package
@@ -5465,6 +5540,7 @@ bool wpkgar_install::validate()
         .debug(wpkg_output::debug_flags::debug_progress)
         .module(wpkg_output::module_validate_installation);
     validate_architecture();
+    increment_progress();
 
     // if any Pre-Depends is not satisfied in the explicit packages then
     // the installation will fail (although we can go on with validations)
@@ -5473,6 +5549,7 @@ bool wpkgar_install::validate()
         .debug(wpkg_output::debug_flags::debug_progress)
         .module(wpkg_output::module_validate_installation);
     validate_predependencies();
+    increment_progress();
 
     // before we can check a complete list of what is going to be installed
     // we first need to make sure that this list is complete; this means we
@@ -5484,6 +5561,7 @@ bool wpkgar_install::validate()
         .debug(wpkg_output::debug_flags::debug_progress)
         .module(wpkg_output::module_validate_installation);
     validate_dependencies();
+    increment_progress();
 
     // when marking a target with a specific distribution then only
     // packages with the same distribution informations should be
@@ -5495,6 +5573,7 @@ bool wpkgar_install::validate()
         .debug(wpkg_output::debug_flags::debug_progress)
         .module(wpkg_output::module_validate_installation);
     validate_distribution();
+    increment_progress();
 
     // check that the packager used to create the explicit and implicit
     // packages was the same or an older version; if newer, we print out
@@ -5505,6 +5584,7 @@ bool wpkgar_install::validate()
         .debug(wpkg_output::debug_flags::debug_progress)
         .module(wpkg_output::module_validate_installation);
     validate_packager_version();
+    increment_progress();
 
     // check user defined C-like expressions against the control file
     // fields of all the packages being installed (implicitly or
@@ -5514,6 +5594,7 @@ bool wpkgar_install::validate()
         .debug(wpkg_output::debug_flags::debug_progress)
         .module(wpkg_output::module_validate_installation);
     validate_fields();
+    increment_progress();
 
     // TODO:
     // avoid the overwrite test for now because it loads packages and if
@@ -5531,6 +5612,7 @@ bool wpkgar_install::validate()
             .debug(wpkg_output::debug_flags::debug_progress)
             .module(wpkg_output::module_validate_installation);
         validate_installed_size_and_overwrite();
+        increment_progress();
     }
 
     if(wpkg_output::get_output_error_count() == 0)
@@ -5542,6 +5624,7 @@ bool wpkgar_install::validate()
             .debug(wpkg_output::debug_flags::debug_progress)
             .module(wpkg_output::module_validate_installation);
         validate_scripts();
+        increment_progress();
     }
 
     if(wpkg_output::get_output_error_count() == 0)
@@ -5554,6 +5637,7 @@ bool wpkgar_install::validate()
         // function ensures the order so we can unpack and configure in the
         // correct order
         sort_packages();
+        increment_progress();
     }
 
 //printf("list packages after deps:\n");

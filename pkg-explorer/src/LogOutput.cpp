@@ -26,6 +26,7 @@ LogOutput::LogOutput()
 	: f_logLevel(wpkg_output::level_info)
 {
 	set_program_name(QApplication::applicationName().toStdString());
+    //set_exception_on_error(); // Cause the log to thrown an exception when the error flag is incremented.
 }
 
 
@@ -100,7 +101,27 @@ void LogOutput::OutputToLog( wpkg_output::level_t level, const QString& msg )
     wpkg_output::message_t msg_obj;
     msg_obj.set_level( level );
     msg_obj.set_raw_message( msg.toStdString() );
-    log( msg_obj );
+    try
+    {
+        log( msg_obj );
+    }
+    catch( const std::exception& x )
+    {
+        qCritical() << "Log error exception caught! x='" << x.what() << "'!";
+    }
+}
+
+
+void LogOutput::OutputToLog( wpkg_output::level_t level, const wpkg_output::message_t& msg_obj )
+{
+    try
+    {
+        log( msg_obj );
+    }
+    catch( const std::exception& x )
+    {
+        qCritical() << "exception caught! x='" << x.what() << "'!";
+    }
 }
 
 

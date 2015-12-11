@@ -102,16 +102,16 @@ int main( int argc, char *argv[] )
 
 	// Create and show main window
 	//
-	MainWindow mainWnd;
+    std::shared_ptr<MainWindow> mainWnd( std::make_shared<MainWindow>() );
     if( to_install.isEmpty() )
     {
-        mainWnd.show();
+        mainWnd->show();
         app.setQuitOnLastWindowClosed( false );
-        mainWnd.SetDoUpgrade( do_upgrade );
+        mainWnd->SetDoUpgrade( do_upgrade );
     }
     else
     {
-        mainWnd.SetInstallPackages( to_install );
+        mainWnd->SetInstallPackages( to_install );
     }
 
     // We need the above to keep the app from qutting when

@@ -184,8 +184,13 @@ MainWindow::MainWindow( const bool showSysTray )
         );
 
     statusBar()->addWidget( &f_logLabel );
+    statusBar()->addPermanentWidget( &f_progressBar );
     statusBar()->addPermanentWidget( &f_statusLabel );
     f_statusLabel.setText( "Please wait, initializing..." );
+
+    f_progressBar.setMaximum( 100 );
+    f_progressBar.setValue( 0 );
+    f_progressBar.hide();
 
     setWindowTitle( tr("WPKG Package Explorer") );
 
@@ -561,7 +566,23 @@ void MainWindow::OnFsTimeout()
 void MainWindow::OnAddLogMessage( const QString& message )
 {
     QMutexLocker locker( &f_mutex );
-    f_messageFifo.push_back( message );
+
+    message_t msg;
+    msg.f_message = message;
+
+    f_messageFifo.push_back( msg );
+}
+
+
+void MainWindow::on_change( wpkgar_install::progress_record_t record )
+{
+    QMutexLocker locker( &f_mutex );
+
+    message_t msg;
+    msg.f_message = record.get_progress_what().c_str();
+    msg.f_record  = record;
+
+    f_messageFifo.push_back( msg );
 }
 
 
@@ -570,7 +591,16 @@ void MainWindow::OnDisplayMessages()
     QMutexLocker locker( &f_mutex );
     while( !f_messageFifo.isEmpty() )
     {
-        f_logLabel.setText( f_messageFifo.front() );
+        auto message( f_messageFifo.front() );
+        f_logLabel.setText( message.f_message );
+
+        if( message.f_record.get_progress_max() )
+        {
+            f_progressBar.show();
+            f_progressBar.setMaximum( message.f_record.get_progress_max()     );
+            f_progressBar.setValue  ( message.f_record.get_current_progress() );
+        }
+
         f_messageFifo.pop_front();
     }
 }
@@ -676,6 +706,8 @@ void MainWindow::StartInstallThread( const QStringList& packages_list )
     wpkg_output::get_output()->reset_error_count();
     f_manager = Manager::WeakInstance();
     auto installer( f_manager->GetInstaller().lock() );
+
+    installer->register_progress_notifier( shared_from_this() );
 
     // always force the chown/chmod because under Unix that doesn't work well otherwise
     installer->set_parameter( wpkgar_install::wpkgar_install_force_file_info, true );

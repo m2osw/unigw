@@ -32,7 +32,11 @@
 #include "ui_MainWindow.h"
 
 
-class MainWindow : public QMainWindow, private Ui::MainWindow
+class MainWindow
+    : public QMainWindow
+    , public wpkgar::wpkgar_install::progress_notifier_t
+    , public std::enable_shared_from_this<MainWindow>
+    , private Ui::MainWindow
 {
     Q_OBJECT
     
@@ -66,8 +70,16 @@ private:
     bool                                    f_doUpgrade;
     QLabel                                  f_statusLabel;
     QLabel                                  f_logLabel;
+    QProgressBar                            f_progressBar;
     Manager::pointer_t                      f_manager;
-    QVector<QString>     	                f_messageFifo;
+
+    struct message_t
+    {
+        QString f_message;
+        wpkgar::wpkgar_install::progress_record_t f_record;
+    };
+
+    QVector<message_t>     	                f_messageFifo;
     QTimer                                  f_timer;
 
     static QMutex        					f_mutex;
@@ -103,6 +115,8 @@ private:
     void StartInstallThread( const QStringList& packages_list );
 
     void DisplayPackage( const QString& package_name );
+
+    void on_change( wpkgar::wpkgar_install::progress_record_t record ); // wpkgar_install
 
 public slots:
     void OnStartImportOperation();
