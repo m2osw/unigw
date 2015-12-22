@@ -53,7 +53,7 @@ namespace
 
     void ResetErrorCount()
     {
-        wpkg_output::output* output = wpkg_output::get_output();
+        auto output = wpkg_output::get_output().lock();
         if( output )
         {
             output->reset_error_count();
@@ -574,7 +574,7 @@ void MainWindow::OnAddLogMessage( const QString& message )
 }
 
 
-void MainWindow::on_change( wpkgar_install::progress_record_t record )
+void MainWindow::OnProgressChange( wpkgar_install::progress_record_t record )
 {
     QMutexLocker locker( &f_mutex );
 
@@ -703,11 +703,13 @@ void MainWindow::OnSelectionChanged( const QItemSelection &/*selected*/, const Q
 
 void MainWindow::StartInstallThread( const QStringList& packages_list )
 {
-    wpkg_output::get_output()->reset_error_count();
+    wpkg_output::get_output().lock()->reset_error_count();
     f_manager = Manager::WeakInstance();
     auto installer( f_manager->GetInstaller().lock() );
 
-    installer->register_progress_notifier( shared_from_this() );
+    installer->register_progress_notifier(
+			[&]( wpkgar::wpkgar_install::progress_record_t rec ) { this->OnProgressChange(rec); }
+			); 
 
     // always force the chown/chmod because under Unix that doesn't work well otherwise
     installer->set_parameter( wpkgar_install::wpkgar_install_force_file_info, true );

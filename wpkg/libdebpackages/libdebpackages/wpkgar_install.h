@@ -35,6 +35,7 @@
 #include    "libdebpackages/wpkgar_repository.h"
 #include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
+#include <functional>
 #include <stack>
 
 namespace wpkg_backup
@@ -123,18 +124,13 @@ public:
     };
 
 
-    struct DEBIAN_PACKAGE_EXPORT progress_notifier_t
-    {
-        virtual void on_change( progress_record_t record ) = 0;
-    };
-
-
     wpkgar_install(wpkgar_manager *manager);
 
     typedef std::vector<install_info_t> install_info_list_t;
     install_info_list_t get_install_list();
 
-    void register_progress_notifier( std::shared_ptr<progress_notifier_t> notifier );
+    typedef std::function<void (progress_record_t)> notifier_function_t;
+    void register_progress_notifier( notifier_function_t notifier );
 
     void set_parameter(parameter_t flag, int value);
     int get_parameter(parameter_t flag, int default_value) const;
@@ -283,6 +279,8 @@ private:
     wpkgar_package_list_t::iterator find_package_item_by_name(const std::string& name);
 
     // validation sub-functions
+    void validate_directory( package_item_t package );
+    bool validate_packages_to_install();
     bool validate_directories();
     void validate_package_names();
     void installing_source();
@@ -377,7 +375,7 @@ private:
     typedef std::stack<progress_record_t> progress_stack_t;
     progress_stack_t                    f_progress_stack;
 
-    std::shared_ptr<progress_notifier_t> f_progress_notifier;
+    notifier_function_t                 f_progress_notifier;
 };
 
 }   // namespace wpkgar

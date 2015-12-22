@@ -746,114 +746,6 @@ std::string message_t::get_raw_message() const
 }
 
 
-
-namespace
-{
-
-/** \brief The output pointer used by the log class.
- *
- * This pointer is set by calling the log::set_output() function with a
- * pointer to your output object. It is used by log objects when they
- * get destroyed in order to post the message that they carry.
- */
-controlled_vars::ptr_auto_init<output> g_log_output;
-
-} // no name namespace
-
-
-
-/** \brief Define the output attached to the log class.
- *
- * All log objects, when being created, are expected to send their
- * output message to an output object. This object is defined by
- * this function.
- *
- * This function first releases the current log output pointer,
- * then it saves the new pointer in a variable that is accessible
- * by all the log objects.
- *
- * Once done in your software, make sure to call this function
- * again, this time with NULL, to release the pointer before you
- * exit.
- *
- * \param[in] out  The output pointer.
- */
-void set_output(output *out)
-{
-    if(out == g_log_output)
-    {
-        return;
-    }
-    if(g_log_output)
-    {
-        g_log_output->release();
-        g_log_output.reset();
-    }
-    if(out)
-    {
-        out->addref();
-        g_log_output = out;
-    }
-}
-
-
-/** \brief Retrieve the pointer of the current output object.
- *
- * This function retrieves the current output pointer. Note that this pointer
- * may very well be NULL if it was not yet defined.
- *
- * \return The pointer of the current output object or NULL.
- */
-output *get_output()
-{
-    return g_log_output;
-}
-
-
-/** \brief Return the debug flags.
- *
- * This function checks whether a log output object was defined, if so,
- * get the debug flags defined in that object, otherwise assume that none
- * of those flags are defined.
- *
- * \return The flags of the log output or zero (0).
- */
-debug_flags::debug_t get_output_debug_flags()
-{
-    if(g_log_output)
-    {
-        return g_log_output->get_debug_flags();
-    }
-
-    // if no g_log_output, assume that there are no debug flags set
-    return 0;
-}
-
-
-/** \brief Return the number of errors found so far.
- *
- * This function returns the number of errors that were found so
- * far. It retrieves the error count of the currently assigned
- * log output object.
- *
- * If the log object is not defined, then no errors could be counted
- * so the function returns zero.
- *
- * \return The number of errors found so far.
- */
-uint32_t get_output_error_count()
-{
-    if(g_log_output)
-    {
-        return g_log_output->error_count();
-    }
-
-    // if no g_log_output we could not count the number of errors
-    // (although we could do that in the log::~log() function instead?
-    return 0;
-}
-
-
 /** \brief Initialize the log with a message format.
  *
  * Set the format of the message to the specified \p format parameter.
@@ -950,7 +842,7 @@ log::log(const std::wstring& format)
  *
  * This version accepts a message string reference where we save the 
  * resulting message. In this case the message does not get sent to
- * the g_log_output. It is often used to create complex messages to
+ * the output object. It is often used to create complex messages to
  * throw or to write in a file.
  *
  * \param[in] output_message  The string where the final message is saved.
@@ -972,7 +864,7 @@ log::log(std::string& output_message, const char *format)
  *
  * This version accepts a message string reference where we save the 
  * resulting message. In this case the message does not get sent to
- * the g_log_output. It is often used to create complex messages to
+ * the output object. It is often used to create complex messages to
  * throw or to write in a file.
  *
  * \param[in] output_message  The string where the final message is saved.
@@ -994,7 +886,7 @@ log::log(std::string& output_message, const wchar_t *format)
  *
  * This version accepts a message string reference where we save the 
  * resulting message. In this case the message does not get sent to
- * the g_log_output. It is often used to create complex messages to
+ * the output object. It is often used to create complex messages to
  * throw or to write in a file.
  *
  * \param[in] output_message  The string where the final message is saved.
@@ -1016,7 +908,7 @@ log::log(std::string& output_message, const std::string& format)
  *
  * This version accepts a message string reference where we save the 
  * resulting message. In this case the message does not get sent to
- * the g_log_output. It is often used to create complex messages to
+ * the output object. It is often used to create complex messages to
  * throw or to write in a file.
  *
  * \param[in] output_message  The string where the final message is saved.
@@ -1047,24 +939,24 @@ log::~log()
     {
         *f_output_message = replace_arguments();
     }
-    else if(g_log_output)
+
+    // mark the action as "debug" if undefined and the level is debug
+    if(f_message.get_action().empty()
+    && f_message.get_level() == level_debug)
     {
-        // mark the action as "debug" if undefined and the level is debug
-        if(f_message.get_action().empty()
-        && f_message.get_level() == level_debug)
-        {
-            f_message.set_action("debug");
-        }
-
-        // setup the program name from the output object
-        f_message.set_program_name(g_log_output->get_program_name());
-
-        // generate the final raw message
-        f_message.set_raw_message(replace_arguments());
-
-        // send the log message
-        g_log_output->log(f_message);
+        f_message.set_action("debug");
     }
+
+    auto out( output::get_output().lock() );
+
+    // setup the program name from the output object
+    f_message.set_program_name(out->get_program_name());
+
+    // generate the final raw message
+    f_message.set_raw_message(replace_arguments());
+
+    // send the log message
+    out->log(f_message);
 }
 
 
@@ -1734,56 +1626,92 @@ std::string log::replace_arguments()
 
 
 
+/*============================================================================*/
 
 
 
+/** \brief The output pointer used by the log class.
+ *
+ * This pointer is set by calling the log::set_output() function with a
+ * pointer to your output object. It is used by log objects when they
+ * get destroyed in order to post the message that they carry.
+ */
+std::shared_ptr<output> output::f_instance;
+
+namespace
+{
+    // This is an internal mutex for thread syncronization
+    // to access the static instance of the output object.
+    //
+    std::recursive_mutex    g_mutex;
+}
 
 
+/** \brief Retrieve the pointer of the current output object.
+ *
+ * This function retrieves the current output pointer. Note that this pointer
+ * may very well be NULL if it was not yet defined.
+ *
+ * \return The pointer of the current output object or NULL.
+ */
+std::weak_ptr<output> output::get_output()
+{
+    std::lock_guard lg( g_mutex );
 
+    if( !f_instance )
+    {
+        f_instance.reset( new output );
+    }
 
-
+    return f_instance;
+}
 
 
 output::output()
-    : f_refcount(1)
 {
-}
-
-
-void output::addref()
-{
-    ++f_refcount;
-}
-
-
-void output::release()
-{
-    --f_refcount;
-    if(0 == f_refcount)
-    {
-        delete this;
-    }
 }
 
 
 void output::set_program_name(const std::string& program_name)
 {
+    std::lock_guard lg(f_mutex);
     f_program_name = program_name;
 }
 
 const std::string& output::get_program_name() const
 {
+    std::lock_guard lg(f_mutex);
     return f_program_name;
 }
 
 void output::set_exception_on_error( const bool val )
 {
+    std::lock_guard lg(f_mutex);
     f_exception_on_error = val;
 }
 
 bool output::get_exception_on_error() const
 {
+    std::lock_guard lg(f_mutex);
     return f_exception_on_error;
+}
+
+
+void output::log_raw_output( const message_t& message ) const
+{
+    for( auto out : f_log_output_list )
+    {
+        out( message );
+    }
+}
+
+
+void output::log_user_output( const message_t& message ) const
+{
+    for( auto out : f_user_output_list )
+    {
+        out( message );
+    }
 }
 
 
@@ -1810,20 +1738,22 @@ bool output::get_exception_on_error() const
  */
 void output::log(const message_t& message) const
 {
+    std::lock_guard lg(f_mutex);
+
     if(compare_levels(message.get_level(), level_error) >= 0)
     {
         ++f_error_count;
     }
 
     // always send to the log (i.e. no test against the debug flags)
-    log_message(message);
+    log_raw_output( message );
 
     // if the message is a debug message, then make sure that
     // at least one of the debug flags was turned on by the user
     if(message.get_level() != level_debug
     || (message.get_debug_flags() & f_debug_flags) != 0)
     {
-        output_message(message);
+        log_user_output( message );
     }
 
     if( f_exception_on_error && f_error_count )
@@ -1845,6 +1775,7 @@ void output::log(const message_t& message) const
  */
 void output::set_debug_flags(debug_flags::debug_t debug_flags)
 {
+    std::lock_guard lg(f_mutex);
     f_debug_flags = debug_flags;
 }
 
@@ -1860,6 +1791,7 @@ void output::set_debug_flags(debug_flags::debug_t debug_flags)
  */
 debug_flags::debug_t output::get_debug_flags() const
 {
+    std::lock_guard lg(f_mutex);
     return f_debug_flags;
 }
 
@@ -1876,6 +1808,7 @@ debug_flags::debug_t output::get_debug_flags() const
  */
 uint32_t output::error_count() const
 {
+    std::lock_guard lg(f_mutex);
     return f_error_count;
 }
 
@@ -1891,14 +1824,14 @@ uint32_t output::error_count() const
  */
 void output::reset_error_count()
 {
+    std::lock_guard lg(f_mutex);
     f_error_count = 0;
 }
 
 
-/** \brief Default the log_message() implementation
+/** \brief Raw logging function
  *
- * The default implementation of the log_message() function
- * does nothing with the message.
+ * Register the application logging function.
  *
  * In your application you want to write those messages to
  * your log files. Actually, you should call the get_full_message()
@@ -1906,42 +1839,85 @@ void output::reset_error_count()
  * machine readable string for your log files.
  *
  * \warning
- * Note that the log_message() function is always called, even if the
+ * Note that the f_log_output_list() function is always called, even if the
  * corresponding debug flag is not set in the output object. You should
  * really only use it for logs. Plus the output_message() will also be
  * called, and thus you do not want to display the \p msg or you'd
  * get the messages twice in your output.
  *
- * \param[in] msg  The message to be logged.
+ * \param[in] func The function to call
  */
-void output::log_message( const message_t& msg ) const
+void output::register_raw_log_listener( listener_func_t func )
 {
-    // do nothing by default
-    (void)msg;
+    std::lock_guard lg(f_mutex);
+    auto iter = std::find_if( f_log_output_list.begin(), f_log_output_list.end(),
+        [&,this]( listener_func_t inner_func )
+        {
+            return func == inner_func;
+        });
+    
+    if( iter == f_log_output_list.end() )
+    {
+        f_log_output_list.push_back( func );
+    }
+}
+
+void output::unregister_raw_log_listener( listener_func_t func )
+{
+    std::lock_guard lg(f_mutex);
+    auto iter = std::find_if( f_log_output_list.begin(), f_log_output_list.end(),
+        [&,this]( listener_func_t inner_func )
+        {
+            return func == inner_func;
+        });
+    
+    if( iter != f_log_output_list.end() )
+    {
+        f_log_output_list.erase( iter );
+    }
 }
 
 
-/** \brief Default output_message() implementation.
+/** \brief User logging function
  *
- * The default implementation of the output_message() function
- * does nothing with the message.
- *
- * In your application you want to derive the wpkg_output
- * class and re-implement this function to output messages
- * to your users.
+ * Register the user logging function.
  *
  * \warning
- * The output_message() is called along the log_message() function,
+ * f_user_output_list() is called along with the f_log_output_list() function,
  * which means that BOTH functions are called (although the
- * output_message() function may not get called for debug messages
+ * f_user_output_list() function may not get called for debug messages
  * that the user did not require to see.)
  *
- * \param[in] msg  The message to be output.
+ * \param[in] func The function to call
  */
-void output::output_message( const message_t& msg ) const
+void output::register_user_log_listener( listener_func_t func )
 {
-    // do nothing by default
-    (void)msg;
+    std::lock_guard lg(f_mutex);
+    auto iter = std::find_if( f_user_output_list.begin(), f_user_output_list.end(),
+        [&,this]( listener_func_t inner_func )
+        {
+            return func == inner_func;
+        });
+    
+    if( iter == f_user_output_list.end() )
+    {
+        f_user_output_list.push_back( func );
+    }
+}
+
+void output::unregister_user_log_listener( listener_func_t func )
+{
+    std::lock_guard lg(f_mutex);
+    auto iter = std::find_if( f_user_output_list.begin(), f_user_output_list.end(),
+        [&,this]( listener_func_t inner_func )
+        {
+            return func == inner_func;
+        });
+    
+    if( iter != f_user_output_list.end() )
+    {
+        f_user_output_list.erase( iter );
+    }
 }
 
 

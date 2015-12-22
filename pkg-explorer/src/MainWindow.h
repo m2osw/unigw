@@ -34,7 +34,6 @@
 
 class MainWindow
     : public QMainWindow
-    , public wpkgar::wpkgar_install::progress_notifier_t
     , public std::enable_shared_from_this<MainWindow>
     , private Ui::MainWindow
 {
@@ -116,7 +115,7 @@ private:
 
     void DisplayPackage( const QString& package_name );
 
-    void on_change( wpkgar::wpkgar_install::progress_record_t record ); // wpkgar_install
+    void OnProgressChange( wpkgar::wpkgar_install::progress_record_t record ); // wpkgar_install
 
 public slots:
     void OnStartImportOperation();

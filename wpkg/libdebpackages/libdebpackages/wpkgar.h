@@ -35,6 +35,7 @@
 #include    "libdebpackages/wpkg_control.h"
 #include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
+#include <memory>
 
 namespace wpkgar
 {
@@ -273,10 +274,11 @@ private:
     void                                    load_temporary_package(const wpkg_filename::uri_filename& filename);
     bool                                    run_one_script(const wpkg_filename::uri_filename& package_name, const std::string& interpreter, const wpkg_filename::uri_filename& script_name, const std::string& parameters);
 
-    typedef std::map<std::string, std::shared_ptr<wpkgar_package> >         packages_t;
-    typedef std::map<std::string, std::string>                              field_variables_t;
-    typedef std::map<std::string, int>                                      self_packages_t;
-    typedef controlled_vars::auto_init<int, -1>                             lock_fd_t;
+    typedef std::shared_ptr<wpkgar_package>           package_t;
+    typedef std::map<std::string, package_t >         packages_t;
+    typedef std::map<std::string, std::string>        field_variables_t;
+    typedef std::map<std::string, int>                self_packages_t;
+    typedef controlled_vars::auto_init<int, -1>       lock_fd_t;
 
     std::shared_ptr<wpkg_control::control_file::control_file_state_t> f_control_file_state;
     controlled_vars::fbool_t                            f_root_path_is_defined;

@@ -43,6 +43,9 @@
 #include    "controlled_vars/controlled_vars_ptr_auto_init.h"
 #include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
+#include    <functional>
+#include    <memory>
+#include    <mutex>
 #include    <string>
 
 
@@ -255,11 +258,12 @@ private:
 class DEBIAN_PACKAGE_EXPORT output
 {
 public:
-                            output();
-    virtual                 ~output() {}
+    virtual                 ~output();
 
-    void                    addref();
-    void                    release();
+    // Forbid copy construction and assignment
+    //
+                            output( const output& )    = delete;
+    output&                 operator =(const output& ) = delete;
 
     void                    set_program_name(const std::string& program_name);
     const std::string&      get_program_name() const;
@@ -272,24 +276,35 @@ public:
 
     void                    log(const message_t& message) const;
 
-protected:
-    virtual void            log_message( const message_t& msg_obj ) const;
-    virtual void            output_message( const message_t& msg_obj ) const;
+    typedef std::function<void (const message_t&)> listener_func_t;
+
+    void                    register_raw_log_listener    ( listener_func_t func );
+    void                    unregister_raw_log_listener  ( listener_func_t func );
+    //
+    void                    register_user_log_listener   ( listener_func_t func );
+    void                    unregister_user_log_listener ( listener_func_t func );
+
+    static std::weak_ptr<output> get_output();
+
 
 private:
-    controlled_vars::muint32_t          f_refcount;
+                                        output();   // Forbid construction except by get_output()
+
+    typedef std::vector<listener_func_t> listeners_t;
+
     std::string                         f_program_name;
     debug_flags::safe_debug_t           f_debug_flags;
     mutable controlled_vars::zuint32_t  f_error_count;
     controlled_vars::zbool_t            f_exception_on_error;
+    mutable std::mutex                  f_mutex;
+    listeners_t                         f_log_output_list;
+    listeners_t                         f_user_output_list;
+
+    static std::shared_ptr<output>      f_instance;
+
+    void log_raw_output( const message_t& message ) const;
+    void log_user_output( const message_t& message ) const;
 };
-
-
-
-DEBIAN_PACKAGE_EXPORT void                  set_output(output *out);
-DEBIAN_PACKAGE_EXPORT output *              get_output();
-DEBIAN_PACKAGE_EXPORT debug_flags::debug_t  get_output_debug_flags();
-DEBIAN_PACKAGE_EXPORT uint32_t              get_output_error_count();
 
 
 }       // namespace wpkg_output

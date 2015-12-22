@@ -881,6 +881,88 @@ int wpkgar_install::count() const
     return static_cast<int>(f_packages.size());
 }
 
+void wpkgar_install::validate_directory( package_item_t package )
+{
+    f_manager->check_interrupt();
+    increment_progress();
+
+    // if we cannot access that file, it's probably a direct package
+    // name in which case we're done here (another error should occur
+    // for those since it's illegal)
+    const wpkg_filename::uri_filename filename(package.get_filename());
+    if(filename.is_dir())
+    {
+        // this is a directory, so mark it as such
+        package.set_type(package_item_t::package_type_directory);
+
+        // read the directory *.deb files
+        memfile::memory_file r;
+        r.dir_rewind(filename, get_parameter(wpkgar_install_recursive, false) != 0);
+        for(;;)
+        {
+            f_manager->check_interrupt();
+
+            memfile::memory_file::file_info info;
+            if(!r.dir_next(info, NULL))
+            {
+                break;
+            }
+            if(info.get_file_type() != memfile::memory_file::file_info::regular_file)
+            {
+                // we are only interested by regular files, anything
+                // else we skip silently
+                continue;
+            }
+            const std::string& package_filename(info.get_filename());
+            std::string::size_type p(package_filename.find_last_of('.'));
+            if(p == std::string::npos || package_filename.substr(p + 1) != "deb")
+            {
+                // if there is no extension or the extension is not .deb
+                // then forget it
+                continue;
+            }
+            if(package_filename.find_first_of("_/") == std::string::npos)
+            {
+                wpkg_output::log("file %1 does not have a valid package name.")
+                    .quoted_arg(package_filename)
+                    .level(wpkg_output::level_error)
+                    .module(wpkg_output::module_validate_installation)
+                    .package(package_filename)
+                    .action("install-validation");
+                continue;
+            }
+            add_package(package_filename);
+        }
+    }
+}
+
+
+bool wpkgar_install::validate_packages_to_install()
+{
+    // this can happen if the user specify an empty directory as input
+    int size(0);
+    for(wpkgar_package_list_t::size_type i(0); i < f_packages.size(); ++i)
+    {
+        if(f_packages[i].get_type() == package_item_t::package_type_explicit
+        || f_packages[i].get_type() == package_item_t::package_type_implicit)
+        {
+            // we don't need to know how many total, just that there is at
+            // least one so we break immediately
+            ++size;
+            break;
+        }
+    }
+    if( size == 0)
+    {
+        wpkg_output::log("the directories you specified do not include any valid *.deb files, did you forget --recursive?")
+            .level(wpkg_output::level_error)
+            .module(wpkg_output::module_validate_installation)
+            .action("install-validation");
+        return false;
+    }
+    return true;
+}
+
 
 // transform the directories in a list of .deb packages
 bool wpkgar_install::validate_directories()
@@ -894,86 +976,11 @@ bool wpkgar_install::validate_directories()
 
     progress_scope s( this, "validate_directories", f_packages.size() * 2 );
 
-    // now go through all of those and add dependencies as expected
-    for(wpkgar_package_list_t::size_type i(0); i < f_packages.size(); ++i)
-    {
-        f_manager->check_interrupt();
-        increment_progress();
+    std::for_each( f_packages.begin(), f_packages.end(),
+            [this]( package_item_t pkg ) { this->validate_directory(pkg); }
+        );
 
-        // if we cannot access that file, it's probably a direct package
-        // name in which case we're done here (another error should occur
-        // for those since it's illegal)
-        const wpkg_filename::uri_filename filename(f_packages[i].get_filename());
-        if(filename.is_dir())
-        {
-            // this is a directory, so mark it as such
-            f_packages[i].set_type(package_item_t::package_type_directory);
-
-            // read the directory *.deb files
-            memfile::memory_file r;
-            r.dir_rewind(filename, get_parameter(wpkgar_install_recursive, false) != 0);
-            for(;;)
-            {
-                f_manager->check_interrupt();
-
-                memfile::memory_file::file_info info;
-                if(!r.dir_next(info, NULL))
-                {
-                    break;
-                }
-                if(info.get_file_type() != memfile::memory_file::file_info::regular_file)
-                {
-                    // we are only interested by regular files, anything
-                    // else we skip silently
-                    continue;
-                }
-                const std::string& package_filename(info.get_filename());
-                std::string::size_type p(package_filename.find_last_of('.'));
-                if(p == std::string::npos || package_filename.substr(p + 1) != "deb")
-                {
-                    // if there is no extension or the extension is not .deb
-                    // then forget it
-                    continue;
-                }
-                if(package_filename.find_first_of("_/") == std::string::npos)
-                {
-                    wpkg_output::log("file %1 does not have a valid package name.")
-                            .quoted_arg(package_filename)
-                        .level(wpkg_output::level_error)
-                        .module(wpkg_output::module_validate_installation)
-                        .package(package_filename)
-                        .action("install-validation");
-                    continue;
-                }
-                add_package(package_filename);
-            }
-        }
-    }
-
-    // this can happen if the user specify an empty directory as input
-    int size(0);
-    for(wpkgar_package_list_t::size_type i(0); i < f_packages.size(); ++i)
-    {
-        increment_progress();
-        if(f_packages[i].get_type() == package_item_t::package_type_explicit
-        || f_packages[i].get_type() == package_item_t::package_type_implicit)
-        {
-            // we don't need to know how many total, just that there is at
-            // least one so we break immediately
-            ++size;
-            break;
-        }
-    }
-    if(size == 0)
-    {
-        wpkg_output::log("the directories you specified do not include any valid *.deb files, did you forget --recursive?")
-            .level(wpkg_output::level_error)
-            .module(wpkg_output::module_validate_installation)
-            .action("install-validation");
-        return false;
-    }
-
-    return true;
+    return validate_packages_to_install();;
 }
 
 
@@ -5383,7 +5390,7 @@ void wpkgar_install::add_progess_record( const std::string& what, const uint64_t
 
     if( f_progress_notifier )
     {
-        f_progress_notifier->on_change( record );
+        f_progress_notifier( record );
     }
 }
 
@@ -5399,7 +5406,7 @@ void wpkgar_install::increment_progress()
 
     if( f_progress_notifier )
     {
-        f_progress_notifier->on_change( f_progress_stack.top() );
+        f_progress_notifier( f_progress_stack.top() );
     }
 }
 
@@ -5416,12 +5423,12 @@ void wpkgar_install::pop_progess_record()
 
     if( f_progress_notifier )
     {
-        f_progress_notifier->on_change( record );
+        f_progress_notifier( record );
     }
 }
 
 
-void wpkgar_install::register_progress_notifier( std::shared_ptr<progress_notifier_t> notifier )
+void wpkgar_install::register_progress_notifier( notifier_function_t notifier )
 {
     f_progress_notifier = notifier;
 }
