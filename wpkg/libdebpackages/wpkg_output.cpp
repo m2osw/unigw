@@ -746,6 +746,56 @@ std::string message_t::get_raw_message() const
 }
 
 
+progress_record_t::progress_record_t()
+{
+}
+
+
+uint64_t progress_record_t::get_current_progress() const
+{
+    return f_current_progress;
+}
+
+
+uint64_t progress_record_t::get_progress_max() const
+{
+    return f_progress_max;
+}
+
+
+std::string progress_record_t::get_progress_what() const
+{
+    return f_progress_what;
+}
+
+
+void progress_record_t::set_current_progress( uint64_t val )
+{
+    f_current_progress = val;
+}
+
+
+void progress_record_t::increment_current_progress()
+{
+    if( f_current_progress < f_progress_max )
+    {
+        ++f_current_progress;
+    }
+}
+
+
+void progress_record_t::set_progress_max( uint64_t val )
+{
+    f_progress_max = val;
+}
+
+
+void progress_record_t::set_progress_what( const std::string& val )
+{
+    f_progress_what = val;
+}
+
+
 /** \brief Initialize the log with a message format.
  *
  * Set the format of the message to the specified \p format parameter.
@@ -957,6 +1007,23 @@ log::~log()
 
     // send the log message
     out->log(f_message);
+
+    if( f_progress_rec )
+    {
+        out->progress( *f_progress_rec );
+    }
+}
+
+
+/** \brief Add a progress record to be emitted.
+  *
+  * This function queues a copy of a progress record to be
+  * logged with an interested listener.
+  */
+log& log::progress( const progress_record_t& rec )
+{
+    f_progress_rec.reset( new progress_record_t(rec) );
+    return *this;
 }
 
 
@@ -1656,7 +1723,7 @@ namespace
  */
 std::weak_ptr<output> output::get_output()
 {
-    std::lock_guard lg( g_mutex );
+    std::lock_guard<std::recursive_mutex> lg( g_mutex );
 
     if( !f_instance )
     {
@@ -1672,46 +1739,33 @@ output::output()
 }
 
 
+output::~output()
+{
+}
+
+
 void output::set_program_name(const std::string& program_name)
 {
-    std::lock_guard lg(f_mutex);
+    std::lock_guard<std::recursive_mutex> lg(f_mutex);
     f_program_name = program_name;
 }
 
 const std::string& output::get_program_name() const
 {
-    std::lock_guard lg(f_mutex);
+    std::lock_guard<std::recursive_mutex> lg(f_mutex);
     return f_program_name;
 }
 
 void output::set_exception_on_error( const bool val )
 {
-    std::lock_guard lg(f_mutex);
+    std::lock_guard<std::recursive_mutex> lg(f_mutex);
     f_exception_on_error = val;
 }
 
 bool output::get_exception_on_error() const
 {
-    std::lock_guard lg(f_mutex);
+    std::lock_guard<std::recursive_mutex> lg(f_mutex);
     return f_exception_on_error;
-}
-
-
-void output::log_raw_output( const message_t& message ) const
-{
-    for( auto out : f_log_output_list )
-    {
-        out( message );
-    }
-}
-
-
-void output::log_user_output( const message_t& message ) const
-{
-    for( auto out : f_user_output_list )
-    {
-        out( message );
-    }
 }
 
 
@@ -1738,7 +1792,7 @@ void output::log_user_output( const message_t& message ) const
  */
 void output::log(const message_t& message) const
 {
-    std::lock_guard lg(f_mutex);
+    std::lock_guard<std::recursive_mutex> lg(f_mutex);
 
     if(compare_levels(message.get_level(), level_error) >= 0)
     {
@@ -1746,20 +1800,31 @@ void output::log(const message_t& message) const
     }
 
     // always send to the log (i.e. no test against the debug flags)
-    log_raw_output( message );
+    f_log_output( message );
 
     // if the message is a debug message, then make sure that
     // at least one of the debug flags was turned on by the user
     if(message.get_level() != level_debug
     || (message.get_debug_flags() & f_debug_flags) != 0)
     {
-        log_user_output( message );
+        f_user_output( message );
     }
 
     if( f_exception_on_error && f_error_count )
     {
         throw wpkg_output_exception( message.get_full_message().c_str() );
     }
+}
+
+
+/** \brief Send a progress message.
+ *
+ * \param[in] record  The progress record to send to the log_impl() function.
+ */
+void output::progress(const progress_record_t& record) const
+{
+    std::lock_guard<std::recursive_mutex> lg(f_mutex);
+    f_progress_output( record );
 }
 
 
@@ -1775,7 +1840,7 @@ void output::log(const message_t& message) const
  */
 void output::set_debug_flags(debug_flags::debug_t debug_flags)
 {
-    std::lock_guard lg(f_mutex);
+    std::lock_guard<std::recursive_mutex> lg(f_mutex);
     f_debug_flags = debug_flags;
 }
 
@@ -1791,7 +1856,7 @@ void output::set_debug_flags(debug_flags::debug_t debug_flags)
  */
 debug_flags::debug_t output::get_debug_flags() const
 {
-    std::lock_guard lg(f_mutex);
+    std::lock_guard<std::recursive_mutex> lg(f_mutex);
     return f_debug_flags;
 }
 
@@ -1808,7 +1873,7 @@ debug_flags::debug_t output::get_debug_flags() const
  */
 uint32_t output::error_count() const
 {
-    std::lock_guard lg(f_mutex);
+    std::lock_guard<std::recursive_mutex> lg(f_mutex);
     return f_error_count;
 }
 
@@ -1824,7 +1889,7 @@ uint32_t output::error_count() const
  */
 void output::reset_error_count()
 {
-    std::lock_guard lg(f_mutex);
+    std::lock_guard<std::recursive_mutex> lg(f_mutex);
     f_error_count = 0;
 }
 
@@ -1839,7 +1904,7 @@ void output::reset_error_count()
  * machine readable string for your log files.
  *
  * \warning
- * Note that the f_log_output_list() function is always called, even if the
+ * Note that the f_log_output() function is always called, even if the
  * corresponding debug flag is not set in the output object. You should
  * really only use it for logs. Plus the output_message() will also be
  * called, and thus you do not want to display the \p msg or you'd
@@ -1849,32 +1914,14 @@ void output::reset_error_count()
  */
 void output::register_raw_log_listener( listener_func_t func )
 {
-    std::lock_guard lg(f_mutex);
-    auto iter = std::find_if( f_log_output_list.begin(), f_log_output_list.end(),
-        [&,this]( listener_func_t inner_func )
-        {
-            return func == inner_func;
-        });
-    
-    if( iter == f_log_output_list.end() )
-    {
-        f_log_output_list.push_back( func );
-    }
+    std::lock_guard<std::recursive_mutex> lg(f_mutex);
+    f_log_output.register_listener( func );
 }
 
 void output::unregister_raw_log_listener( listener_func_t func )
 {
-    std::lock_guard lg(f_mutex);
-    auto iter = std::find_if( f_log_output_list.begin(), f_log_output_list.end(),
-        [&,this]( listener_func_t inner_func )
-        {
-            return func == inner_func;
-        });
-    
-    if( iter != f_log_output_list.end() )
-    {
-        f_log_output_list.erase( iter );
-    }
+    std::lock_guard<std::recursive_mutex> lg(f_mutex);
+    f_log_output.unregister_listener( func );
 }
 
 
@@ -1883,41 +1930,79 @@ void output::unregister_raw_log_listener( listener_func_t func )
  * Register the user logging function.
  *
  * \warning
- * f_user_output_list() is called along with the f_log_output_list() function,
+ * f_user_output() is called along with the f_log_output() function,
  * which means that BOTH functions are called (although the
- * f_user_output_list() function may not get called for debug messages
+ * f_user_output() function may not get called for debug messages
  * that the user did not require to see.)
  *
  * \param[in] func The function to call
  */
 void output::register_user_log_listener( listener_func_t func )
 {
-    std::lock_guard lg(f_mutex);
-    auto iter = std::find_if( f_user_output_list.begin(), f_user_output_list.end(),
-        [&,this]( listener_func_t inner_func )
-        {
-            return func == inner_func;
-        });
-    
-    if( iter == f_user_output_list.end() )
-    {
-        f_user_output_list.push_back( func );
-    }
+    std::lock_guard<std::recursive_mutex> lg(f_mutex);
+    f_user_output.register_listener( func );
 }
 
 void output::unregister_user_log_listener( listener_func_t func )
 {
-    std::lock_guard lg(f_mutex);
-    auto iter = std::find_if( f_user_output_list.begin(), f_user_output_list.end(),
-        [&,this]( listener_func_t inner_func )
-        {
-            return func == inner_func;
-        });
-    
-    if( iter != f_user_output_list.end() )
-    {
-        f_user_output_list.erase( iter );
-    }
+    std::lock_guard<std::recursive_mutex> lg(f_mutex);
+    f_user_output.unregister_listener( func );
+}
+
+
+/** \brief Progress listener registration function
+ *
+ * Register the progress listing function.
+ *
+ * \param[in] func The function to call
+ */
+void output::register_progress_listener( progress_listener_func_t func )
+{
+    std::lock_guard<std::recursive_mutex> lg(f_mutex);
+    f_progress_output.register_listener( func );
+}
+
+void output::unregister_progress_listener( progress_listener_func_t func )
+{
+    std::lock_guard<std::recursive_mutex> lg(f_mutex);
+    f_progress_output.unregister_listener( func );
+}
+
+
+std::shared_ptr<output> get_output()
+{
+    return output::get_output().lock();
+}
+
+
+/** \brief Return the debug flags.
+ *
+ * This function checks whether a log output object was defined, if so,
+ * get the debug flags defined in that object, otherwise assume that none
+ * of those flags are defined.
+ *
+ * \return The flags of the log output or zero (0).
+ */
+debug_flags::debug_t get_output_debug_flags()
+{
+    return output::get_output().lock()->get_debug_flags();
+}
+
+
+/** \brief Return the number of errors found so far.
+ *
+ * This function returns the number of errors that were found so
+ * far. It retrieves the error count of the currently assigned
+ * log output object.
+ *
+ * If the log object is not defined, then no errors could be counted
+ * so the function returns zero.
+ *
+ * \return The number of errors found so far.
+ */
+uint32_t get_output_error_count()
+{
+    return output::get_output().lock()->error_count();
 }
 
 

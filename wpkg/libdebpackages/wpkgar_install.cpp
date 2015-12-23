@@ -5336,35 +5336,6 @@ void wpkgar_install::validate_scripts()
 }
 
 
-wpkgar_install::progress_record_t::progress_record_t()
-{
-}
-
-
-uint64_t wpkgar_install::progress_record_t::get_current_progress() const
-{
-    return f_current_progress;
-}
-
-
-uint64_t wpkgar_install::progress_record_t::get_progress_max() const
-{
-    return f_progress_max;
-}
-
-
-std::string wpkgar_install::progress_record_t::get_progress_what() const
-{
-    return f_progress_what;
-}
-
-
-wpkgar_install::progress_record_t wpkgar_install::get_current_progress() const
-{
-    return f_progress_stack.top();
-}
-
-
 wpkgar_install::progress_scope::progress_scope
     ( wpkgar_install* inst
     , const std::string& what
@@ -5383,15 +5354,16 @@ wpkgar_install::progress_scope::~progress_scope()
 
 void wpkgar_install::add_progess_record( const std::string& what, const uint64_t max )
 {
-    progress_record_t record;
-    record.f_progress_what = what;
-    record.f_progress_max  = max;
+    wpkg_output::progress_record_t record;
+    record.set_progress_what ( what );
+    record.set_progress_max  ( max  );
     f_progress_stack.push( record );
 
-    if( f_progress_notifier )
-    {
-        f_progress_notifier( record );
-    }
+    wpkg_output::log("progress")
+        .level(wpkg_output::level_info)
+        .debug(wpkg_output::debug_flags::debug_progress)
+        .module(wpkg_output::module_validate_installation)
+        .progress( record );
 }
 
 
@@ -5402,12 +5374,13 @@ void wpkgar_install::increment_progress()
         return;
     }
 
-    f_progress_stack.top().f_current_progress++;
+    f_progress_stack.top().increment_current_progress();
 
-    if( f_progress_notifier )
-    {
-        f_progress_notifier( f_progress_stack.top() );
-    }
+    wpkg_output::log("increment progress")
+        .level(wpkg_output::level_info)
+        .debug(wpkg_output::debug_flags::debug_progress)
+        .module(wpkg_output::module_validate_installation)
+        .progress( f_progress_stack.top() );
 }
 
 
@@ -5418,19 +5391,14 @@ void wpkgar_install::pop_progess_record()
         return;
     }
 
-    progress_record_t record( f_progress_stack.top() );
+    wpkg_output::progress_record_t record( f_progress_stack.top() );
     f_progress_stack.pop();
 
-    if( f_progress_notifier )
-    {
-        f_progress_notifier( record );
-    }
-}
-
-
-void wpkgar_install::register_progress_notifier( notifier_function_t notifier )
-{
-    f_progress_notifier = notifier;
+    wpkg_output::log("pop progress")
+        .level(wpkg_output::level_info)
+        .debug(wpkg_output::debug_flags::debug_progress)
+        .module(wpkg_output::module_validate_installation)
+        .progress( record );
 }
 
 

@@ -43,6 +43,7 @@
 #include    "controlled_vars/controlled_vars_ptr_auto_init.h"
 #include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
+#include    <algorithm>
 #include    <functional>
 #include    <memory>
 #include    <mutex>
@@ -187,6 +188,26 @@ private:
     std::string                 f_raw_message;
 };
 
+class DEBIAN_PACKAGE_EXPORT progress_record_t
+{
+public:
+    progress_record_t();
+
+    uint64_t    get_current_progress() const;   // What count we are on
+    uint64_t    get_progress_max() const;       // Total progress
+    std::string get_progress_what() const;      // String detailing current operation
+
+    void        set_current_progress( uint64_t val );
+    void        increment_current_progress();
+    void        set_progress_max( uint64_t val );
+    void        set_progress_what( const std::string& val );
+
+private:
+    controlled_vars::zuint64_t          f_current_progress;
+    controlled_vars::zuint64_t          f_progress_max;
+    std::string                         f_progress_what;
+};
+
 
 class output;
 
@@ -202,6 +223,8 @@ public:
     log(std::string& output_message, const std::string& format);
     log(std::string& output_message, const std::wstring& format);
     ~log();
+
+    log& progress( const progress_record_t& rec );
 
     log& debug(debug_flags::debug_t debug_flags);
 
@@ -248,10 +271,62 @@ public:
 private:
     std::string replace_arguments();
 
-    std::string                                     f_format;
-    std::vector<std::string>                        f_args;
-    message_t                                       f_message;
-    controlled_vars::ptr_auto_init<std::string>     f_output_message;
+    std::string                                       f_format;
+    std::vector<std::string>                          f_args;
+    message_t                                         f_message;
+    std::shared_ptr<progress_record_t>                f_progress_rec;
+    controlled_vars::ptr_auto_init<std::string>       f_output_message;
+};
+
+
+template <class T>
+class DEBIAN_PACKAGE_EXPORT listener_list_t
+{
+    public:
+        typedef std::function<void (const T&)>  func_t;
+
+        listener_list_t() {}
+
+        void register_listener( func_t func )
+        {
+            auto iter = std::find_if( f_func_list.begin(), f_func_list.end(),
+                    [&,this]( func_t inner_func )
+                    {
+                        return func.target<T>() == inner_func.target<T>();
+                    });
+
+            if( iter == f_func_list.end() )
+            {
+                f_func_list.push_back( func );
+            }
+        }
+
+        void unregister_listener( func_t func )
+        {
+            auto iter = std::find_if( f_func_list.begin(), f_func_list.end(),
+                    [&,this]( func_t inner_func )
+                    {
+                        return func.target<T>() == inner_func.target<T>();
+                    });
+
+            if( iter != f_func_list.end() )
+            {
+                f_func_list.erase( iter );
+            }
+        }
+
+        void  operator()( const T& payload ) const
+        {
+            for( auto out : f_func_list )
+            {
+                out( payload );
+            }
+        }
+
+    private:
+        typedef std::vector<func_t> func_list_t;
+
+        func_list_t  f_func_list;
 };
 
 
@@ -275,37 +350,44 @@ public:
     bool                    get_exception_on_error() const;
 
     void                    log(const message_t& message) const;
+    void                    progress( const progress_record_t& record ) const;
 
-    typedef std::function<void (const message_t&)> listener_func_t;
-
+    typedef listener_list_t<message_t>::func_t listener_func_t;
     void                    register_raw_log_listener    ( listener_func_t func );
     void                    unregister_raw_log_listener  ( listener_func_t func );
     //
     void                    register_user_log_listener   ( listener_func_t func );
     void                    unregister_user_log_listener ( listener_func_t func );
 
+    typedef listener_list_t<progress_record_t>::func_t progress_listener_func_t;
+    void                    register_progress_listener   ( progress_listener_func_t func );
+    void                    unregister_progress_listener ( progress_listener_func_t func );
+
     static std::weak_ptr<output> get_output();
 
 
 private:
-                                        output();   // Forbid construction except by get_output()
+                                                output();   // Forbid construction except by get_output()
 
-    typedef std::vector<listener_func_t> listeners_t;
+    std::string                          f_program_name;
+    debug_flags::safe_debug_t            f_debug_flags;
+    mutable controlled_vars::zuint32_t   f_error_count;
+    controlled_vars::zbool_t             f_exception_on_error;
+    mutable std::recursive_mutex         f_mutex;
 
-    std::string                         f_program_name;
-    debug_flags::safe_debug_t           f_debug_flags;
-    mutable controlled_vars::zuint32_t  f_error_count;
-    controlled_vars::zbool_t            f_exception_on_error;
-    mutable std::mutex                  f_mutex;
-    listeners_t                         f_log_output_list;
-    listeners_t                         f_user_output_list;
+    listener_list_t<message_t>           f_log_output;
+    listener_list_t<message_t>           f_user_output;
+    listener_list_t<progress_record_t>   f_progress_output;
 
-    static std::shared_ptr<output>      f_instance;
+    static std::shared_ptr<output>       f_instance;
 
-    void log_raw_output( const message_t& message ) const;
-    void log_user_output( const message_t& message ) const;
+    void log_raw_output  ( const message_t& message ) const;
+    void log_user_output ( const message_t& message ) const;
 };
 
+DEBIAN_PACKAGE_EXPORT std::shared_ptr<output> get_output();
+DEBIAN_PACKAGE_EXPORT debug_flags::debug_t    get_output_debug_flags();
+DEBIAN_PACKAGE_EXPORT uint32_t                get_output_error_count();
 
 }       // namespace wpkg_output
 // vim: ts=4 sw=4 et

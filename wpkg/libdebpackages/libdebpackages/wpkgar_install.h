@@ -106,31 +106,11 @@ public:
         controlled_vars::fbool_t    f_is_upgrade;
     };
 
-    class DEBIAN_PACKAGE_EXPORT progress_record_t
-    {
-    public:
-        friend class wpkgar_install;
-
-        progress_record_t();
-
-        uint64_t    get_current_progress() const;   // What count we are on
-        uint64_t    get_progress_max() const;       // Total progress
-        std::string get_progress_what() const;      // String detailing current operation
-
-    private:
-        controlled_vars::zuint64_t          f_current_progress;
-        controlled_vars::zuint64_t          f_progress_max;
-        std::string                         f_progress_what;
-    };
-
 
     wpkgar_install(wpkgar_manager *manager);
 
     typedef std::vector<install_info_t> install_info_list_t;
     install_info_list_t get_install_list();
-
-    typedef std::function<void (progress_record_t)> notifier_function_t;
-    void register_progress_notifier( notifier_function_t notifier );
 
     void set_parameter(parameter_t flag, int value);
     int get_parameter(parameter_t flag, int default_value) const;
@@ -153,7 +133,7 @@ public:
     // functions used internally
     bool find_essential_file(std::string filename, const size_t skip_idx);
 
-    progress_record_t get_current_progress() const;
+    wpkg_output::progress_record_t get_current_progress() const;
 
 private:
     friend class details::disk_list_t;
@@ -372,10 +352,8 @@ private:
     controlled_vars::fbool_t            f_read_essentials;
     controlled_vars::fbool_t            f_install_source;
 
-    typedef std::stack<progress_record_t> progress_stack_t;
+    typedef std::stack<wpkg_output::progress_record_t> progress_stack_t;
     progress_stack_t                    f_progress_stack;
-
-    notifier_function_t                 f_progress_notifier;
 };
 
 }   // namespace wpkgar
