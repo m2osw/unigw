@@ -117,7 +117,7 @@ wpkg_interrupt interrupt;
  * Namely, if an error is detected (as indicated by the level of a message)
  * then the exit code becomes 1 instead of 0.
  */
-class tool_output : public wpkg_output::output
+class tool_output
 {
 public:
     enum output_format_t
@@ -138,9 +138,8 @@ public:
 
     int exit_code() const;
 
-protected:
-    virtual void log_message( const wpkg_output::message_t& msg ) const;
-    virtual void output_message( const wpkg_output::message_t& msg ) const;
+    void log_message( const wpkg_output::message_t& msg ) const;
+    void output_message( const wpkg_output::message_t& msg ) const;
 
 private:
     std::string                             f_output_filename;
@@ -2690,7 +2689,8 @@ command_line::command_line(int argc, char *argv[], std::vector<std::string> conf
     }
 
     // output for log info
-    g_output.set_program_name(f_opt.get_program_name());
+    auto output( wpkg_output::get_output() );
+    output->set_program_name(f_opt.get_program_name());
     if(g_output.get_output_file().empty() && f_opt.is_defined("log-output"))
     {
         g_output.set_output_file(f_opt.get_string("log-output"));
@@ -2717,7 +2717,7 @@ command_line::command_line(int argc, char *argv[], std::vector<std::string> conf
         f_debug_flags |= strtol(debug.c_str(), NULL, 0);
         g_output.set_level(wpkg_output::level_debug);
     }
-    g_output.set_debug_flags(f_debug_flags);
+    output->set_debug_flags(f_debug_flags);
 
     // user wants JSON or XML output?
     if(f_opt.is_defined("output-json"))
@@ -7014,7 +7014,13 @@ int main(int argc, char *argv[])
     g_argv = argv;
 
     // by now the g_output is ready so save it in the log object
-    wpkg_output::set_output(&g_output);
+    auto output( wpkg_output::get_output() );
+    output->register_raw_log_listener(
+            [&]( const wpkg_output::message_t& msg ) { g_output.log_message( msg ); }
+            );
+    output->register_user_log_listener(
+            [&]( const wpkg_output::message_t& msg ) { g_output.output_message( msg ); }
+            );
 
     // we have a top try/catch to ensure stack unwinding and thus
     // have true RAII at all levels whatever the compiler.
@@ -7348,18 +7354,18 @@ int main(int argc, char *argv[])
         {
             fprintf(stderr, "wpkg:error: %s\n", e.what());
         }
-        wpkg_output::set_output(NULL);
+        output->clear_listeners();
         exit(1);
     }
     catch(...)
     {
         // nothing to do here, we're just making sure we
         // get a full stack unwinding effect for RAII
-        wpkg_output::set_output(NULL);
+        output->clear_listeners();
         throw;
     }
 
-    wpkg_output::set_output(NULL);
+    output->clear_listeners();
     return g_output.exit_code();
 }
 

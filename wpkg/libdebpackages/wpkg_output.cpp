@@ -1918,12 +1918,6 @@ void output::register_raw_log_listener( listener_func_t func )
     f_log_output.register_listener( func );
 }
 
-void output::unregister_raw_log_listener( listener_func_t func )
-{
-    std::lock_guard<std::recursive_mutex> lg(f_mutex);
-    f_log_output.unregister_listener( func );
-}
-
 
 /** \brief User logging function
  *
@@ -1943,12 +1937,6 @@ void output::register_user_log_listener( listener_func_t func )
     f_user_output.register_listener( func );
 }
 
-void output::unregister_user_log_listener( listener_func_t func )
-{
-    std::lock_guard<std::recursive_mutex> lg(f_mutex);
-    f_user_output.unregister_listener( func );
-}
-
 
 /** \brief Progress listener registration function
  *
@@ -1962,10 +1950,12 @@ void output::register_progress_listener( progress_listener_func_t func )
     f_progress_output.register_listener( func );
 }
 
-void output::unregister_progress_listener( progress_listener_func_t func )
+
+void output::clear_listeners()
 {
-    std::lock_guard<std::recursive_mutex> lg(f_mutex);
-    f_progress_output.unregister_listener( func );
+    f_log_output      .clear();
+    f_user_output     .clear();
+    f_progress_output .clear();
 }
 
 

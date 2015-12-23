@@ -301,26 +301,17 @@ class DEBIAN_PACKAGE_EXPORT listener_list_t
             }
         }
 
-        void unregister_listener( func_t func )
-        {
-            auto iter = std::find_if( f_func_list.begin(), f_func_list.end(),
-                    [&,this]( func_t inner_func )
-                    {
-                        return func.target<T>() == inner_func.target<T>();
-                    });
-
-            if( iter != f_func_list.end() )
-            {
-                f_func_list.erase( iter );
-            }
-        }
-
         void  operator()( const T& payload ) const
         {
             for( auto out : f_func_list )
             {
                 out( payload );
             }
+        }
+
+        void clear()
+        {
+            f_func_list.clear();
         }
 
     private:
@@ -353,15 +344,13 @@ public:
     void                    progress( const progress_record_t& record ) const;
 
     typedef listener_list_t<message_t>::func_t listener_func_t;
-    void                    register_raw_log_listener    ( listener_func_t func );
-    void                    unregister_raw_log_listener  ( listener_func_t func );
-    //
-    void                    register_user_log_listener   ( listener_func_t func );
-    void                    unregister_user_log_listener ( listener_func_t func );
+    void                    register_raw_log_listener  ( listener_func_t func );
+    void                    register_user_log_listener ( listener_func_t func );
 
     typedef listener_list_t<progress_record_t>::func_t progress_listener_func_t;
-    void                    register_progress_listener   ( progress_listener_func_t func );
-    void                    unregister_progress_listener ( progress_listener_func_t func );
+    void                    register_progress_listener ( progress_listener_func_t func );
+
+    void                    clear_listeners();
 
     static std::weak_ptr<output> get_output();
 

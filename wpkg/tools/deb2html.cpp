@@ -38,52 +38,7 @@
 #include    <errno.h>
 #include    <time.h>
 
-
-/** \brief Derived version of the wpkg_output::output class for the deb2html tool.
- *
- * This class is used so one can get the output of errors if any occurs
- * while generating the HTML from Debian packages.
- *
- * The level can be specified (verbose, normal, quiet) however this version
- * does not support logging. It just prints messages in your console.
- */
-class tool_output : public wpkg_output::output
-{
-public:
-    tool_output();
-    void set_level(wpkg_output::level_t level);
-
-protected:
-    virtual void log_message( const wpkg_output::message_t& msg ) const;
-
-private:
-    wpkg_output::level_t        f_log_level;
-};
-
-tool_output::tool_output()
-    : f_log_level(wpkg_output::level_warning)
-{
-}
-
-
-void tool_output::log_message( const wpkg_output::message_t& msg ) const
-{
-    // Note: the log_message() function receives ALL messages, including all
-    //       the debug messages
-    const std::string message = msg.get_full_message();
-    if(compare_levels(msg.get_level(), f_log_level) >= 0)
-    {
-        printf("%s\n", message.c_str());
-    }
-}
-
-void tool_output::set_level(wpkg_output::level_t level)
-{
-    f_log_level = level;
-}
-
-
-tool_output g_output;
+wpkg_output::level_t g_level( wpkg_output::level_warning );
 wpkgar::wpkgar_manager g_manager;
 
 /** \brief Package information.
@@ -100,6 +55,18 @@ struct package_t
 };
 typedef std::map<std::string, package_t>    package_list_t;
 package_list_t    g_packages;
+
+
+void log_message( const wpkg_output::message_t& msg )
+{
+    // Note: the log_message() function receives ALL messages, including all
+    //       the debug messages
+    const std::string message = msg.get_full_message();
+    if( wpkg_output::compare_levels( msg.get_level(), g_level ) >= 0 )
+    {
+        printf("%s\n", message.c_str());
+    }
+}
 
 
 void load_package(const wpkg_filename::uri_filename& package_filename)
@@ -807,7 +774,7 @@ int main(int argc, char *argv[])
         }
     };
 
-    wpkg_output::set_output(&g_output);
+    wpkg_output::output::get_output().lock()->register_raw_log_listener( log_message );
 
     std::vector<std::string> configuration_files;
     advgetopt::getopt opt(argc, argv, options, configuration_files, "");
@@ -862,14 +829,16 @@ int main(int argc, char *argv[])
     g_manager.set_root_path(opt.get_string("root"));
     g_manager.set_inst_path(opt.get_string("instdir"));
     g_manager.set_database_path(opt.get_string("admindir"));
-    g_output.set_program_name(opt.get_program_name());
+
+    auto output( wpkg_output::output::get_output().lock() );
+    output->set_program_name(opt.get_program_name());
     if(verbose)
     {
-        g_output.set_level(wpkg_output::level_info);
+        g_level = wpkg_output::level_info;
     }
     else if(quiet)
     {
-        g_output.set_level(wpkg_output::level_error);
+        g_level = wpkg_output::level_error;
     }
 
     // get the size, if zero it's undefined
