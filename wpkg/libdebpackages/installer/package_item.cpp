@@ -30,7 +30,7 @@
  * The functions include support to the --install, --unpack, and --configure
  * functions.
  */
-#include    "libdebpackages/installer_package_item.h"
+#include    "libdebpackages/installer/package_item.h"
 #if defined(MO_CYGWIN)
 #   include    <Windows.h>
 #endif

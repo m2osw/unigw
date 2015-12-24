@@ -27,9 +27,9 @@
 
 #if !defined(MO_DARWIN) && !defined(MO_SUNOS) && !defined(MO_FREEBSD)
 
-#include "libdebpackages/installer_package_item.h"
 #include "libdebpackages/wpkgar.h"
 #include "libdebpackages/wpkgar_install.h"
+#include "libdebpackages/installer/package_item.h"
 
 #include <memory>
 

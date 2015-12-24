@@ -34,7 +34,7 @@
 #include    "libdebpackages/wpkg_backup.h"
 #include    "libdebpackages/wpkg_util.h"
 #include    "libdebpackages/debian_packages.h"
-#include    "details/disk.h"
+#include    "libdebpackages/installer/details/disk.h"
 #include    <algorithm>
 #include    <set>
 #include    <fstream>

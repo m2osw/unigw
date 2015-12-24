@@ -33,8 +33,8 @@
 #define WPKGAR_INSTALL_H
 #include    "libdebpackages/wpkgar.h"
 #include    "libdebpackages/wpkgar_repository.h"
-#include    "libdebpackages/installer_package_item.h"
 #include    "libdebpackages/wpkg_dependencies.h"
+#include    "libdebpackages/installer/package_item.h"
 #include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
 #include <functional>
@@ -60,8 +60,8 @@ class DEBIAN_PACKAGE_EXPORT wpkgar_install
 {
 public:
     // returned by unpack()
-    static const int    WPKGAR_ERROR = -1;
-    static const int    WPKGAR_EOP = -2;
+    static const int WPKGAR_ERROR = -1;
+    static const int WPKGAR_EOP   = -2;
 
     enum parameter_t
     {

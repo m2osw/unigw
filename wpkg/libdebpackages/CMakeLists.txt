@@ -50,12 +50,12 @@ if( MSVC OR MO_MINGW32 OR MO_MINGW64 OR MSYS )
     set ( EXTRA_LIBRARIES wsock32 ws2_32 mpr ole32 uuid )
 endif()
 
-project( debpackages_static )
-
 configure_file(
-    ${PROJECT_SOURCE_DIR}/libdebpackages/debian_packages.h.in
-    ${PROJECT_BINARY_DIR}/libdebpackages/debian_packages.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/debian_packages.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/debian_packages.h
 )
+
+project( debpackages_static )
 
 include_directories(
     "${CMAKE_BINARY_DIR}"
@@ -72,8 +72,8 @@ include_directories(
 )
 
 set( LIBDEBPACKAGES_INCLUDE_FILES
-    "${PROJECT_SOURCE_DIR}/libdebpackages/debian_packages.h.in"
-    "${PROJECT_BINARY_DIR}/libdebpackages/debian_packages.h"
+    "${PROJECT_SOURCE_DIR}/debian_packages.h.in"
+    "${PROJECT_BINARY_DIR}/debian_packages.h"
     installer/details/disk.h
     installer/package_item.h
     advgetopt.h
@@ -190,11 +190,6 @@ install(
 
 project( debpackages )
 
-configure_file(
-    ${PROJECT_SOURCE_DIR}/libdebpackages/debian_packages.h.in
-    ${PROJECT_BINARY_DIR}/libdebpackages/debian_packages.h
-)
-
 include_directories(
     "${CMAKE_CURRENT_BINARY_DIR}"
     "${CMAKE_CURRENT_BINARY_DIR}/libdebpackages"
@@ -249,7 +244,7 @@ install(
     PATTERN .svn EXCLUDE
 )
 install(
-    FILES ${PROJECT_BINARY_DIR}/libdebpackages/debian_packages.h
+    FILES ${PROJECT_BINARY_DIR}/debian_packages.h
     DESTINATION include/wpkg/libdebpackages
     COMPONENT headers
 )

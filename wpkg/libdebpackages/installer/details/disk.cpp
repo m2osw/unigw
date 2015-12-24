@@ -20,7 +20,7 @@
  *	   Doug Barbieri  doug@m2osw.com
  */
 
-#include "details/disk.h"
+#include "installer/details/disk.h"
 
 #if !defined(MO_WINDOWS)
 #	if defined(MO_LINUX)
