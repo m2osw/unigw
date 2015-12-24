@@ -50,15 +50,12 @@ if( MSVC OR MO_MINGW32 OR MO_MINGW64 OR MSYS )
     set ( EXTRA_LIBRARIES wsock32 ws2_32 mpr ole32 uuid )
 endif()
 
-file( GLOB LIBDEBPACKAGES_INCLUDE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/libdebpackages/*.h" )
-
 project( debpackages_static )
 
 configure_file(
     ${PROJECT_SOURCE_DIR}/libdebpackages/debian_packages.h.in
     ${PROJECT_BINARY_DIR}/libdebpackages/debian_packages.h
 )
-list( APPEND LIBDEBPACKAGES_INCLUDE_FILES "${PROJECT_BINARY_DIR}/libdebpackages/debian_packages.h" )
 
 include_directories(
     "${CMAKE_BINARY_DIR}"
@@ -74,13 +71,47 @@ include_directories(
     "${utf8_static_SOURCE_DIR}"
 )
 
-set(LIBDEBPACKAGES_SOURCE_FILES
-    details/disk.cpp
+set( LIBDEBPACKAGES_INCLUDE_FILES
+    "${PROJECT_SOURCE_DIR}/libdebpackages/debian_packages.h.in"
+    "${PROJECT_BINARY_DIR}/libdebpackages/debian_packages.h"
+    installer/details/disk.h
+    installer/package_item.h
+    advgetopt.h
+    case_insensitive_string.h
+    compatibility.h
+    comptr.h
+    debian_export.h
+    debian_version.h
+    md5.h
+    memfile.h
+    tcp_client_server.h
+    wpkgar_block.h
+    wpkgar_build.h
+    wpkg_architecture.h
+    wpkgar.h
+    wpkgar_install.h
+    wpkgar_remove.h
+    wpkgar_repository.h
+    wpkgar_tracker.h
+    wpkg_backup.h
+    wpkg_changelog.h
+    wpkg_control.h
+    wpkg_copyright.h
+    wpkg_dependencies.h
+    wpkg_field.h
+    wpkg_filename.h
+    wpkg_output.h
+    wpkg_stream.h
+    wpkg_util.h
+)
+
+set( LIBDEBPACKAGES_SOURCE_FILES
+    installer/details/disk.cpp
+    installer/package_item.cpp
     advgetopt.cpp
     case_insensitive_string.cpp
     compatibility.cpp
     debian_version.cpp
-    installer_package_item.cpp
     libversion.c
     md5.cpp
     memfile.cpp
@@ -211,8 +242,8 @@ install(
     ARCHIVE DESTINATION lib COMPONENT development
 )
 install(
-    DIRECTORY ${PROJECT_SOURCE_DIR}/libdebpackages
-    DESTINATION include/wpkg
+    DIRECTORY ${PROJECT_SOURCE_DIR}/
+    DESTINATION include/wpkg/libdebpackages
     COMPONENT headers
     FILES_MATCHING PATTERN *.h
     PATTERN .svn EXCLUDE

@@ -44,15 +44,8 @@
 #include    <errno.h>
 #include    <time.h>
 #include    <cstdlib>
-#if !defined(MO_WINDOWS)
-#	if defined(MO_LINUX)
-#		include    <mntent.h>
-#	endif
-#	include    <sys/statvfs.h>
-#	include    <unistd.h>
-#endif
 #if defined(MO_CYGWIN)
-#include    <Windows.h>
+#   include    <Windows.h>
 #endif
 
 
