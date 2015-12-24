@@ -25,10 +25,12 @@
  * This file declares the remove class which is used to deconfigure,
  * remove, and purge packages.
  */
-#ifndef WPKGAR_REMOVE_H
-#define WPKGAR_REMOVE_H
+#pragma once
+
 #include    "libdebpackages/wpkgar.h"
 #include    "controlled_vars/controlled_vars_auto_enum_init.h"
+
+#include <memory>
 
 namespace wpkgar {
 
@@ -46,7 +48,8 @@ public:
         wpkgar_remove_recursive                 // allow auto-deletion of all dependencies
     };
 
-    wpkgar_remove(wpkgar_manager *manager);
+    typedef std::shared_ptr<wpkgar_remove> pointer_t;
+    wpkgar_remove( wpkgar_manager::pointer_t manager );
 
     void set_parameter(parameter_t flag, int value);
     int get_parameter(parameter_t flag, int default_value) const;
@@ -87,7 +90,7 @@ private:
             package_type_same               // keep this as is (already removed, in most cases)
         };
 
-        package_item_t(wpkgar_manager *manager, const std::string& filename, package_type_t type);
+        package_item_t(wpkgar_manager::pointer_t manager, const std::string& filename, package_type_t type);
 
         const std::string& get_filename() const;
         const std::string& get_name() const;
@@ -110,21 +113,21 @@ private:
     private:
         void load();
 
-        wpkgar_manager *            f_manager;
-        std::string                 f_filename;
-        std::string                 f_new_filename;
-        package_type_t              f_type;
-        controlled_vars::fbool_t    f_depends_done;
-        controlled_vars::fbool_t    f_loaded;
-        controlled_vars::fbool_t    f_removed;
-        controlled_vars::fbool_t    f_configured;
-        controlled_vars::fbool_t    f_installed;
-        std::string                 f_name;
-        std::string                 f_architecture;
-        std::string                 f_version;
-        std::string                 f_status;
+        wpkgar_manager::pointer_t  f_manager;
+        std::string                      f_filename;
+        std::string                      f_new_filename;
+        package_type_t                   f_type;
+        controlled_vars::fbool_t         f_depends_done;
+        controlled_vars::fbool_t         f_loaded;
+        controlled_vars::fbool_t         f_removed;
+        controlled_vars::fbool_t         f_configured;
+        controlled_vars::fbool_t         f_installed;
+        std::string                      f_name;
+        std::string                      f_architecture;
+        std::string                      f_version;
+        std::string                      f_status;
         wpkgar_manager::package_status_t f_original_status;
-        controlled_vars::mint32_t   f_upgrade;
+        controlled_vars::mint32_t        f_upgrade;
     };
 
     typedef std::map<parameter_t, int>                      wpkgar_flags_t;
@@ -165,16 +168,14 @@ private:
     // deconfiguration sub-functions
     bool deconfigure_package(package_item_t *item);
 
-    wpkgar_manager *                    f_manager;
-    wpkgar_flags_t                      f_flags;
-    std::string                         f_instdir;
-    wpkgar_package_list_t               f_packages;
-    controlled_vars::fbool_t            f_purging_packages;
-    controlled_vars::fbool_t            f_deconfiguring_packages;
+    wpkgar_manager::pointer_t     f_manager;
+    wpkgar_flags_t                f_flags;
+    std::string                   f_instdir;
+    wpkgar_package_list_t         f_packages;
+    controlled_vars::fbool_t      f_purging_packages;
+    controlled_vars::fbool_t      f_deconfiguring_packages;
 };
 
 }   // namespace wpkgar
 
-#endif
-//#ifndef WPKGAR_REMOVE_H
 // vim: ts=4 sw=4 et

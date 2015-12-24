@@ -75,10 +75,12 @@ include_directories(
 )
 
 set(LIBDEBPACKAGES_SOURCE_FILES
+    details/disk.cpp
     advgetopt.cpp
     case_insensitive_string.cpp
     compatibility.cpp
     debian_version.cpp
+    installer_package_item.cpp
     libversion.c
     md5.cpp
     memfile.cpp

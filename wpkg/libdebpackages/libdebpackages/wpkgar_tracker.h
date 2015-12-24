@@ -31,9 +31,12 @@
  * binary packages, and then restore the target system to a pristine state.
  * This already works perfectly under Linux.
  */
+#pragma once
 #ifndef WPKGAR_TRACKER_H
 #define WPKGAR_TRACKER_H
 #include    "wpkgar.h"
+
+#include <memory>
 
 
 namespace wpkgar
@@ -44,7 +47,7 @@ namespace wpkgar
 class DEBIAN_PACKAGE_EXPORT wpkgar_tracker : public wpkgar::wpkgar_tracker_interface
 {
 public:
-                                    wpkgar_tracker(wpkgar_manager *manager, const wpkg_filename::uri_filename& tracking_filename);
+                                    wpkgar_tracker(wpkgar_manager::pointer_t manager, const wpkg_filename::uri_filename& tracking_filename);
     virtual                         ~wpkgar_tracker();
 
     void                            rollback();
@@ -56,7 +59,7 @@ public:
     virtual void                    track(const std::string& command, const std::string& package_name = "");
 
 private:
-    wpkgar_manager *                    f_manager;
+    wpkgar_manager::pointer_t           f_manager;
     controlled_vars::fbool_t            f_keep_file;
     controlled_vars::fbool_t            f_committed;
     const wpkg_filename::uri_filename   f_filename;

@@ -76,7 +76,7 @@ namespace wpkgar
 
 
 
-wpkgar_remove::package_item_t::package_item_t(wpkgar_manager *manager, const std::string& filename, package_type_t type = package_type_explicit)
+wpkgar_remove::package_item_t::package_item_t(wpkgar_manager::pointer_t manager, const std::string& filename, package_type_t type = package_type_explicit)
     : f_manager(manager)
     , f_filename(filename)
     //, f_new_filename("") -- auto-init
@@ -207,7 +207,7 @@ bool wpkgar_remove::package_item_t::get_installed() const
 
 
 
-wpkgar_remove::wpkgar_remove(wpkgar_manager *manager)
+wpkgar_remove::wpkgar_remove(wpkgar_manager::pointer_t manager)
     : f_manager(manager)
       //f_flags() -- auto-init
       //f_instdir("") -- auto-init

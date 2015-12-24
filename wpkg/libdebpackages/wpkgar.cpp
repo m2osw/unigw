@@ -2073,7 +2073,7 @@ const wpkg_filename::filename_list_t& wpkgar_manager::get_repositories() const
  */
 void wpkgar_manager::add_sources_list()
 {
-    wpkgar::wpkgar_repository repository( this );
+    wpkgar::wpkgar_repository repository( this->shared_from_this() );
 
     wpkg_filename::uri_filename sources_list( get_database_path() );
     sources_list = sources_list.append_child( "core/sources.list" );
@@ -2767,7 +2767,7 @@ void wpkgar_manager::check_interrupt() const
 
 
 
-wpkgar_lock::wpkgar_lock(wpkgar_manager *manager, const std::string& status)
+wpkgar_lock::wpkgar_lock(wpkgar_manager::pointer_t manager, const std::string& status)
     : f_manager(manager)
 {
     f_manager->lock(status);

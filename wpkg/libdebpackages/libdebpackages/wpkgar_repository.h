@@ -109,7 +109,7 @@ public:
         };
 
         package_item_t();
-        package_item_t(wpkgar_manager *manager, const memfile::memory_file::file_info& info, const memfile::memory_file& data);
+        package_item_t(wpkgar_manager::pointer_t manager, const memfile::memory_file::file_info& info, const memfile::memory_file& data);
 
         void check_installed_package(bool exists);
 
@@ -125,7 +125,7 @@ public:
     private:
         typedef controlled_vars::limited_auto_enum_init<package_item_status_t, not_installed, invalid, invalid> safe_package_item_status_t;
 
-        wpkgar_manager *                            f_manager;
+        wpkgar_manager::pointer_t                   f_manager;
         safe_package_item_status_t                  f_status;
         memfile::memory_file::file_info             f_info;
         std::shared_ptr<wpkg_control::control_file> f_control;
@@ -133,7 +133,7 @@ public:
     };
     typedef std::vector<package_item_t>         wpkgar_package_list_t;
 
-    wpkgar_repository(wpkgar_manager *manager);
+    wpkgar_repository(wpkgar_manager::pointer_t manager);
 
     void set_parameter(parameter_t flag, int value);
     int get_parameter(parameter_t flag, int default_value) const;
@@ -161,7 +161,7 @@ private:
     void upgrade_index(size_t i, memfile::memory_file& index_file);
     bool is_installed_package(const std::string& name) const;
 
-    wpkgar_manager *                    f_manager;
+    wpkgar_manager::pointer_t           f_manager;
     wpkgar_flags_t                      f_flags;
     wpkgar_package_list_t               f_packages;
     controlled_vars::fbool_t            f_repository_packages_loaded;

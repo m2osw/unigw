@@ -33,6 +33,8 @@
 #define WPKGAR_INSTALL_H
 #include    "libdebpackages/wpkgar.h"
 #include    "libdebpackages/wpkgar_repository.h"
+#include    "libdebpackages/installer_package_item.h"
+#include    "libdebpackages/wpkg_dependencies.h"
 #include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
 #include <functional>
@@ -46,12 +48,15 @@ class DEBIAN_PACKAGE_EXPORT wpkgar_backup;
 namespace wpkgar
 {
 
+#if !defined(MO_DARWIN) && !defined(MO_SUNOS) && !defined(MO_FREEBSD)
 namespace details
 {
 class DEBIAN_PACKAGE_EXPORT disk_list_t;
 }
+#endif
 
 class DEBIAN_PACKAGE_EXPORT wpkgar_install
+    : public std::enable_shared_from_this<wpkgar_install>
 {
 public:
     // returned by unpack()
@@ -107,7 +112,9 @@ public:
     };
 
 
-    wpkgar_install(wpkgar_manager *manager);
+    typedef std::shared_ptr<wpkgar_install> pointer_t;
+
+    wpkgar_install( wpkgar_manager::pointer_t manager );
 
     typedef std::vector<install_info_t> install_info_list_t;
     install_info_list_t get_install_list();
@@ -136,87 +143,13 @@ public:
     wpkg_output::progress_record_t get_current_progress() const;
 
 private:
+#if !defined(MO_DARWIN) && !defined(MO_SUNOS) && !defined(MO_FREEBSD)
     friend class details::disk_list_t;
-
-    class DEBIAN_PACKAGE_EXPORT package_item_t
-    {
-    public:
-        enum package_type_t
-        {
-            // command line defined
-            package_type_explicit,          // requested by the administrator (command line)
-
-            // repository defined
-            package_type_implicit,          // necessary to satisfy dependencies
-            package_type_available,         // not marked as necessary or invalid yet
-
-            // installed status
-            package_type_not_installed,     // package is not currently installed
-            package_type_installed,         // package is installed
-            package_type_unpacked,          // package is unpacked but not configured
-            package_type_configure,         // package is going to be configured
-            package_type_upgrade,           // package is going to be upgraded
-            package_type_upgrade_implicit,  // package is implicitly upgraded to satisfy dependencies
-            package_type_downgrade,         // package is going to be downgraded
-
-            // different "invalid" states
-            package_type_invalid,           // clearly determined as invalid (bad architecture, version, etc.)
-            package_type_same,              // ignored because it is already installed
-            package_type_older,             // removed because the version is smaller (package is older)
-            package_type_directory          // this is a directory, read it once when check dependencies and then ignore
-        };
-
-        package_item_t(wpkgar_manager *manager, const wpkg_filename::uri_filename& filename, package_type_t type = package_type_explicit);
-        package_item_t(wpkgar_manager *manager, const wpkg_filename::uri_filename& filename, package_type_t type, const memfile::memory_file& ctrl);
-
-        const wpkg_filename::uri_filename& get_filename() const;
-        const std::string& get_name() const;
-        const std::string& get_architecture() const;
-        const std::string& get_version() const;
-        wpkgar_manager::package_status_t get_original_status() const;
-        bool field_is_defined(const std::string& name) const;
-        std::string get_field(const std::string& name) const;
-        bool get_boolean_field(const std::string& name) const;
-        bool validate_fields(const std::string& expression) const;
-        bool is_conffile(const std::string& path) const;
-        void set_type(const package_type_t type);
-        package_type_t get_type() const;
-        void set_upgrade(int32_t upgrade);
-        int32_t get_upgrade() const;
-        void mark_unpacked();
-        bool is_unpacked() const;
-        bool is_marked_for_install() const;
-        void copy_package_in_database();
-
-        void load(bool ctrl);
-
-    private:
-        enum loaded_state_t
-        {
-            load_state_not_loaded,
-            load_state_control_file,
-            load_state_full
-        };
-        typedef controlled_vars::limited_auto_enum_init<loaded_state_t, load_state_not_loaded, load_state_control_file, load_state_not_loaded>  safe_loaded_state_t;
-
-        wpkgar_manager *                            f_manager;
-        wpkg_filename::uri_filename                 f_filename;
-        package_type_t                              f_type;
-        std::shared_ptr<memfile::memory_file>       f_ctrl;
-        std::shared_ptr<wpkg_control::control_file> f_fields;
-        safe_loaded_state_t                         f_loaded;
-        controlled_vars::fbool_t                    f_depends_done;
-        controlled_vars::fbool_t                    f_unpacked;
-        std::string                                 f_name;
-        std::string                                 f_architecture;
-        std::string                                 f_version;
-        wpkgar_manager::package_status_t            f_original_status;
-        controlled_vars::mint32_t                   f_upgrade;
-    };
+#endif
 
     typedef std::map<parameter_t, int>                                    wpkgar_flags_t;
-    typedef std::vector<package_item_t>                                   wpkgar_package_list_t;
-    typedef std::vector<package_item_t *>                                 wpkgar_package_ptrs_t;
+    typedef std::vector<installer::package_item_t>                        wpkgar_package_list_t;
+    typedef std::vector<installer::package_item_t *>                      wpkgar_package_ptrs_t;
     typedef wpkgar_package_list_t::size_type                              wpkgar_package_index_t;
     typedef std::vector<wpkgar_package_index_t>                           wpkgar_package_idxs_t;
     typedef std::vector<wpkg_dependencies::dependencies::dependency_t>    wpkgar_dependency_list_t;
@@ -259,7 +192,7 @@ private:
     wpkgar_package_list_t::iterator find_package_item_by_name(const std::string& name);
 
     // validation sub-functions
-    void validate_directory( package_item_t package );
+    void validate_directory( installer::package_item_t package );
     bool validate_packages_to_install();
     bool validate_directories();
     void validate_package_names();
@@ -267,7 +200,7 @@ private:
     void validate_installed_packages();
     void validate_distribution();
     void validate_architecture();
-    int match_dependency_version(const wpkg_dependencies::dependencies::dependency_t& d, const package_item_t& name);
+    int match_dependency_version(const wpkg_dependencies::dependencies::dependency_t& d, const installer::package_item_t& name);
     bool find_installed_predependency(const wpkg_filename::uri_filename& package_name, const wpkg_dependencies::dependencies::dependency_t& d);
     void validate_predependencies();
     validation_return_t find_explicit_dependency(wpkgar_package_list_t::size_type index, const wpkg_filename::uri_filename& package_name, const wpkg_dependencies::dependencies::dependency_t& d, const std::string& field_name);
@@ -275,12 +208,12 @@ private:
     void read_repositories();
     void trim_conflicts(wpkgar_package_list_t& tree, wpkgar_package_list_t::size_type idx, bool only_explicit);
     bool trim_dependency
-        ( package_item_t& item
+        ( installer::package_item_t& item
         , wpkgar_package_ptrs_t& parents
         , const wpkg_dependencies::dependencies::dependency_t& dependency
         , const std::string& field_name
         );
-    void trim_available(package_item_t& item, wpkgar_package_ptrs_t& parents);
+    void trim_available(installer::package_item_t& item, wpkgar_package_ptrs_t& parents);
     void trim_available_packages();
     validation_return_t validate_installed_depends_field(const wpkgar_package_list_t::size_type idx, const std::string& field_name);
     validation_return_t validate_installed_dependencies();
@@ -303,17 +236,17 @@ private:
     wpkg_control::control_file::field_xselection_t::selection_t get_xselection( const std::string& filename ) const;
 
     // unpack sub-functions
-    bool preupgrade_scripts(package_item_t *item, package_item_t *upgrade);
-    bool postupgrade_scripts(package_item_t *item, package_item_t *upgrade, wpkg_backup::wpkgar_backup& backup);
-    void cancel_upgrade_scripts(package_item_t *item, package_item_t *upgrade, wpkg_backup::wpkgar_backup& backup);
-    bool preinst_scripts(package_item_t *item, package_item_t *upgrade, package_item_t *& conf_install);
-    void cancel_install_scripts(package_item_t *item, package_item_t *conf_install, wpkg_backup::wpkgar_backup& backup);
-    void set_status(package_item_t *item, package_item_t *upgrade, package_item_t *conf_install, const std::string& status);
-    bool do_unpack(package_item_t *item, package_item_t *upgrade);
-    void unpack_file(package_item_t *item, const wpkg_filename::uri_filename& destination, const memfile::memory_file::file_info& info);
+    bool preupgrade_scripts(installer::package_item_t *item, installer::package_item_t *upgrade);
+    bool postupgrade_scripts(installer::package_item_t *item, installer::package_item_t *upgrade, wpkg_backup::wpkgar_backup& backup);
+    void cancel_upgrade_scripts(installer::package_item_t *item, installer::package_item_t *upgrade, wpkg_backup::wpkgar_backup& backup);
+    bool preinst_scripts(installer::package_item_t *item, installer::package_item_t *upgrade, installer::package_item_t *& conf_install);
+    void cancel_install_scripts(installer::package_item_t *item, installer::package_item_t *conf_install, wpkg_backup::wpkgar_backup& backup);
+    void set_status(installer::package_item_t *item, installer::package_item_t *upgrade, installer::package_item_t *conf_install, const std::string& status);
+    bool do_unpack(installer::package_item_t *item, installer::package_item_t *upgrade);
+    void unpack_file(installer::package_item_t *item, const wpkg_filename::uri_filename& destination, const memfile::memory_file::file_info& info);
 
     // configuration sub-functions
-    bool configure_package(package_item_t *item);
+    bool configure_package(installer::package_item_t *item);
 
     class progress_scope
     {
@@ -333,7 +266,7 @@ private:
     void pop_progess_record();
     void increment_progress();
 
-    wpkgar_manager *                    f_manager;
+    wpkgar_manager::pointer_t           f_manager;
     wpkgar_manager::package_list_t      f_list_installed_packages;
     wpkgar_flags_t                      f_flags;
     std::string                         f_architecture;

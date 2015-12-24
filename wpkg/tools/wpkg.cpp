@@ -2919,13 +2919,13 @@ void define_wpkg_running_and_copy(const command_line& cl, wpkg_filename::uri_fil
     }
 }
 
-void init_manager(command_line& cl, wpkgar::wpkgar_manager& manager, const std::string& option)
+void init_manager(command_line& cl, wpkgar::wpkgar_manager::pointer_t manager, const std::string& option)
 {
     // add self so we can deal with the case when we're upgrading ourself
     //
     // if you write an application that links against the libdebpackages
     // library and you want to allow for auto-upgrades, then you will need
-    // to add all your dependencies to your instance of the manager. This
+    // to add all your dependencies to your instance of the manager-> This
     // includes your package, its direct dependencies, the dependencies
     // of those dependencies, etc. However, you probably do not want to
     // implement a copy because you'd need to copy your application plus
@@ -2935,9 +2935,9 @@ void init_manager(command_line& cl, wpkgar::wpkgar_manager& manager, const std::
     // application afterward with wpkg itself, you could write a small
     // shell script or batch file and run that with the right information
     // and the last command line would be used to restart your app.
-    manager.add_self("wpkg");
+    manager->add_self("wpkg");
 #ifdef MO_MINGW32
-    manager.add_self("wpkg-mingw32");
+    manager->add_self("wpkg-mingw32");
 #endif
     {
         // if wpkg upgraded itself then it created a copy of itself; these
@@ -2953,21 +2953,21 @@ void init_manager(command_line& cl, wpkgar::wpkgar_manager& manager, const std::
         }
     }
 
-    manager.set_interrupt_handler(&interrupt);
+    manager->set_interrupt_handler(&interrupt);
 
     // all these directories have a default if not specified on the command line
-    manager.set_root_path(cl.opt().get_string("root"));
-    manager.set_inst_path(cl.opt().get_string("instdir"));
-    manager.set_database_path(cl.opt().get_string("admindir"));
+    manager->set_root_path(cl.opt().get_string("root"));
+    manager->set_inst_path(cl.opt().get_string("instdir"));
+    manager->set_database_path(cl.opt().get_string("admindir"));
 
     std::shared_ptr<wpkgar::wpkgar_tracker> tracker;
     if(cl.opt().is_defined("tracking-journal"))
     {
         const std::string journal(cl.opt().get_string("tracking-journal"));
-        tracker.reset(new wpkgar::wpkgar_tracker(&manager, journal));
+        tracker.reset(new wpkgar::wpkgar_tracker( manager, journal ));
         tracker->keep_file(true);
-        manager.set_tracker(tracker);
-        manager.track("# tracking " + option + " on " + wpkg_output::generate_timestamp());
+        manager->set_tracker(tracker);
+        manager->track("# tracking " + option + " on " + wpkg_output::generate_timestamp());
         wpkg_output::log("tracking journal: %1")
                 .quoted_arg(journal)
             .level(wpkg_output::level_info)
@@ -2985,23 +2985,23 @@ void init_manager(command_line& cl, wpkgar::wpkgar_manager& manager, const std::
             // is not legal under MS-Windows.)
             repositories += " \"" + cl.opt().get_string("repository", i) + "\"";
 
-            manager.add_repository(cl.opt().get_string("repository", i));
+            manager->add_repository(cl.opt().get_string("repository", i));
         }
         if(tracker)
         {
-            manager.track(repositories);
+            manager->track(repositories);
         }
     }
     else
     {
-        manager.add_sources_list();
+        manager->add_sources_list();
     }
 }
 
 
 void init_installer
     ( command_line& cl
-    , wpkgar::wpkgar_manager& manager
+    , wpkgar::wpkgar_manager::pointer_t manager
     , wpkgar::wpkgar_install& pkg_install
     , const std::string& option
     , const wpkg_filename::uri_filename& package_name = wpkg_filename::uri_filename()
@@ -3154,7 +3154,7 @@ void init_installer
 
 void init_field_variables
     ( command_line& cl
-    , wpkgar::wpkgar_manager& manager
+    , wpkgar::wpkgar_manager::pointer_t manager
     , wpkg_field::field_file *field
     )
 {
@@ -3189,21 +3189,21 @@ void init_field_variables
         }
         else
         {
-            manager.set_field_variable(name, value);
+            manager->set_field_variable(name, value);
         }
     }
 }
 
 void check_install(command_line& cl)
 {
-    wpkgar::wpkgar_manager manager;
-    wpkgar::wpkgar_install pkg_install(&manager);
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
+    wpkgar::wpkgar_install pkg_install(manager);
     init_installer(cl, manager, pkg_install, "check-install");
     pkg_install.set_installing();
 
     bool result;
     {
-        wpkgar::wpkgar_lock lock_wpkg(&manager, "Verifying");
+        wpkgar::wpkgar_lock lock_wpkg(manager, "Verifying");
         result = pkg_install.validate();
     }
     exit(result ? 0 : 1);
@@ -3211,12 +3211,12 @@ void check_install(command_line& cl)
 
 void install(command_line& cl, const wpkg_filename::uri_filename package_name = wpkg_filename::uri_filename(), const std::string& option = "install")
 {
-    wpkgar::wpkgar_manager manager;
-    wpkgar::wpkgar_install pkg_install(&manager);
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
+    wpkgar::wpkgar_install pkg_install(manager);
     init_installer(cl, manager, pkg_install, option, package_name);
     pkg_install.set_installing();
 
-    wpkgar::wpkgar_lock lock_wpkg(&manager, "Installing");
+    wpkgar::wpkgar_lock lock_wpkg(manager, "Installing");
 
     if( pkg_install.validate() && !cl.dry_run())
     {
@@ -3274,7 +3274,7 @@ void install(command_line& cl, const wpkg_filename::uri_filename package_name = 
             }
         }
 
-        if(manager.is_self() && !cl.opt().is_defined("running-copy"))
+        if(manager->is_self() && !cl.opt().is_defined("running-copy"))
         {
             // in this case we drop the lock; our copy will re-create a lock as required
             lock_wpkg.unlock();
@@ -3378,7 +3378,7 @@ void install(command_line& cl, const wpkg_filename::uri_filename package_name = 
         {
             for(;;)
             {
-                manager.check_interrupt();
+                manager->check_interrupt();
 
                 const int i(pkg_install.unpack());
                 if(i < 0)
@@ -3403,7 +3403,7 @@ void install_size(command_line& cl)
         throw std::runtime_error("--install-size requires at least one package name");
     }
 
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "contents");
 
     unsigned long total(0);
@@ -3417,10 +3417,10 @@ void install_size(command_line& cl)
             /*NOTREACHED*/
         }
         // make sure the package is loaded
-        manager.load_package(name);
-        if(manager.field_is_defined(name, "Installed-Size"))
+        manager->load_package(name);
+        if(manager->field_is_defined(name, "Installed-Size"))
         {
-            total += manager.get_field_integer(name, "Installed-Size");
+            total += manager->get_field_integer(name, "Installed-Size");
         }
     }
 
@@ -3429,17 +3429,17 @@ void install_size(command_line& cl)
 
 void unpack(command_line& cl)
 {
-    wpkgar::wpkgar_manager manager;
-    wpkgar::wpkgar_install pkg_install(&manager);
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
+    wpkgar::wpkgar_install pkg_install(manager);
     init_installer(cl, manager, pkg_install, "unpack");
     pkg_install.set_unpacking();
 
-    wpkgar::wpkgar_lock lock_wpkg(&manager, "Installing");
+    wpkgar::wpkgar_lock lock_wpkg(manager, "Installing");
     if(pkg_install.validate() && !cl.dry_run())
     {
         for(;;)
         {
-            manager.check_interrupt();
+            manager->check_interrupt();
 
             if(pkg_install.unpack() < 0)
             {
@@ -3451,11 +3451,11 @@ void unpack(command_line& cl)
 
 void update_status(command_line& cl)
 {
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "update-status");
-    wpkgar::wpkgar_repository repository(&manager);
+    wpkgar::wpkgar_repository repository(manager);
 
-    wpkgar::wpkgar_lock lock_wpkg(&manager, "Updating");
+    wpkgar::wpkgar_lock lock_wpkg(manager, "Updating");
     const wpkgar::wpkgar_repository::update_entry_vector_t *index_entries(repository.load_index_list());
     if(index_entries == NULL)
     {
@@ -3524,11 +3524,11 @@ void update(command_line& cl)
     }
     else
     {
-        wpkgar::wpkgar_manager manager;
+        wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
         init_manager(cl, manager, "update");
-        wpkgar::wpkgar_repository repository(&manager);
+        wpkgar::wpkgar_repository repository(manager);
 
-        wpkgar::wpkgar_lock lock_wpkg(&manager, "Updating");
+        wpkgar::wpkgar_lock lock_wpkg(manager, "Updating");
         repository.update();
     }
 }
@@ -3541,11 +3541,11 @@ void upgrade_info(command_line& cl)
         /*NOTREACHED*/
     }
 
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "upgrade-info");
-    wpkgar::wpkgar_repository repository(&manager);
+    wpkgar::wpkgar_repository repository(manager);
 
-    wpkgar::wpkgar_lock lock_wpkg(&manager, "Upgrading");
+    wpkgar::wpkgar_lock lock_wpkg(manager, "Upgrading");
     const wpkgar::wpkgar_repository::wpkgar_package_list_t& list(repository.upgrade_list());
     size_t max(list.size());
     for(size_t i(0); i < max; ++i)
@@ -3620,14 +3620,14 @@ void upgrade(command_line& cl)
         return;
     }
 
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, cmd);
-    wpkgar::wpkgar_repository repository(&manager);
+    wpkgar::wpkgar_repository repository(manager);
 
     {
         // the install() call creates its own lock, we need to have this
         // one removed before we can move on
-        wpkgar::wpkgar_lock lock_wpkg(&manager, "Upgrading");
+        wpkgar::wpkgar_lock lock_wpkg(manager, "Upgrading");
         const wpkgar::wpkgar_repository::wpkgar_package_list_t& list(repository.upgrade_list());
         const size_t max(list.size());
         for(size_t i(0); i < max; ++i)
@@ -3689,15 +3689,15 @@ void vendor(command_line& cl)
 
 void configure(command_line& cl)
 {
-    wpkgar::wpkgar_manager manager;
-    wpkgar::wpkgar_install pkg_install(&manager);
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
+    wpkgar::wpkgar_install pkg_install(manager);
     init_installer(cl, manager, pkg_install, "configure");
     pkg_install.set_configuring();
 
     // if pending is set then we want to read the database and configure any
     // half-installed packages
 
-    wpkgar::wpkgar_lock lock_wpkg(&manager, "Installing");
+    wpkgar::wpkgar_lock lock_wpkg(manager, "Installing");
     if(pkg_install.validate() && !cl.dry_run())
     {
         // TODO: test that all the specified packages are indeed unpacked
@@ -3705,7 +3705,7 @@ void configure(command_line& cl)
         const int max(pkg_install.count());
         for(int i(0); i < max; ++i)
         {
-            manager.check_interrupt();
+            manager->check_interrupt();
 
             // TODO: the order is wrong because we do need to first
             //       configure packages that don't have unpacked
@@ -3720,17 +3720,17 @@ void configure(command_line& cl)
 
 void reconfigure(command_line& cl)
 {
-    wpkgar::wpkgar_manager manager;
-    wpkgar::wpkgar_install pkg_install(&manager);
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
+    wpkgar::wpkgar_install pkg_install(manager);
     init_installer(cl, manager, pkg_install, "reconfigure");
     pkg_install.set_reconfiguring();
 
-    wpkgar::wpkgar_lock lock_wpkg(&manager, "Installing");
+    wpkgar::wpkgar_lock lock_wpkg(manager, "Installing");
     if(pkg_install.validate() && !cl.dry_run())
     {
         for(;;)
         {
-            manager.check_interrupt();
+            manager->check_interrupt();
 
             int i(pkg_install.reconfigure());
             if(i < 0)
@@ -3747,10 +3747,10 @@ void reconfigure(command_line& cl)
 
 void is_installed(command_line& cl)
 {
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "is-installed");
     std::string name(cl.get_string("is-installed"));
-    if(manager.safe_package_status(name) == wpkgar::wpkgar_manager::installed)
+    if(manager->safe_package_status(name) == wpkgar::wpkgar_manager::installed)
     {
         // true, it is installed
         if(cl.verbose())
@@ -3776,11 +3776,11 @@ void add_hooks(command_line& cl)
         /*NOTREACHED*/
     }
 
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "add-hooks");
     for(int i(0); i < max; ++i)
     {
-        manager.add_global_hook(cl.argument(i).c_str());
+        manager->add_global_hook(cl.argument(i).c_str());
     }
 }
 
@@ -3793,11 +3793,11 @@ void remove_hooks(command_line& cl)
         /*NOTREACHED*/
     }
 
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "remove-hooks");
     for(int i(0); i < max; ++i)
     {
-        if(!manager.remove_global_hook(cl.argument(i).c_str()))
+        if(!manager->remove_global_hook(cl.argument(i).c_str()))
         {
             wpkg_output::log("global hook %1 could not be removed because it was not installed.")
                     .quoted_arg(cl.argument(i))
@@ -3815,9 +3815,9 @@ void list_hooks(command_line& cl)
         /*NOTREACHED*/
     }
 
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "list-hooks");
-    wpkgar::wpkgar_manager::hooks_t hooks(manager.list_hooks());
+    wpkgar::wpkgar_manager::hooks_t hooks(manager->list_hooks());
     const wpkgar::wpkgar_manager::hooks_t::size_type max(hooks.size());
     bool first(true);
     for(wpkgar::wpkgar_manager::hooks_t::size_type i(0); i < max; ++i)
@@ -3858,11 +3858,11 @@ void add_sources(command_line& cl)
         /*NOTREACHED*/
     }
 
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "add-sources");
-    wpkg_filename::uri_filename name(manager.get_database_path());
+    wpkg_filename::uri_filename name(manager->get_database_path());
     name = name.append_child("core/sources.list");
-    wpkgar::wpkgar_repository repository(&manager);
+    wpkgar::wpkgar_repository repository(manager);
     wpkgar::source_vector_t sources;
     memfile::memory_file sources_file;
     if(name.exists())
@@ -3910,11 +3910,11 @@ void atleast_version(command_line& cl)
         /*NOTREACHED*/
     }
 
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "atleast-version");
     const std::string package_name(cl.argument(0));
-    manager.load_package(package_name);
-    const std::string version(manager.get_field(package_name, wpkg_control::control_file::field_version_factory_t::canonicalized_name()));
+    manager->load_package(package_name);
+    const std::string version(manager->get_field(package_name, wpkg_control::control_file::field_version_factory_t::canonicalized_name()));
 
     if(wpkg_util::versioncmp(version, cl.opt().get_string("atleast-version")) < 0)
     {
@@ -3946,11 +3946,11 @@ void exact_version(command_line& cl)
         /*NOTREACHED*/
     }
 
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "exact-version");
     const std::string package_name(cl.argument(0));
-    manager.load_package(package_name);
-    const std::string version(manager.get_field(package_name, wpkg_control::control_file::field_version_factory_t::canonicalized_name()));
+    manager->load_package(package_name);
+    const std::string version(manager->get_field(package_name, wpkg_control::control_file::field_version_factory_t::canonicalized_name()));
 
     if(wpkg_util::versioncmp(version, cl.opt().get_string("exact-version")) != 0)
     {
@@ -3967,11 +3967,11 @@ void max_version(command_line& cl)
         /*NOTREACHED*/
     }
 
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "max-version");
     const std::string package_name(cl.argument(0));
-    manager.load_package(package_name);
-    const std::string version(manager.get_field(package_name, wpkg_control::control_file::field_version_factory_t::canonicalized_name()));
+    manager->load_package(package_name);
+    const std::string version(manager->get_field(package_name, wpkg_control::control_file::field_version_factory_t::canonicalized_name()));
 
     if(wpkg_util::versioncmp(version, cl.opt().get_string("max-version")) > 0)
     {
@@ -4015,14 +4015,14 @@ void audit(command_line& cl)
     {
         // we must have the manager within a sub-block to make sure that the
         // database lock gets removed before we call exit()
-        wpkgar::wpkgar_manager manager;
+        wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
         init_manager(cl, manager, "audit");
         // auditing is very similar to listing so at this point we use that status
-        wpkgar::wpkgar_lock lock_wpkg(&manager, "Listing");
+        wpkgar::wpkgar_lock lock_wpkg(manager, "Listing");
         wpkgar::wpkgar_manager::package_list_t list;
-        manager.list_installed_packages(list);
+        manager->list_installed_packages(list);
 
-        const wpkg_filename::uri_filename package_path(manager.get_inst_path());
+        const wpkg_filename::uri_filename package_path(manager->get_inst_path());
         for(wpkgar::wpkgar_manager::package_list_t::const_iterator it(list.begin());
                 it != list.end(); ++it)
         {
@@ -4032,7 +4032,7 @@ void audit(command_line& cl)
                 {
                     printf("working on %s\n", it->c_str());
                 }
-                wpkgar::wpkgar_manager::package_status_t status(manager.package_status(*it));
+                wpkgar::wpkgar_manager::package_status_t status(manager->package_status(*it));
                 bool check_md5sums(false);
                 switch(status)
                 {
@@ -4087,16 +4087,16 @@ void audit(command_line& cl)
                     // and the wpkgar file
                     memfile::memory_file md5sums_file;
                     wpkg_util::md5sums_map_t md5sums;
-                    if(manager.has_control_file(*it, "md5sums"))
+                    if(manager->has_control_file(*it, "md5sums"))
                     {
                         // if the file is not present there should be no regular
                         // or continuous files in the package... (just dirs?!)
                         std::string md5filename("md5sums");
-                        manager.get_control_file(md5sums_file, *it, md5filename, false);
+                        manager->get_control_file(md5sums_file, *it, md5filename, false);
                         wpkg_util::parse_md5sums(md5sums, md5sums_file);
                     }
                     memfile::memory_file *wpkgar_file;
-                    manager.get_wpkgar_file(*it, wpkgar_file);
+                    manager->get_wpkgar_file(*it, wpkgar_file);
                     wpkgar_file->set_package_path(package_path);
                     wpkgar_file->dir_rewind();
                     for(;;)
@@ -4123,7 +4123,7 @@ void audit(command_line& cl)
                                         std::string sum(data.md5sum());
                                         if(md5sums[filename] != sum)
                                         {
-                                            if(!manager.is_conffile(*it, filename))
+                                            if(!manager->is_conffile(*it, filename))
                                             {
                                                 printf("%s: file \"%s\" md5sum differs\n",
                                                         it->c_str(),
@@ -4189,14 +4189,14 @@ void audit(command_line& cl)
 
 void create_index(command_line& cl)
 {
-    wpkgar::wpkgar_manager manager;
-    wpkgar::wpkgar_repository pkg_repository(&manager);
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
+    wpkgar::wpkgar_repository pkg_repository(manager);
     init_manager(cl, manager, "create-index");
 
     pkg_repository.set_parameter(wpkgar::wpkgar_repository::wpkgar_repository_recursive, cl.opt().is_defined("recursive"));
 
     // check for a set of repository names
-    if(manager.get_repositories().empty())
+    if(manager->get_repositories().empty())
     {
         cl.opt().usage(advgetopt::getopt::error, "--create-index requires at least one --repository name");
         /*NOTREACHED*/
@@ -4268,18 +4268,18 @@ void build(command_line& cl, wpkg_filename::uri_filename& package_name, const st
     }
 
     bool need_lock(false);
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, option);
     std::shared_ptr<wpkgar::wpkgar_build> pkg_build;
     if(cl.size() == 0)
     {
         // build a source package; `pwd` is the root of the project
-        pkg_build.reset(new wpkgar::wpkgar_build(&manager, ""));
+        pkg_build.reset(new wpkgar::wpkgar_build(manager, ""));
     }
     else
     {
         // build a binary package
-        pkg_build.reset(new wpkgar::wpkgar_build(&manager, cl.get_string("filename", 0)));
+        pkg_build.reset(new wpkgar::wpkgar_build(manager, cl.get_string("filename", 0)));
         if(cl.size() == 2)
         {
             // binary package is created from a control file
@@ -4378,14 +4378,14 @@ void build(command_line& cl, wpkg_filename::uri_filename& package_name, const st
         std::shared_ptr<wpkgar::wpkgar_lock> lock_wpkg;
         if(need_lock)
         {
-            lock_wpkg.reset(new wpkgar::wpkgar_lock(&manager, "Building"));
+            lock_wpkg.reset(new wpkgar::wpkgar_lock(manager, "Building"));
         }
         pkg_build->build();
 
         // we have to reset the tracker now or the rollback happens at
         // the wrong time (i.e. after the manager gets unlocked)
         const std::shared_ptr<wpkgar::wpkgar_tracker> null_tracker;
-        manager.set_tracker(null_tracker);
+        manager->set_tracker(null_tracker);
     }
 
     if(do_create_index)
@@ -4454,7 +4454,7 @@ void verify_control(command_line& cl)
 
 void verify_project(command_line& cl)
 {
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "verify-project");
     std::shared_ptr<wpkgar::wpkgar_build> pkg_build;
     if(cl.size() != 0)
@@ -4463,7 +4463,7 @@ void verify_project(command_line& cl)
         /*NOTREACHED*/
     }
     // validate a project environment; `pwd` is the root of the project
-    pkg_build.reset(new wpkgar::wpkgar_build(&manager, ""));
+    pkg_build.reset(new wpkgar::wpkgar_build(manager, ""));
 
     if(cl.opt().is_defined("clear-exceptions"))
     {
@@ -4887,9 +4887,9 @@ void contents(command_line& cl)
             cl.opt().get_program_name().c_str());
         exit(1);
     }
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "contents");
-    manager.set_control_file_state(std::shared_ptr<wpkg_control::control_file::control_file_state_t>(new wpkg_control::control_file::contents_control_file_state_t));
+    manager->set_control_file_state(std::shared_ptr<wpkg_control::control_file::control_file_state_t>(new wpkg_control::control_file::contents_control_file_state_t));
     const wpkg_filename::uri_filename name(cl.get_string("contents"));
     if(name.is_deb())
     {
@@ -4897,14 +4897,14 @@ void contents(command_line& cl)
         /*NOTREACHED*/
     }
     bool numbers(cl.opt().is_defined("numbers"));
-    manager.load_package(name);
+    manager->load_package(name);
     memfile::memory_file p;
     std::string data_filename("data.tar");
-    manager.get_control_file(p, name, data_filename, false);
+    manager->get_control_file(p, name, data_filename, false);
     bool use_drive_letter(false);
-    if(manager.field_is_defined(name, "X-Drive-Letter"))
+    if(manager->field_is_defined(name, "X-Drive-Letter"))
     {
-        use_drive_letter = manager.get_field_boolean(name, "X-Drive-Letter");
+        use_drive_letter = manager->get_field_boolean(name, "X-Drive-Letter");
     }
     p.dir_rewind();
     for(;;)
@@ -4956,7 +4956,7 @@ void contents(command_line& cl)
             }
             printf("  %s %c%s",
                 info.get_date().c_str(),
-                manager.is_conffile(name, filename) ? '*' : ' ',
+                manager->is_conffile(name, filename) ? '*' : ' ',
                 filename.c_str());
             if(info.get_file_type() == memfile::memory_file::file_info::symbolic_link)
             {
@@ -4979,21 +4979,21 @@ void control(command_line& cl)
             cl.opt().get_program_name().c_str());
         exit(1);
     }
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "control");
-    manager.set_control_file_state(std::shared_ptr<wpkg_control::control_file::control_file_state_t>(new wpkg_control::control_file::contents_control_file_state_t));
+    manager->set_control_file_state(std::shared_ptr<wpkg_control::control_file::control_file_state_t>(new wpkg_control::control_file::contents_control_file_state_t));
     std::string name(cl.get_string("control"));
-    manager.load_package(name);
+    manager->load_package(name);
     memfile::memory_file p;
     std::string control_filename("control.tar");
-    manager.get_control_file(p, name, control_filename);
+    manager->get_control_file(p, name, control_filename);
     if(cl.size() == 1)
     {
         // if an output folder is specified, extract the files there
         const wpkg_filename::uri_filename output_path(cl.filename(0));
         // reset the filename
         control_filename = "control.tar";
-        manager.get_control_file(p, name, control_filename, false);
+        manager->get_control_file(p, name, control_filename, false);
         p.dir_rewind();
         for(;;)
         {
@@ -5044,14 +5044,14 @@ void copyright(command_line& cl)
             cl.opt().get_program_name().c_str());
         exit(1);
     }
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "copyright");
-    manager.set_control_file_state(std::shared_ptr<wpkg_control::control_file::control_file_state_t>(new wpkg_control::control_file::contents_control_file_state_t));
+    manager->set_control_file_state(std::shared_ptr<wpkg_control::control_file::control_file_state_t>(new wpkg_control::control_file::contents_control_file_state_t));
     const wpkg_filename::uri_filename name(cl.get_string("copyright"));
     if(name.is_deb())
     {
         // already installed package, check in the installation tree
-        wpkg_filename::uri_filename copyright_filename(manager.get_root_path());
+        wpkg_filename::uri_filename copyright_filename(manager->get_root_path());
         copyright_filename = copyright_filename.append_child("usr/share/doc");
         copyright_filename = copyright_filename.append_child(name.path_only());
         copyright_filename = copyright_filename.append_child("copyright");
@@ -5070,14 +5070,14 @@ void copyright(command_line& cl)
     }
     else
     {
-        manager.load_package(name);
+        manager->load_package(name);
         memfile::memory_file p;
         std::string data_filename("data.tar");
-        manager.get_control_file(p, name, data_filename, false);
+        manager->get_control_file(p, name, data_filename, false);
         p.dir_rewind();
         // TODO: do we need to check the package name validity or was it done
         //       in the control file already?
-        std::string package(manager.get_field(name, "Package"));
+        std::string package(manager->get_field(name, "Package"));
         case_insensitive::case_insensitive_string copyright_filename("usr/share/doc/" + package + "/copyright");
         for(;;)
         {
@@ -5113,18 +5113,18 @@ void copyright(command_line& cl)
 
 void create_admindir(command_line& cl)
 {
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "create-admindir");
-    manager.create_database(cl.get_string("create-admindir"));
+    manager->create_database(cl.get_string("create-admindir"));
 }
 
 void create_database_lock(command_line& cl)
 {
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "create-database-lock");
     try {
         // in this case we keep the status set as "Ready"
-        manager.lock("Ready");
+        manager->lock("Ready");
         if(cl.verbose())
         {
             printf("database lock was created.\n");
@@ -5140,9 +5140,9 @@ void create_database_lock(command_line& cl)
 
 void database_is_locked(command_line& cl)
 {
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "database-is-locked");
-    if(manager.is_locked())
+    if(manager->is_locked())
     {
         if(cl.verbose())
         {
@@ -5241,20 +5241,20 @@ void field(command_line& cl)
     //      the package; should we warn/err if the package is not
     //      properly unpacked, installed, and a few other states?
     //      The user can use --is-installed first though.
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "field");
-    manager.set_control_file_state(std::shared_ptr<wpkg_control::control_file::control_file_state_t>(new wpkg_control::control_file::contents_control_file_state_t));
+    manager->set_control_file_state(std::shared_ptr<wpkg_control::control_file::control_file_state_t>(new wpkg_control::control_file::contents_control_file_state_t));
     std::string name(cl.get_string("field"));
-    manager.load_package(name);
+    manager->load_package(name);
     int max(cl.size());
     if(max == 0)
     {
         // if no field specified, show them all
-        max = manager.number_of_fields(name);
+        max = manager->number_of_fields(name);
         for(int i(0); i < max; ++i)
         {
-            std::string field_name(manager.get_field_name(name, i));
-            std::string value(manager.get_field(name, field_name));
+            std::string field_name(manager->get_field_name(name, i));
+            std::string value(manager->get_field(name, field_name));
             if(field_name != "X-Status" || value != "unknown")
             {
                 print_field(field_name, value);
@@ -5264,7 +5264,7 @@ void field(command_line& cl)
     else if(max == 1)
     {
         std::string field_name(cl.argument(0));
-        std::string value(manager.get_field(name, field_name));
+        std::string value(manager->get_field(name, field_name));
         print_field("", value);
     }
     else
@@ -5273,7 +5273,7 @@ void field(command_line& cl)
         for(int i(0); i < max; ++i)
         {
             std::string field_name(cl.argument(i));
-            std::string value(manager.get_field(name, field_name));
+            std::string value(manager->get_field(name, field_name));
             print_field(field_name, value);
         }
     }
@@ -5288,7 +5288,7 @@ void display_pkgconfig(command_line& cl, const std::string& field_name, const st
         /*NOTREACHED*/
     }
 
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, option);
 
     std::string paths(wpkg_util::utf8_getenv("PKG_CONFIG_PATH", ""));
@@ -5331,7 +5331,7 @@ void display_pkgconfig(command_line& cl, const std::string& field_name, const st
 
     // check all the named packages
     bool first(true);
-    const wpkg_filename::uri_filename instdir(manager.get_inst_path());
+    const wpkg_filename::uri_filename instdir(manager->get_inst_path());
     for(int i(0); i < max; ++i)
     {
         bool found(false);
@@ -5373,24 +5373,24 @@ void display_pkgconfig(command_line& cl, const std::string& field_name, const st
                     source_project_name = field.get_field("Source-Project");
                 }
 
-                if(manager.safe_package_status(source_project_name) == wpkgar::wpkgar_manager::installed)
+                if(manager->safe_package_status(source_project_name) == wpkgar::wpkgar_manager::installed)
                 {
-                    manager.load_package(source_project_name);
+                    manager->load_package(source_project_name);
                     field.auto_transform_variables();
-                    field.set_variable("rootdir", manager.get_root_path().full_path());
+                    field.set_variable("rootdir", manager->get_root_path().full_path());
                     field.set_variable("instdir", instdir.full_path());
-                    field.set_variable("admindir", manager.get_database_path().full_path());
-                    field.set_variable("name", manager.get_field(source_project_name, wpkg_control::control_file::field_package_factory_t::canonicalized_name()));
-                    field.set_variable("version", manager.get_field(source_project_name, wpkg_control::control_file::field_version_factory_t::canonicalized_name()));
-                    field.set_variable("description", manager.get_field_first_line(source_project_name, wpkg_control::control_file::field_description_factory_t::canonicalized_name()));
-                    if(manager.field_is_defined(source_project_name, wpkg_control::control_file::field_homepage_factory_t::canonicalized_name()))
+                    field.set_variable("admindir", manager->get_database_path().full_path());
+                    field.set_variable("name", manager->get_field(source_project_name, wpkg_control::control_file::field_package_factory_t::canonicalized_name()));
+                    field.set_variable("version", manager->get_field(source_project_name, wpkg_control::control_file::field_version_factory_t::canonicalized_name()));
+                    field.set_variable("description", manager->get_field_first_line(source_project_name, wpkg_control::control_file::field_description_factory_t::canonicalized_name()));
+                    if(manager->field_is_defined(source_project_name, wpkg_control::control_file::field_homepage_factory_t::canonicalized_name()))
                     {
-                        field.set_variable("homepage", manager.get_field(source_project_name, wpkg_control::control_file::field_homepage_factory_t::canonicalized_name()));
+                        field.set_variable("homepage", manager->get_field(source_project_name, wpkg_control::control_file::field_homepage_factory_t::canonicalized_name()));
                     }
                     std::string install_prefix;
-                    if(manager.field_is_defined(source_project_name, wpkg_control::control_file::field_installprefix_factory_t::canonicalized_name()))
+                    if(manager->field_is_defined(source_project_name, wpkg_control::control_file::field_installprefix_factory_t::canonicalized_name()))
                     {
-                        install_prefix = manager.get_field(source_project_name, wpkg_control::control_file::field_installprefix_factory_t::canonicalized_name());
+                        install_prefix = manager->get_field(source_project_name, wpkg_control::control_file::field_installprefix_factory_t::canonicalized_name());
                         if(!install_prefix.empty() && install_prefix[0] != '/')
                         {
                             install_prefix = "/" + install_prefix;
@@ -5466,20 +5466,20 @@ void fsys_tarfile(command_line& cl)
             cl.opt().get_program_name().c_str());
         exit(1);
     }
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "fsys-tarfile");
-    manager.set_control_file_state(std::shared_ptr<wpkg_control::control_file::control_file_state_t>(new wpkg_control::control_file::contents_control_file_state_t));
+    manager->set_control_file_state(std::shared_ptr<wpkg_control::control_file::control_file_state_t>(new wpkg_control::control_file::contents_control_file_state_t));
     const wpkg_filename::uri_filename name(cl.get_string("fsys-tarfile"));
     if(name.is_deb())
     {
         cl.opt().usage(advgetopt::getopt::error, "you cannot extract the data.tar.gz file from an installed package");
         /*NOTREACHED*/
     }
-    manager.load_package(name);
+    manager->load_package(name);
     memfile::memory_file p;
     std::string data_filename("data.tar");
     // get the uncompressed data in p
-    manager.get_control_file(p, name, data_filename, false);
+    manager->get_control_file(p, name, data_filename, false);
 
     // print this in stdout so one can pipe it through tar
     // (we send the decompressed version)
@@ -5499,11 +5499,11 @@ void info(command_line& cl)
     int max(cl.size());
     bool print_avail(false);
 
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, cl.opt().is_defined("info") ? "info"
                             : cl.opt().is_defined("verify") ? "verify"
                             : "print-avail");
-    manager.set_control_file_state(std::shared_ptr<wpkg_control::control_file::control_file_state_t>(new wpkg_control::control_file::contents_control_file_state_t));
+    manager->set_control_file_state(std::shared_ptr<wpkg_control::control_file::control_file_state_t>(new wpkg_control::control_file::contents_control_file_state_t));
     std::string name;
     if(cl.opt().is_defined("info"))
     {
@@ -5553,13 +5553,13 @@ void info(command_line& cl)
         // size could not be determined
         // (maybe the user is checking an installed package)
     }
-    manager.load_package(name);
+    manager->load_package(name);
     memfile::memory_file p;
     std::string control_filename("control.tar");
-    manager.get_control_file(p, name, control_filename);
+    manager->get_control_file(p, name, control_filename);
     memfile::memory_file ctrl;
     control_filename = "control.tar";
-    manager.get_control_file(ctrl, name, control_filename, false);
+    manager->get_control_file(ctrl, name, control_filename, false);
 
     // we only support the new format so we can print that as is at this point
     if(!cl.quiet() && !print_avail)
@@ -5762,7 +5762,7 @@ void info(command_line& cl)
     {
         memfile::memory_file data;
         std::string data_filename("data.tar");
-        manager.get_control_file(data, name, data_filename, false);
+        manager->get_control_file(data, name, data_filename, false);
 
         wpkg_util::md5sums_map_t md5sums;
         if(has_md5sums)
@@ -5857,9 +5857,9 @@ void increment_build_number(command_line& cl)
             cl.opt().get_program_name().c_str());
         exit(1);
     }
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "verify-project");
-    wpkgar::wpkgar_build pkg_build(&manager, "");
+    wpkgar::wpkgar_build pkg_build(manager, "");
     if(cl.opt().is_defined("build-number-filename"))
     {
         if(max == 1)
@@ -5905,11 +5905,11 @@ void list(command_line& cl)
     const std::string& pattern_str(cl.opt().get_string("list"));
     const char *pattern = pattern_str.c_str();
 
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "list");
-    wpkgar::wpkgar_lock lock_wpkg(&manager, "Listing");
+    wpkgar::wpkgar_lock lock_wpkg(manager, "Listing");
     wpkgar::wpkgar_manager::package_list_t list;
-    manager.list_installed_packages(list);
+    manager->list_installed_packages(list);
 
     bool first(true);
     for(wpkgar::wpkgar_manager::package_list_t::const_iterator it(list.begin());
@@ -5936,10 +5936,10 @@ void list(command_line& cl)
         try {
             char flags[4];
             memcpy(flags, "i- \0", sizeof(flags));
-            manager.load_package(*it);
-            if(manager.field_is_defined(*it, wpkg_control::control_file::field_xselection_factory_t::canonicalized_name()))
+            manager->load_package(*it);
+            if(manager->field_is_defined(*it, wpkg_control::control_file::field_xselection_factory_t::canonicalized_name()))
             {
-                const wpkg_control::control_file::field_xselection_t::selection_t selection(wpkg_control::control_file::field_xselection_t::validate_selection(manager.get_field(*it, wpkg_control::control_file::field_xselection_factory_t::canonicalized_name())));
+                const wpkg_control::control_file::field_xselection_t::selection_t selection(wpkg_control::control_file::field_xselection_t::validate_selection(manager->get_field(*it, wpkg_control::control_file::field_xselection_factory_t::canonicalized_name())));
                 if(selection == wpkg_control::control_file::field_xselection_t::selection_hold)
                 {
                     flags[0] = 'h';
@@ -5949,7 +5949,7 @@ void list(command_line& cl)
                     flags[0] = 'j';
                 }
             }
-            const wpkgar::wpkgar_manager::package_status_t status(manager.package_status(*it));
+            const wpkgar::wpkgar_manager::package_status_t status(manager->package_status(*it));
             switch(status)
             {
             case wpkgar::wpkgar_manager::not_installed:
@@ -6013,9 +6013,9 @@ void list(command_line& cl)
                 break;
 
             }
-            const std::string version(manager.get_field(*it, "Version"));
+            const std::string version(manager->get_field(*it, "Version"));
             std::string long_description;
-            const std::string description(manager.get_description(*it, "Description", long_description));
+            const std::string description(manager->get_description(*it, "Description", long_description));
             printf("%s %-37.37s %-32.32s %-70.70s\n", flags,
                     it->c_str(), version.c_str(), description.c_str());
         }
@@ -6046,29 +6046,29 @@ void list_all(command_line& cl)
         /*NOTREACHED*/
     }
 
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "list-all");
-    wpkgar::wpkgar_lock lock_wpkg(&manager, "Listing");
+    wpkgar::wpkgar_lock lock_wpkg(manager, "Listing");
     wpkgar::wpkgar_manager::package_list_t list;
-    manager.list_installed_packages(list);
+    manager->list_installed_packages(list);
 
     for(wpkgar::wpkgar_manager::package_list_t::const_iterator it(list.begin());
             it != list.end(); ++it)
     {
-        manager.load_package(*it);
-        const wpkgar::wpkgar_manager::package_status_t status(manager.package_status(*it));
+        manager->load_package(*it);
+        const wpkgar::wpkgar_manager::package_status_t status(manager->package_status(*it));
         switch(status)
         {
         case wpkgar::wpkgar_manager::installed:
-            printf("%-31s %s\n", it->c_str(), manager.get_field_first_line(*it, wpkg_control::control_file::field_description_factory_t::canonicalized_name()).c_str());
+            printf("%-31s %s\n", it->c_str(), manager->get_field_first_line(*it, wpkg_control::control_file::field_description_factory_t::canonicalized_name()).c_str());
             break;
 
         case wpkgar::wpkgar_manager::unpacked:
-            printf("? %-29s %s\n", it->c_str(), manager.get_field_first_line(*it, wpkg_control::control_file::field_description_factory_t::canonicalized_name()).c_str());
+            printf("? %-29s %s\n", it->c_str(), manager->get_field_first_line(*it, wpkg_control::control_file::field_description_factory_t::canonicalized_name()).c_str());
             break;
 
         case wpkgar::wpkgar_manager::config_files:
-            printf("! %-29s %s\n", it->c_str(), manager.get_field_first_line(*it, wpkg_control::control_file::field_description_factory_t::canonicalized_name()).c_str());
+            printf("! %-29s %s\n", it->c_str(), manager->get_field_first_line(*it, wpkg_control::control_file::field_description_factory_t::canonicalized_name()).c_str());
             break;
 
         case wpkgar::wpkgar_manager::not_installed:
@@ -6099,17 +6099,17 @@ void listfiles(command_line& cl)
             cl.opt().get_program_name().c_str());
         exit(1);
     }
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "listfiles");
-    wpkgar::wpkgar_lock lock_wpkg(&manager, "Listing");
+    wpkgar::wpkgar_lock lock_wpkg(manager, "Listing");
 
     bool first(true);
     for(int i(0); i < max; ++i)
     {
         const std::string& name(cl.opt().get_string("listfiles", i));
-        manager.load_package(name);
+        manager->load_package(name);
         memfile::memory_file *wpkgar_file;
-        manager.get_wpkgar_file(name, wpkgar_file);
+        manager->get_wpkgar_file(name, wpkgar_file);
         if(!first)
         {
             printf("\n");
@@ -6156,16 +6156,16 @@ void list_index_packages(command_line& cl)
             << std::endl;
         exit(1);
     }
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "list-index-packages");
-    wpkgar::wpkgar_lock lock_wpkg(&manager, "Listing");
+    wpkgar::wpkgar_lock lock_wpkg(manager, "Listing");
 
     for(int i(0); i < max; ++i)
     {
         const std::string& name(cl.opt().get_string("list-index-packages", i));
         memfile::memory_file package_index;
         package_index.read_file(name);
-        wpkgar::wpkgar_repository repository(&manager);
+        wpkgar::wpkgar_repository repository(manager);
         wpkgar::wpkgar_repository::entry_vector_t entries;
         repository.load_index(package_index, entries);
 
@@ -6195,19 +6195,19 @@ void list_sources(command_line& cl)
             cl.opt().get_program_name().c_str());
         exit(1);
     }
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "list-sources");
-    wpkgar::wpkgar_lock lock_wpkg(&manager, "Listing");
+    wpkgar::wpkgar_lock lock_wpkg(manager, "Listing");
 
     for(int i(0); i < max; ++i)
     {
         wpkg_filename::uri_filename name(cl.opt().get_string("list-sources", i));
         if(name.empty())
         {
-            name = manager.get_database_path();
+            name = manager->get_database_path();
             name = name.append_child("core/sources.list");
         }
-        wpkgar::wpkgar_repository repository(&manager);
+        wpkgar::wpkgar_repository repository(manager);
         wpkgar::source_vector_t sources;
         memfile::memory_file sources_file;
         sources_file.read_file(name);
@@ -6322,19 +6322,19 @@ void md5sums_check(command_line& cl)
 
 void print_architecture(command_line& cl)
 {
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "print-architecture");
-    wpkgar::wpkgar_lock lock_wpkg(&manager, "Listing");
-    manager.load_package("core");
-    std::string architecture(manager.get_field("core", "Architecture"));
+    wpkgar::wpkgar_lock lock_wpkg(manager, "Listing");
+    manager->load_package("core");
+    std::string architecture(manager->get_field("core", "Architecture"));
     printf("%s\n", architecture.c_str());
 }
 
 void print_build_number(command_line& cl)
 {
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "print-build-number");
-    wpkgar::wpkgar_build pkg_build(&manager, "");
+    wpkgar::wpkgar_build pkg_build(manager, "");
     if(cl.opt().is_defined("build-number-filename"))
     {
         // set user defined filename if defined
@@ -6354,7 +6354,7 @@ void print_build_number(command_line& cl)
     }
 }
 
-void init_remover(command_line& cl, wpkgar::wpkgar_manager& manager, wpkgar::wpkgar_remove& pkg_remove, const std::string& option)
+void init_remover(command_line& cl, wpkgar::wpkgar_manager::pointer_t manager, wpkgar::wpkgar_remove& pkg_remove, const std::string& option)
 {
     init_manager(cl, manager, option);
 
@@ -6393,14 +6393,14 @@ void init_remover(command_line& cl, wpkgar::wpkgar_manager& manager, wpkgar::wpk
 
 void remove(command_line& cl)
 {
-    wpkgar::wpkgar_manager manager;
-    wpkgar::wpkgar_remove pkg_remove(&manager);
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
+    wpkgar::wpkgar_remove pkg_remove(manager);
     init_remover(cl, manager, pkg_remove, "remove");
 
-    wpkgar::wpkgar_lock lock_wpkg(&manager, "Removing");
+    wpkgar::wpkgar_lock lock_wpkg(manager, "Removing");
     if(pkg_remove.validate() && !cl.dry_run())
     {
-        if(manager.is_self())
+        if(manager->is_self())
         {
             // trying to remove self?!
             wpkg_output::log("you cannot remove wpkg, even if it is not marked as required because under MS-Windows it is just not possible to delete a running executable")
@@ -6413,7 +6413,7 @@ void remove(command_line& cl)
         {
             for(;;)
             {
-                manager.check_interrupt();
+                manager->check_interrupt();
 
                 int i(pkg_remove.remove());
                 if(i < 0)
@@ -6428,15 +6428,15 @@ void remove(command_line& cl)
 
 void purge(command_line& cl)
 {
-    wpkgar::wpkgar_manager manager;
-    wpkgar::wpkgar_remove pkg_remove(&manager);
+    wpkgar::wpkgar_manager::pointer_t manager;
+    wpkgar::wpkgar_remove pkg_remove(manager);
     pkg_remove.set_purging();
     init_remover(cl, manager, pkg_remove, "purge");
 
-    wpkgar::wpkgar_lock lock_wpkg(&manager, "Removing");
+    wpkgar::wpkgar_lock lock_wpkg(manager, "Removing");
     if(pkg_remove.validate() && !cl.dry_run())
     {
-        if(manager.is_self())
+        if(manager->is_self())
         {
             // trying to remove self?!
             wpkg_output::log("you cannot purge wpkg, even if it is not marked as required because under MS-Windows it is just not possible to delete a running executable")
@@ -6449,7 +6449,7 @@ void purge(command_line& cl)
         {
             for(;;)
             {
-                manager.check_interrupt();
+                manager->check_interrupt();
 
                 int i(pkg_remove.remove());
                 if(i < 0)
@@ -6467,15 +6467,15 @@ void purge(command_line& cl)
 
 void deconfigure(command_line& cl)
 {
-    wpkgar::wpkgar_manager manager;
-    wpkgar::wpkgar_remove pkg_remove(&manager);
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
+    wpkgar::wpkgar_remove pkg_remove(manager);
     pkg_remove.set_deconfiguring();
     init_remover(cl, manager, pkg_remove, "deconfigure");
 
-    wpkgar::wpkgar_lock lock_wpkg(&manager, "Removing");
+    wpkgar::wpkgar_lock lock_wpkg(manager, "Removing");
     if(pkg_remove.validate() && !cl.dry_run())
     {
-        if(manager.is_self())
+        if(manager->is_self())
         {
             // trying to remove self?!
             wpkg_output::log("you cannot deconfigure wpkg, even if it is not marked as required because under MS-Windows it is just not possible to delete a running executable")
@@ -6493,7 +6493,7 @@ void deconfigure(command_line& cl)
             int max(pkg_remove.count());
             for(int i(0); i < max; ++i)
             {
-                manager.check_interrupt();
+                manager->check_interrupt();
 
                 if(!pkg_remove.deconfigure(i))
                 {
@@ -6511,23 +6511,23 @@ void autoremove(command_line& cl)
         throw std::runtime_error("--autoremove does not take any parameter");
     }
 
-    wpkgar::wpkgar_manager manager;
-    wpkgar::wpkgar_remove pkg_remove(&manager);
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
+    wpkgar::wpkgar_remove pkg_remove(manager);
     if(cl.opt().is_defined("purge"))
     {
         pkg_remove.set_purging();
     }
     init_remover(cl, manager, pkg_remove, "autoremove");
 
-    wpkgar::wpkgar_lock lock_wpkg(&manager, "Removing");
+    wpkgar::wpkgar_lock lock_wpkg(manager, "Removing");
     pkg_remove.autoremove(cl.dry_run());
 }
 
 void remove_database_lock(command_line& cl)
 {
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "remove-database-lock");
-    if(manager.remove_lock())
+    if(manager->remove_lock())
     {
         if(cl.verbose())
         {
@@ -6551,11 +6551,11 @@ void remove_sources(command_line& cl)
         /*NOTREACHED*/
     }
 
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "remove-sources");
-    wpkg_filename::uri_filename name(manager.get_database_path());
+    wpkg_filename::uri_filename name(manager->get_database_path());
     name = name.append_child("core/sources.list");
-    wpkgar::wpkgar_repository repository(&manager);
+    wpkgar::wpkgar_repository repository(manager);
     wpkgar::source_vector_t sources;
     memfile::memory_file sources_file;
     sources_file.read_file(name);
@@ -6591,11 +6591,11 @@ void rollback(command_line& cl)
         /*NOTREACHED*/
     }
 
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "rollback");
-    wpkgar::wpkgar_lock lock_wpkg(&manager, "Removing");
+    wpkgar::wpkgar_lock lock_wpkg(manager, "Removing");
 
-    wpkgar::wpkgar_tracker tracker(&manager, cl.opt().get_string("rollback"));
+    wpkgar::wpkgar_tracker tracker(manager, cl.opt().get_string("rollback"));
     tracker.keep_file(true);
 }
 
@@ -6607,19 +6607,19 @@ void search(command_line& cl)
         cl.opt().usage(advgetopt::getopt::error, "--search expects at least one pattern or filename.\n");
         /*NOTREACHED*/
     }
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "search");
-    wpkgar::wpkgar_lock lock_wpkg(&manager, "Listing");
+    wpkgar::wpkgar_lock lock_wpkg(manager, "Listing");
     wpkgar::wpkgar_manager::package_list_t list;
-    manager.list_installed_packages(list);
+    manager->list_installed_packages(list);
 
     int count(0);
     for(wpkgar::wpkgar_manager::package_list_t::const_iterator it(list.begin());
             it != list.end(); ++it)
     {
-        manager.load_package(*it);
+        manager->load_package(*it);
         memfile::memory_file *wpkgar_file;
-        manager.get_wpkgar_file(*it, wpkgar_file);
+        manager->get_wpkgar_file(*it, wpkgar_file);
 
         bool first(true);
         wpkgar_file->dir_rewind();
@@ -6681,7 +6681,7 @@ void set_selection(command_line& cl)
         /*NOTREACHED*/
     }
 
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "set-selection");
     if(selection == wpkg_control::control_file::field_xselection_t::selection_reject)
     {
@@ -6689,7 +6689,7 @@ void set_selection(command_line& cl)
         for(int i(0); i < max; ++i)
         {
             std::string name(cl.argument(i));
-            manager.set_package_selection_to_reject(name);
+            manager->set_package_selection_to_reject(name);
         }
     }
     else
@@ -6697,8 +6697,8 @@ void set_selection(command_line& cl)
         for(int i(0); i < max; ++i)
         {
             std::string name(cl.argument(i));
-            manager.load_package(name);
-            manager.set_field(name, wpkg_control::control_file::field_xselection_factory_t::canonicalized_name(), value, true);
+            manager->load_package(name);
+            manager->set_field(name, wpkg_control::control_file::field_xselection_factory_t::canonicalized_name(), value, true);
         }
     }
 }
@@ -6712,11 +6712,11 @@ void show(command_line& cl)
             cl.opt().get_program_name().c_str());
         exit(1);
     }
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "show");
-    manager.set_control_file_state(std::shared_ptr<wpkg_control::control_file::control_file_state_t>(new wpkg_control::control_file::contents_control_file_state_t));
+    manager->set_control_file_state(std::shared_ptr<wpkg_control::control_file::control_file_state_t>(new wpkg_control::control_file::contents_control_file_state_t));
     std::string name(cl.get_string("show"));
-    manager.load_package(name);
+    manager->load_package(name);
     if(cl.opt().is_defined("showformat"))
     {
         // the format is defined, retrieve the values
@@ -6760,9 +6760,9 @@ void show(command_line& cl)
                 }
                 ++s;
                 std::string value("undefined");
-                if(manager.field_is_defined(name, field_name))
+                if(manager->field_is_defined(name, field_name))
                 {
-                    value = manager.get_field(name, field_name);
+                    value = manager->get_field(name, field_name);
                 }
                 if(width != 0)
                 {
@@ -6827,8 +6827,8 @@ void show(command_line& cl)
     else
     {
         // if no format specified, show Package + Version
-        std::string package_name(manager.get_field(name, "Package"));
-        std::string version(manager.get_field(name, "Version"));
+        std::string package_name(manager->get_field(name, "Package"));
+        std::string version(manager->get_field(name, "Version"));
         printf("%s\t%s\n", package_name.c_str(), version.c_str());
     }
 }
@@ -6840,14 +6840,14 @@ void package_status(command_line& cl)
     {
         throw std::runtime_error("--package-status requires at least one parameter");
     }
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "package-status");
 
     for(int i(0); i < max; ++i)
     {
         std::string name(cl.opt().get_string("package-status", i));
         const char *status(NULL);
-        switch(manager.package_status(name))
+        switch(manager->package_status(name))
         {
         case wpkgar::wpkgar_manager::no_package:
             status = "error: package not found";
@@ -6925,19 +6925,19 @@ void extract(command_line& cl)
         cl.opt().usage(advgetopt::getopt::error, "the extract command expects exactly two parameters: package name and a destination folder");
         /*NOTREACHED*/
     }
-    wpkgar::wpkgar_manager manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, cl.verbose() ? "vextract" : "extract");
-    manager.set_control_file_state(std::shared_ptr<wpkg_control::control_file::control_file_state_t>(new wpkg_control::control_file::contents_control_file_state_t));
+    manager->set_control_file_state(std::shared_ptr<wpkg_control::control_file::control_file_state_t>(new wpkg_control::control_file::contents_control_file_state_t));
     const wpkg_filename::uri_filename name(cl.filename(0));
     if(name.is_deb())
     {
         cl.opt().usage(advgetopt::getopt::error, "you cannot extract the files of the data.tar.gz file from an installed package");
         /*NOTREACHED*/
     }
-    manager.load_package(name);
+    manager->load_package(name);
     memfile::memory_file p;
     std::string data_filename("data.tar");
-    manager.get_control_file(p, name, data_filename, false);
+    manager->get_control_file(p, name, data_filename, false);
     const wpkg_filename::uri_filename output_path(cl.filename(1));
     p.dir_rewind();
     for(;;)

@@ -39,7 +39,7 @@
 #include    <time.h>
 
 wpkg_output::level_t g_level( wpkg_output::level_warning );
-wpkgar::wpkgar_manager g_manager;
+wpkgar::wpkgar_manager::pointer_t g_manager( new wpkgar::wpkgar_manager );
 
 /** \brief Package information.
  *
@@ -75,8 +75,8 @@ void load_package(const wpkg_filename::uri_filename& package_filename)
             .quoted_arg(package_filename)
         .package(package_filename)
         .action("loading");
-    g_manager.load_package(package_filename);
-    const std::string package(g_manager.get_field(package_filename, "Package"));
+    g_manager->load_package(package_filename);
+    const std::string package(g_manager->get_field(package_filename, "Package"));
     package_list_t::iterator it(g_packages.find(package));
     if(it == g_packages.end())
     {
@@ -268,7 +268,7 @@ std::string str_to_html(const std::string& str)
 
 void dependency_to_link(std::string& result, const wpkg_filename::uri_filename& package_name, const std::string& field_name)
 {
-    if(g_manager.field_is_defined(package_name, field_name))
+    if(g_manager->field_is_defined(package_name, field_name))
     {
         if(!result.empty())
         {
@@ -276,7 +276,7 @@ void dependency_to_link(std::string& result, const wpkg_filename::uri_filename& 
         }
         result += field_name + ": ";
 
-        wpkg_dependencies::dependencies deps(g_manager.get_dependencies(package_name, field_name));
+        wpkg_dependencies::dependencies deps(g_manager->get_dependencies(package_name, field_name));
 
         std::string comma;
         int max(deps.size());
@@ -330,7 +330,7 @@ void package_to_html(const wpkg_filename::uri_filename& output_directory, const 
     // TODO: sort the filenames with the newest version first
 
     // first take care of global entries
-    const std::string package(g_manager.get_field(p.f_filenames[0], "Package"));
+    const std::string package(g_manager->get_field(p.f_filenames[0], "Package"));
     replace(out, "@TITLE@", package);
     time_t tt;
     time(&tt);
@@ -349,7 +349,7 @@ void package_to_html(const wpkg_filename::uri_filename& output_directory, const 
     index += "<li><a href=\"package_" + package + ".html\">" + package + "</a>" + package_count + "</li>";
 
     std::string long_description;
-    std::string description(str_to_html(g_manager.get_description(p.f_filenames[0], "Description", long_description)));
+    std::string description(str_to_html(g_manager->get_description(p.f_filenames[0], "Description", long_description)));
     replace(out, "@DESCRIPTION@", description);
 
     std::string::size_type start(out.find("@START@"));
@@ -376,41 +376,41 @@ void package_to_html(const wpkg_filename::uri_filename& output_directory, const 
         std::string o(repeat);
 
         // Package (mandatory field)
-        std::string package_name(g_manager.get_field(*it, "Package"));
+        std::string package_name(g_manager->get_field(*it, "Package"));
         replace(o, "@PACKAGE@", package_name);
 
         // Package (mandatory field), Provides (optional), Essential, Priority
-        std::string package_names(g_manager.get_field(*it, "Package"));
-        if(g_manager.field_is_defined(*it, "Provides"))
+        std::string package_names(g_manager->get_field(*it, "Package"));
+        if(g_manager->field_is_defined(*it, "Provides"))
         {
-            package_names += ", " + g_manager.get_field(*it, "Provides");
+            package_names += ", " + g_manager->get_field(*it, "Provides");
         }
         bool required(false);
-        if(g_manager.field_is_defined(*it, "Priority"))
+        if(g_manager->field_is_defined(*it, "Priority"))
         {
-            case_insensitive::case_insensitive_string priority(g_manager.get_field(*it, "Priority"));
+            case_insensitive::case_insensitive_string priority(g_manager->get_field(*it, "Priority"));
             required = priority == "required";
         }
         if(required)
         {
             package_names = "<strong style=\"color: red;\">" + package_names + " (Required)</strong>";
         }
-        else if(g_manager.field_is_defined(*it, "Essential") && g_manager.get_field_boolean(*it, "Essential"))
+        else if(g_manager->field_is_defined(*it, "Essential") && g_manager->get_field_boolean(*it, "Essential"))
         {
             package_names = "<strong>" + package_names + " (Essential)</strong>";
         }
         replace(o, "@PROVIDES@", package_names);
 
         // Version (mandatory field)
-        replace(o, "@VERSION@", str_to_html(g_manager.get_field(*it, "Version")));
+        replace(o, "@VERSION@", str_to_html(g_manager->get_field(*it, "Version")));
 
         // Architecture (mandatory field)
-        replace(o, "@ARCHITECTURE@", str_to_html(g_manager.get_field(*it, "Architecture")));
+        replace(o, "@ARCHITECTURE@", str_to_html(g_manager->get_field(*it, "Architecture")));
 
         // Distribution
-        if(g_manager.field_is_defined(*it, "Distribution"))
+        if(g_manager->field_is_defined(*it, "Distribution"))
         {
-            replace(o, "@DISTRIBUTION@", str_to_html(g_manager.get_field(*it, "Distribution")));
+            replace(o, "@DISTRIBUTION@", str_to_html(g_manager->get_field(*it, "Distribution")));
         }
         else
         {
@@ -419,12 +419,12 @@ void package_to_html(const wpkg_filename::uri_filename& output_directory, const 
 
         // Maintainer (mandatory field)
         // TODO transform with a mailto:...
-        replace(o, "@MAINTAINER@", str_to_html(g_manager.get_field(*it, "Maintainer")));
+        replace(o, "@MAINTAINER@", str_to_html(g_manager->get_field(*it, "Maintainer")));
 
         // Priority
-        if(g_manager.field_is_defined(*it, "Priority"))
+        if(g_manager->field_is_defined(*it, "Priority"))
         {
-            replace(o, "@PRIORITY@", str_to_html(g_manager.get_field(*it, "Priority")));
+            replace(o, "@PRIORITY@", str_to_html(g_manager->get_field(*it, "Priority")));
         }
         else
         {
@@ -432,10 +432,10 @@ void package_to_html(const wpkg_filename::uri_filename& output_directory, const 
         }
 
         // Urgency
-        if(g_manager.field_is_defined(*it, "Urgency"))
+        if(g_manager->field_is_defined(*it, "Urgency"))
         {
             // XXX -- only show the first line in this placement?
-            replace(o, "@URGENCY@", str_to_html(g_manager.get_field(*it, "Urgency")));
+            replace(o, "@URGENCY@", str_to_html(g_manager->get_field(*it, "Urgency")));
         }
         else
         {
@@ -443,9 +443,9 @@ void package_to_html(const wpkg_filename::uri_filename& output_directory, const 
         }
 
         // Section
-        if(g_manager.field_is_defined(*it, "Section"))
+        if(g_manager->field_is_defined(*it, "Section"))
         {
-            replace(o, "@SECTION@", str_to_html(g_manager.get_field(*it, "Section")));
+            replace(o, "@SECTION@", str_to_html(g_manager->get_field(*it, "Section")));
         }
         else
         {
@@ -462,33 +462,33 @@ void package_to_html(const wpkg_filename::uri_filename& output_directory, const 
 
         // Links (Homepage, Bugs, Vcs-Browser)
         std::string links;
-        if(g_manager.field_is_defined(*it, "Homepage"))
+        if(g_manager->field_is_defined(*it, "Homepage"))
         {
             // MAKE SURE TO KEEP THIS ONE FIRST!
-            if(g_manager.field_is_defined(*it, "Origin"))
+            if(g_manager->field_is_defined(*it, "Origin"))
             {
-                links = "<a href=\"" + g_manager.get_field(*it, "Homepage") + "\">" + str_to_html(g_manager.get_field(*it, "Origin")) + "</a>";
+                links = "<a href=\"" + g_manager->get_field(*it, "Homepage") + "\">" + str_to_html(g_manager->get_field(*it, "Origin")) + "</a>";
             }
             else
             {
-                links = "<a href=\"" + g_manager.get_field(*it, "Homepage") + "\">Homepage</a>";
+                links = "<a href=\"" + g_manager->get_field(*it, "Homepage") + "\">Homepage</a>";
             }
         }
-        if(g_manager.field_is_defined(*it, "Bugs"))
+        if(g_manager->field_is_defined(*it, "Bugs"))
         {
             if(!links.empty())
             {
                 links += ", ";
             }
-            links += "<a href=\"" + g_manager.get_field(*it, "Bugs") + "\">Bugs</a>";
+            links += "<a href=\"" + g_manager->get_field(*it, "Bugs") + "\">Bugs</a>";
         }
-        if(g_manager.field_is_defined(*it, "Vcs-Browser"))
+        if(g_manager->field_is_defined(*it, "Vcs-Browser"))
         {
             if(!links.empty())
             {
                 links += ", ";
             }
-            links += ", <a href=\"" + g_manager.get_field(*it, "Vcs-Browser") + "\">Source Version Control System</a>";
+            links += ", <a href=\"" + g_manager->get_field(*it, "Vcs-Browser") + "\">Source Version Control System</a>";
         }
         if(links.empty())
         {
@@ -537,10 +537,10 @@ void package_to_html(const wpkg_filename::uri_filename& output_directory, const 
         replace(o, "@OTHER_DEPENDENCIES@", other_dependencies);
 
         // Installed-Size
-        if(g_manager.field_is_defined(*it, "Installed-Size"))
+        if(g_manager->field_is_defined(*it, "Installed-Size"))
         {
-            replace(o, "@INSTALLED_SIZE@", g_manager.get_field(*it, "Installed-Size") + "Kb");
-            uint32_t installed_size(g_manager.get_field_integer(*it, "Installed-Size") * 1024);
+            replace(o, "@INSTALLED_SIZE@", g_manager->get_field(*it, "Installed-Size") + "Kb");
+            uint32_t installed_size(g_manager->get_field_integer(*it, "Installed-Size") * 1024);
             char buf[16];
             snprintf(buf, sizeof(buf), "%d", installed_size);
             buf[(sizeof(buf) / sizeof(buf[0])) - 1] = '\0';
@@ -553,9 +553,9 @@ void package_to_html(const wpkg_filename::uri_filename& output_directory, const 
         }
 
         // Packager-Version
-        if(g_manager.field_is_defined(*it, "Packager-Version"))
+        if(g_manager->field_is_defined(*it, "Packager-Version"))
         {
-            replace(o, "@PACKAGER_VERSION@", g_manager.get_field(*it, "Packager-Version"));
+            replace(o, "@PACKAGER_VERSION@", g_manager->get_field(*it, "Packager-Version"));
         }
         else
         {
@@ -566,11 +566,11 @@ void package_to_html(const wpkg_filename::uri_filename& output_directory, const 
         std::string files_list("<pre class=\"files\">");
         memfile::memory_file files;
         std::string data_filename("data.tar");
-        g_manager.get_control_file(files, *it, data_filename, false);
+        g_manager->get_control_file(files, *it, data_filename, false);
         bool use_drive_letter(false);
-        if(g_manager.field_is_defined(*it, "X-Drive-Letter"))
+        if(g_manager->field_is_defined(*it, "X-Drive-Letter"))
         {
-            use_drive_letter = g_manager.get_field_boolean(*it, "X-Drive-Letter");
+            use_drive_letter = g_manager->get_field_boolean(*it, "X-Drive-Letter");
         }
         files.dir_rewind();
         for(;;) {
@@ -620,7 +620,7 @@ void package_to_html(const wpkg_filename::uri_filename& output_directory, const 
                 buf[(sizeof(buf) / sizeof(buf[0])) - 1] = '\0';
                 files_list += buf;
             }
-            files_list += "  " + info.get_date() + (g_manager.is_conffile(*it, filename) ? " *" : "  ") + filename;
+            files_list += "  " + info.get_date() + (g_manager->is_conffile(*it, filename) ? " *" : "  ") + filename;
             if(info.get_file_type() == memfile::memory_file::file_info::symbolic_link) {
                 files_list += " -> " + info.get_link();
             }
@@ -826,9 +826,9 @@ int main(int argc, char *argv[])
     bool verbose(opt.is_defined("verbose"));
     bool quiet(opt.is_defined("quiet"));
 
-    g_manager.set_root_path(opt.get_string("root"));
-    g_manager.set_inst_path(opt.get_string("instdir"));
-    g_manager.set_database_path(opt.get_string("admindir"));
+    g_manager->set_root_path(opt.get_string("root"));
+    g_manager->set_inst_path(opt.get_string("instdir"));
+    g_manager->set_database_path(opt.get_string("admindir"));
 
     auto output( wpkg_output::output::get_output().lock() );
     output->set_program_name(opt.get_program_name());
@@ -846,9 +846,9 @@ int main(int argc, char *argv[])
     if(max == 0)
     {
         // if no .deb, try to check for installed packages instead
-        wpkgar::wpkgar_lock lock_wpkg(&g_manager, "Listing");
+        wpkgar::wpkgar_lock lock_wpkg( g_manager, "Listing" );
         wpkgar::wpkgar_manager::package_list_t list;
-        g_manager.list_installed_packages(list);
+        g_manager->list_installed_packages(list);
         for(wpkgar::wpkgar_manager::package_list_t::const_iterator it(list.begin());
                 it != list.end(); ++it)
         {
@@ -856,7 +856,7 @@ int main(int argc, char *argv[])
                     .quoted_arg(*it)
                 .package(*it)
                 .action("loading");
-            wpkgar::wpkgar_manager::package_status_t status(g_manager.package_status(*it));
+            wpkgar::wpkgar_manager::package_status_t status(g_manager->package_status(*it));
             switch(status)
             {
             case wpkgar::wpkgar_manager::config_files:

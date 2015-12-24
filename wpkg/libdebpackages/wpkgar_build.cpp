@@ -162,7 +162,7 @@ const char * const non_binary_fields[] =
  * \param[in] manager  The manager to link with this build object.
  * \param[in] build_directory  The build directory or file.
  */
-wpkgar_build::wpkgar_build(wpkgar_manager *manager, const std::string& build_directory)
+wpkgar_build::wpkgar_build( wpkgar_manager::pointer_t manager, const std::string& build_directory)
     : f_manager(manager)
     //, f_zlevel(9) -- auto-init
     //, f_ignore_empty_packages(false) -- auto-init
@@ -2221,33 +2221,33 @@ void wpkgar_build::build_source()
  */
 void wpkgar_build::install_source_package()
 {
-    wpkgar::wpkgar_install pkg_install(f_manager);
-    pkg_install.set_installing();
+    wpkgar::wpkgar_install::pointer_t pkg_install( new wpkgar::wpkgar_install(f_manager) );
+    pkg_install->set_installing();
 
     // some additional parameters
-    pkg_install.set_parameter(wpkgar::wpkgar_install::wpkgar_install_recursive, get_parameter(wpkgar::wpkgar_build::wpkgar_build_recursive, false) != 0);
-    pkg_install.set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_file_info, get_parameter(wpkgar::wpkgar_build::wpkgar_build_force_file_info, false) != 0);
-    pkg_install.set_parameter(wpkgar::wpkgar_install::wpkgar_install_quiet_file_info, true);
+    pkg_install->set_parameter(wpkgar::wpkgar_install::wpkgar_install_recursive, get_parameter(wpkgar::wpkgar_build::wpkgar_build_recursive, false) != 0);
+    pkg_install->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_file_info, get_parameter(wpkgar::wpkgar_build::wpkgar_build_force_file_info, false) != 0);
+    pkg_install->set_parameter(wpkgar::wpkgar_install::wpkgar_install_quiet_file_info, true);
 
     // add the source package we're working on
-    pkg_install.add_package(f_build_directory.full_path());
+    pkg_install->add_package(f_build_directory.full_path());
 
     // The database must be locked before we call this function
     //wpkgar::wpkgar_lock lock_wpkg(f_manager, "Installing");
-    if(pkg_install.validate())
+    if(pkg_install->validate())
     {
-        if(pkg_install.pre_configure())
+        if(pkg_install->pre_configure())
         {
             for(;;)
             {
                 f_manager->check_interrupt();
 
-                int i(pkg_install.unpack());
+                int i(pkg_install->unpack());
                 if(i < 0)
                 {
                     break;
                 }
-                if(!pkg_install.configure(i))
+                if(!pkg_install->configure(i))
                 {
                     break;
                 }

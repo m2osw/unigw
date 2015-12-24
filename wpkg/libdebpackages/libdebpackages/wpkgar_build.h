@@ -33,6 +33,8 @@
 #include    "controlled_vars/controlled_vars_limited_auto_init.h"
 #include    "controlled_vars/controlled_vars_limited_auto_enum_init.h"
 
+#include    <memory>
+
 namespace wpkgar
 {
 
@@ -101,7 +103,7 @@ public:
         source_properties_t         f_properties;
     };
 
-    wpkgar_build(wpkgar_manager *manager, const std::string& build_directory);
+    wpkgar_build( wpkgar_manager::pointer_t manager, const std::string& build_directory);
 
     void set_parameter(parameter_t flag, int value);
     int get_parameter(parameter_t flag, int default_value) const;
@@ -152,7 +154,7 @@ private:
     void build_info();
     void build_deb(const wpkg_filename::uri_filename& dir_name);
 
-    wpkgar_manager *                    f_manager;
+    wpkgar_manager::pointer_t           f_manager;
     zlevel_t                            f_zlevel;
     path_limit_t                        f_path_length_limit;
     controlled_vars::fbool_t            f_ignore_empty_packages;

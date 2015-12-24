@@ -61,7 +61,7 @@ namespace wpkg_backup
  * safely (i.e. if an error occurs while updating, the backup can restore
  * the state from before the update started.)
  */
-wpkgar_backup::wpkgar_backup(wpkgar::wpkgar_manager *manager, const std::string& package_name, const char *log_action)
+wpkgar_backup::wpkgar_backup(wpkgar::wpkgar_manager::pointer_t manager, const std::string& package_name, const char *log_action)
     : f_manager(manager)
     , f_package_name(package_name)
     , f_log_action(log_action)

@@ -31,13 +31,15 @@
 #include "libdebpackages/wpkgar.h"
 #include "controlled_vars/controlled_vars_auto_enum_init.h"
 
+#include <memory>
+
 namespace wpkg_backup
 {
 
 class DEBIAN_PACKAGE_EXPORT wpkgar_backup
 {
 public:
-    wpkgar_backup(wpkgar::wpkgar_manager *manager, const std::string& package_name, const char *log_action);
+    wpkgar_backup(wpkgar::wpkgar_manager::pointer_t manager, const std::string& package_name, const char *log_action);
     ~wpkgar_backup();
 
     bool backup(const wpkg_filename::uri_filename& filename);
@@ -49,12 +51,12 @@ private:
     // the second parameter is the name of the backup file
     typedef std::map<std::string, std::string>  backup_files_t;
 
-    wpkgar::wpkgar_manager *    f_manager;
-    std::string                 f_package_name;
-    const char *                f_log_action;
-    backup_files_t              f_files;
-    controlled_vars::zuint32_t  f_count;
-    controlled_vars::fbool_t    f_success;
+    wpkgar::wpkgar_manager::pointer_t f_manager;
+    std::string                       f_package_name;
+    const char *                      f_log_action;
+    backup_files_t                    f_files;
+    controlled_vars::zuint32_t        f_count;
+    controlled_vars::fbool_t          f_success;
 };
 
 } // wpkg_backup namespace

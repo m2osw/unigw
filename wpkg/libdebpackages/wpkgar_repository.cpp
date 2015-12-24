@@ -109,7 +109,7 @@ wpkgar_repository::package_item_t::package_item_t()
 {
 }
 
-wpkgar_repository::package_item_t::package_item_t(wpkgar_manager *manager, const memfile::memory_file::file_info& info, const memfile::memory_file& data)
+wpkgar_repository::package_item_t::package_item_t(wpkgar_manager::pointer_t manager, const memfile::memory_file::file_info& info, const memfile::memory_file& data)
     : f_manager(manager)
     //, f_status(invalid) -- auto-init
     , f_info(info)
@@ -423,7 +423,7 @@ std::string wpkgar_repository::update_entry_t::to_string() const
 
 
 
-wpkgar_repository::wpkgar_repository(wpkgar_manager *manager)
+wpkgar_repository::wpkgar_repository(wpkgar_manager::pointer_t manager)
     : f_manager(manager)
     //, f_flags() -- auto-init
     //, f_packages() -- auto-init

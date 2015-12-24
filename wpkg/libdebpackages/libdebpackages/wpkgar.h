@@ -155,6 +155,7 @@ typedef std::vector<source> source_vector_t;
 
 // the manager handles many archives in one place
 class DEBIAN_PACKAGE_EXPORT wpkgar_manager
+    : public std::enable_shared_from_this<wpkgar_manager>
 {
 public:
     enum package_status_t
@@ -185,6 +186,7 @@ public:
         wpkgar_script_postrm
     };
 
+    typedef std::shared_ptr<wpkgar_manager> pointer_t;
     typedef std::vector<std::string>        package_list_t;
     typedef std::vector<std::string>        script_parameters_t;
     typedef std::vector<std::string>        hooks_t;
@@ -302,19 +304,19 @@ private:
 class DEBIAN_PACKAGE_EXPORT wpkgar_lock
 {
 public:
-    wpkgar_lock(wpkgar_manager *manager, const std::string& status);
+    wpkgar_lock(wpkgar_manager::pointer_t manager, const std::string& status);
     ~wpkgar_lock();
     void unlock();
 
 private:
-    wpkgar_manager *            f_manager;
+    wpkgar_manager::pointer_t f_manager;
 };
 
 
 class DEBIAN_PACKAGE_EXPORT wpkgar_rollback
 {
 public:
-                                    wpkgar_rollback(wpkgar_manager *manager, const wpkg_filename::uri_filename& tracking_filename);
+                                    wpkgar_rollback(wpkgar_manager::pointer_t manager, const wpkg_filename::uri_filename& tracking_filename);
                                     ~wpkgar_rollback();
 
     void                            rollback();
@@ -323,7 +325,7 @@ public:
     wpkg_filename::uri_filename     get_tracking_filename() const;
 
 private:
-    wpkgar_manager *            f_manager;
+    wpkgar_manager::pointer_t f_manager;
     wpkg_filename::uri_filename f_tracking_filename;
 };
 

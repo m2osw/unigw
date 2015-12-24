@@ -78,7 +78,7 @@ namespace wpkgar
  * \param[in] filename  Path to the journal to be used to rollback
  *                      the work. It cannot be an empty string.
  */
-wpkgar_tracker::wpkgar_tracker(wpkgar_manager *manager, const wpkg_filename::uri_filename& filename)
+wpkgar_tracker::wpkgar_tracker(wpkgar_manager::pointer_t manager, const wpkg_filename::uri_filename& filename)
     : f_manager(manager)
     , f_filename(filename)
 {
@@ -248,7 +248,7 @@ public:
     typedef std::vector<std::string> param_list_t;
 
     explicit                wpkgar_command();
-                            wpkgar_command(wpkgar_manager *manager,
+                            wpkgar_command(wpkgar_manager::pointer_t manager,
                                            const wpkg_filename::uri_filename& filename,
                                            int line,
                                            const std::string& command,
@@ -266,11 +266,11 @@ private:
     void                    run_purge();
     void                    run_unpack();
 
-    wpkgar_manager *        f_manager;
-    wpkg_filename::uri_filename       f_filename;
-    int                     f_line;
-    std::string             f_command;
-    param_list_t            f_params;
+    wpkgar_manager::pointer_t f_manager;
+    wpkg_filename::uri_filename     f_filename;
+    int                             f_line;
+    std::string                     f_command;
+    param_list_t                    f_params;
 };
 
 /** \brief List of commands.
@@ -289,9 +289,9 @@ typedef std::vector<wpkgar_command> command_list_t;
  * DO NOT USE THIS CONSTRUCTOR OTHERWISE.
  */
 wpkgar_command::wpkgar_command()
-    : f_manager(NULL)
+    //: f_manager(NULL)
     //, f_filename() -- auto-init
-    , f_line(0)
+    : f_line(0)
     //, f_command() -- auto-init
     //, f_params() -- auto-init
 {
@@ -309,7 +309,7 @@ wpkgar_command::wpkgar_command()
  * \param[in] command  The name of the command.
  * \param[in] params  The list of parameters received for this command.
  */
-wpkgar_command::wpkgar_command(wpkgar_manager *manager, const wpkg_filename::uri_filename& filename, int line, const std::string& command, param_list_t params)
+wpkgar_command::wpkgar_command(wpkgar_manager::pointer_t manager, const wpkg_filename::uri_filename& filename, int line, const std::string& command, param_list_t params)
     : f_manager(manager)
     , f_filename(filename)
     , f_line(line)
@@ -339,11 +339,11 @@ wpkgar_command& wpkgar_command::operator = (const wpkgar_command& rhs)
 {
     if(this != &rhs)
     {
-        f_manager = rhs.f_manager;
+        f_manager  = rhs.f_manager;
         f_filename = rhs.f_filename;
-        f_line = rhs.f_line;
-        f_command = rhs.f_command;
-        f_params = rhs.f_params;
+        f_line     = rhs.f_line;
+        f_command  = rhs.f_command;
+        f_params   = rhs.f_params;
     }
 
     return *this;
