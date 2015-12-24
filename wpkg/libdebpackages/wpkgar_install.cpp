@@ -75,23 +75,6 @@ using namespace installer;
  */
 
 
-/** \class wpkgar_install::install_info_t
- * \brief One item in the list of packages to be installed.
- *
- * After running the validation process, the list of packages that is to be
- * installed is known by the wpkgar_install object. This list can be
- * retrieved with the use of the wpkgar_install::get_install_list() function.
- * That function returns a vector of install_info_t objects which give you
- * the name and version of the package, whether it is installed explicitly or
- * implicitly, and if the installation is a new installation or an
- * upgrade (i.e. see the is_upgrade() function.)
- *
- * Note that the function used to retrieve this list does not return the
- * other packages (i.e. packages that are available in a repository, already
- * installed, etc. are not returned in this list.)
- */
-
-
 /** \class wpkgar_install::tree_generator
  * \brief Generate all possible permutations of the package tree.
  *
@@ -4677,37 +4660,6 @@ bool wpkgar_install::validate()
 
 
 
-wpkgar_install::install_info_t::install_info_t()
-    //: f_name("") -- auto-init
-    //, f_version("") -- auto-init
-    : f_install_type(install_type_undefined)
-    //, f_is_upgrade(false) -- auto-init
-{
-}
-
-
-std::string   wpkgar_install::install_info_t::get_name() const
-{
-    return f_name;
-}
-
-
-std::string   wpkgar_install::install_info_t::get_version() const
-{
-    return f_version;
-}
-
-
-wpkgar_install::install_info_t::install_type_t wpkgar_install::install_info_t::get_install_type() const
-{
-    return f_install_type;
-}
-
-
-bool wpkgar_install::install_info_t::is_upgrade() const
-{
-    return f_is_upgrade;
-}
 
 
 /** \brief Get list of packages to be installed.
@@ -4721,7 +4673,7 @@ bool wpkgar_install::install_info_t::is_upgrade() const
  * differentiate the type of install it is going to be. Useful for informing
  * the user of the pending database changes and any new packages to be installed.
  */
-wpkgar_install::install_info_list_t wpkgar_install::get_install_list()
+install_info_list_t wpkgar_install::get_install_list()
 {
     install_info_list_t list;
 

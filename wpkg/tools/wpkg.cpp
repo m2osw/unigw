@@ -3221,22 +3221,22 @@ void install(command_line& cl, const wpkg_filename::uri_filename package_name = 
     if( pkg_install.validate() && !cl.dry_run())
     {
         {
-            wpkgar::wpkgar_install::install_info_list_t install_list = pkg_install.get_install_list();
+            wpkgar::installer::install_info_list_t install_list = pkg_install.get_install_list();
             std::stringstream explicit_packages;
             std::stringstream implicit_packages;
             std::for_each( install_list.begin(), install_list.end(),
-                           [&](const wpkgar::wpkgar_install::install_info_t& info )
+                           [&](const wpkgar::installer::install_info_t& info )
             {
                 switch( info.get_install_type() )
                 {
-                case wpkgar::wpkgar_install::install_info_t::install_type_explicit:
+                case wpkgar::installer::install_info_t::install_type_explicit:
                     if( !explicit_packages.str().empty() )
                     {
                         explicit_packages << ", ";
                     }
                     explicit_packages << info.get_name();
                     break;
-                case wpkgar::wpkgar_install::install_info_t::install_type_implicit:
+                case wpkgar::installer::install_info_t::install_type_implicit:
                     if( !implicit_packages.str().empty() )
                     {
                         implicit_packages << ", ";

@@ -35,6 +35,7 @@
 #include    "libdebpackages/wpkgar_repository.h"
 #include    "libdebpackages/wpkg_dependencies.h"
 #include    "libdebpackages/installer/package_item.h"
+#include    "libdebpackages/installer/install_info.h"
 #include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
 #include <functional>
@@ -85,39 +86,11 @@ public:
         wpkgar_install_skip_same_version        // do not re-install over itself
     };
 
-    class DEBIAN_PACKAGE_EXPORT install_info_t
-    {
-    public:
-        friend class wpkgar_install;
-
-        enum install_type_t
-        {
-            install_type_undefined, // undefined
-            install_type_explicit,  // explicitly asked for
-            install_type_implicit   // necessary to satisfy dependencies
-        };
-
-        install_info_t();
-
-        std::string    get_name()         const;
-        std::string    get_version()      const;
-        install_type_t get_install_type() const;
-        bool           is_upgrade()       const;
-
-    private:
-        std::string                 f_name;
-        std::string                 f_version;
-        install_type_t              f_install_type;
-        controlled_vars::fbool_t    f_is_upgrade;
-    };
-
-
     typedef std::shared_ptr<wpkgar_install> pointer_t;
 
     wpkgar_install( wpkgar_manager::pointer_t manager );
 
-    typedef std::vector<install_info_t> install_info_list_t;
-    install_info_list_t get_install_list();
+    installer::install_info_list_t get_install_list();
 
     void set_parameter(parameter_t flag, int value);
     int get_parameter(parameter_t flag, int default_value) const;

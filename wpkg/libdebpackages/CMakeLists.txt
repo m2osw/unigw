@@ -75,6 +75,7 @@ set( LIBDEBPACKAGES_INCLUDE_FILES
     "${PROJECT_SOURCE_DIR}/debian_packages.h.in"
     "${PROJECT_BINARY_DIR}/debian_packages.h"
     installer/details/disk.h
+    installer/install_info.h
     installer/package_item.h
     advgetopt.h
     case_insensitive_string.h
@@ -107,6 +108,7 @@ set( LIBDEBPACKAGES_INCLUDE_FILES
 
 set( LIBDEBPACKAGES_SOURCE_FILES
     installer/details/disk.cpp
+    installer/install_info.cpp
     installer/package_item.cpp
     advgetopt.cpp
     case_insensitive_string.cpp
