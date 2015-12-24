@@ -34,8 +34,9 @@
 #include    "libdebpackages/wpkgar.h"
 #include    "libdebpackages/wpkgar_repository.h"
 #include    "libdebpackages/wpkg_dependencies.h"
-#include    "libdebpackages/installer/package_item.h"
 #include    "libdebpackages/installer/install_info.h"
+#include    "libdebpackages/installer/package_item.h"
+#include    "libdebpackages/installer/tree_generator.h"
 #include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
 #include <functional>
@@ -121,10 +122,8 @@ private:
 #endif
 
     typedef std::map<parameter_t, int>                                    wpkgar_flags_t;
-    typedef std::vector<installer::package_item_t>                        wpkgar_package_list_t;
+    typedef installer::package_item_t::list_t                             wpkgar_package_list_t;
     typedef std::vector<installer::package_item_t *>                      wpkgar_package_ptrs_t;
-    typedef wpkgar_package_list_t::size_type                              wpkgar_package_index_t;
-    typedef std::vector<wpkgar_package_index_t>                           wpkgar_package_idxs_t;
     typedef std::vector<wpkg_dependencies::dependencies::dependency_t>    wpkgar_dependency_list_t;
     typedef std::map<std::string, bool>                                   wpkgar_package_listed_t;
     typedef std::vector<std::string>                                      wpkgar_list_of_strings_t;
@@ -136,25 +135,6 @@ private:
         validation_return_missing,
         validation_return_held,
         validation_return_unpacked
-    };
-
-    class DEBIAN_PACKAGE_EXPORT tree_generator
-    {
-    public:
-        tree_generator(const wpkgar_package_list_t& root_tree);
-
-        wpkgar_package_list_t       next();
-        uint64_t                    tree_number() const;
-
-    private:
-        typedef wpkgar_package_idxs_t           pkg_alternatives_t;
-        typedef std::vector<pkg_alternatives_t> pkg_alternatives_list_t;
-
-        const wpkgar_package_list_t             f_master_tree;
-        pkg_alternatives_list_t                 f_pkg_alternatives;
-        std::vector<controlled_vars::zuint64_t> f_divisor;
-        controlled_vars::zuint64_t              f_n; // the n'th permution
-        controlled_vars::zuint64_t              f_end;
     };
 
     // disallow copying
@@ -239,24 +219,24 @@ private:
     void pop_progess_record();
     void increment_progress();
 
-    wpkgar_manager::pointer_t           f_manager;
-    wpkgar_manager::package_list_t      f_list_installed_packages;
-    wpkgar_flags_t                      f_flags;
-    std::string                         f_architecture;
-    wpkgar_manager::package_status_t    f_original_status;
-    wpkgar_package_list_t               f_packages;
-    wpkgar_package_idxs_t               f_sorted_packages;
-    controlled_vars::tbool_t            f_installing_packages;
-    controlled_vars::fbool_t            f_unpacking_packages;
-    controlled_vars::fbool_t            f_reconfiguring_packages;
-    controlled_vars::fbool_t            f_repository_packages_loaded;
-    controlled_vars::fbool_t            f_install_includes_choices;
-    controlled_vars::zuint32_t          f_tree_max_depth;
-    wpkgar_list_of_strings_t            f_essential_files;
-    wpkgar_list_of_strings_t            f_field_validations;
-    wpkgar_list_of_strings_t            f_field_names;
-    controlled_vars::fbool_t            f_read_essentials;
-    controlled_vars::fbool_t            f_install_source;
+    wpkgar_manager::pointer_t                 f_manager;
+    wpkgar_manager::package_list_t            f_list_installed_packages;
+    wpkgar_flags_t                            f_flags;
+    std::string                               f_architecture;
+    wpkgar_manager::package_status_t          f_original_status;
+    wpkgar_package_list_t                     f_packages;
+    installer::tree_generator::package_idxs_t f_sorted_packages;
+    controlled_vars::tbool_t                  f_installing_packages;
+    controlled_vars::fbool_t                  f_unpacking_packages;
+    controlled_vars::fbool_t                  f_reconfiguring_packages;
+    controlled_vars::fbool_t                  f_repository_packages_loaded;
+    controlled_vars::fbool_t                  f_install_includes_choices;
+    controlled_vars::zuint32_t                f_tree_max_depth;
+    wpkgar_list_of_strings_t                  f_essential_files;
+    wpkgar_list_of_strings_t                  f_field_validations;
+    wpkgar_list_of_strings_t                  f_field_names;
+    controlled_vars::fbool_t                  f_read_essentials;
+    controlled_vars::fbool_t                  f_install_source;
 
     typedef std::stack<wpkg_output::progress_record_t> progress_stack_t;
     progress_stack_t                    f_progress_stack;

@@ -77,6 +77,7 @@ set( LIBDEBPACKAGES_INCLUDE_FILES
     installer/details/disk.h
     installer/install_info.h
     installer/package_item.h
+    installer/tree_generator.h
     advgetopt.h
     case_insensitive_string.h
     compatibility.h
@@ -110,6 +111,7 @@ set( LIBDEBPACKAGES_SOURCE_FILES
     installer/details/disk.cpp
     installer/install_info.cpp
     installer/package_item.cpp
+    installer/tree_generator.cpp
     advgetopt.cpp
     case_insensitive_string.cpp
     compatibility.cpp

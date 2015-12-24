@@ -49,7 +49,7 @@ namespace installer
 class DEBIAN_PACKAGE_EXPORT package_item_t
 {
 public:
-    typedef std::vector<package_item_t> vector_t;
+    typedef std::vector<package_item_t> list_t;
 
     enum package_type_t
     {
