@@ -289,16 +289,7 @@ class DEBIAN_PACKAGE_EXPORT listener_list_t
 
         void register_listener( func_t func )
         {
-            auto iter = std::find_if( f_func_list.begin(), f_func_list.end(),
-                    [&,this]( func_t inner_func )
-                    {
-                        return func.target<T>() == inner_func.target<T>();
-                    });
-
-            if( iter == f_func_list.end() )
-            {
-                f_func_list.push_back( func );
-            }
+            f_func_list.push_back( func );
         }
 
         void  operator()( const T& payload ) const

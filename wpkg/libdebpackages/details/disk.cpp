@@ -22,6 +22,14 @@
 
 #include "details/disk.h"
 
+#if !defined(MO_WINDOWS)
+#	if defined(MO_LINUX)
+#		include    <mntent.h>
+#	endif
+#	include    <sys/statvfs.h>
+#	include    <unistd.h>
+#endif
+
 #if !defined(MO_DARWIN) && !defined(MO_SUNOS) && !defined(MO_FREEBSD)
 namespace wpkgar
 {
