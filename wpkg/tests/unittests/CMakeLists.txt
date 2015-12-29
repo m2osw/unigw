@@ -54,10 +54,10 @@ find_package( Catch )
 
 if( CATCH_FOUND )
 
-	add_definitions( -DCATCH_CONFIG_PREFIX_ALL )
+    add_definitions( -DCATCH_CONFIG_PREFIX_ALL )
 
     include_directories(
-		"${CMAKE_BINARY_DIR}"
+        "${CMAKE_BINARY_DIR}"
         "${PROJECT_BINARY_DIR}"
         "${PROJECT_BINARY_DIR}/../../libdebpackages"
         "${PROJECT_BINARY_DIR}/../../libtld"
@@ -95,16 +95,16 @@ if( CATCH_FOUND )
         wpkg_bz2_static
     )
 
-	set( TMPDIR "${CMAKE_BINARY_DIR}/tmp" )
-	if( NOT EXISTS ${TMPDIR} )
-		file( MAKE_DIRECTORY ${TMPDIR} )
-	endif()
+    set( TMPDIR "${CMAKE_BINARY_DIR}/tmp" )
+    if( NOT EXISTS ${TMPDIR} )
+        file( MAKE_DIRECTORY ${TMPDIR} )
+    endif()
 
-	unset( DEBUG_WORD )
-	if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
-		set( DEBUG_WORD "_d" )
-	endif()
-	add_test( unittests ${PROJECT_NAME} --tmp ${TMPDIR} --wpkg ${CMAKE_BINARY_DIR}/tools/wpkg_static${DEBUG_WORD}${CMAKE_EXECUTABLE_SUFFIX} )
+    unset( DEBUG_WORD )
+    if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
+        set( DEBUG_WORD "_d" )
+    endif()
+    add_test( unittests ${PROJECT_NAME} --tmp ${TMPDIR} --wpkg ${CMAKE_BINARY_DIR}/tools/wpkg_static${DEBUG_WORD}${CMAKE_EXECUTABLE_SUFFIX} )
 
 endif( CATCH_FOUND )
 
