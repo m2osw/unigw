@@ -33,7 +33,7 @@
 #      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 #      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-cmake_minimum_required(VERSION 3.3.0)
+cmake_minimum_required(VERSION 2.0.0)
 
 find_package( WpkgBuild REQUIRED )
 
@@ -98,7 +98,7 @@ if( UNIX )
         message( FATAL_ERROR "Unknown architecture '${ARCH}'!" )
     endif()
     if( DEFINED ENV{WPKG_COVERAGE} )
-		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -Werror -Wall -Wextra -pedantic -std=c++11 -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Winit-self -Wlogical-op -Wmissing-include-dirs -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=1 -Wundef -Wno-unused -Wunused-variable -Wno-variadic-macros -Wno-parentheses -Wno-unknown-pragmas -Wwrite-strings -Wswitch -fdiagnostics-show-option -fprofile-arcs -ftest-coverage" )
+        set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -Werror -Wall -Wextra -pedantic -std=c++11 -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Winit-self -Wlogical-op -Wmissing-include-dirs -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=1 -Wundef -Wno-unused -Wunused-variable -Wno-variadic-macros -Wno-parentheses -Wno-unknown-pragmas -Wwrite-strings -Wswitch -fdiagnostics-show-option -fprofile-arcs -ftest-coverage" )
         if( NOT MO_CYGWIN AND NOT MO_SUNOS )
             set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnoexcept -Wold-style-cast -Wformat=2" )
         endif()
@@ -110,7 +110,7 @@ if( UNIX )
         # Feel free to comment out this line if you don't like the warnings
         # HOWEVER: do not submit code to us if it generates warnings!
         # You may want to keep the -O3 though
-		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wall -Wextra -pedantic -std=c++11 -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Winit-self -Wlogical-op -Wmissing-include-dirs -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=1 -Wundef -Wno-unused -Wunused-variable -Wno-variadic-macros -Wno-parentheses -Wno-unknown-pragmas -Wwrite-strings -Wswitch -fdiagnostics-show-option" )
+        set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wall -Wextra -pedantic -std=c++11 -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Winit-self -Wlogical-op -Wmissing-include-dirs -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=1 -Wundef -Wno-unused -Wunused-variable -Wno-variadic-macros -Wno-parentheses -Wno-unknown-pragmas -Wwrite-strings -Wswitch -fdiagnostics-show-option" )
         if( NOT MO_CYGWIN AND NOT MO_SUNOS )
             set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnoexcept -Wold-style-cast -Wformat=2" )
         endif()
@@ -141,7 +141,7 @@ elseif( MINGW )
     # WIN_MACHINE_FLAGS cannot be empty and since cmake adds -fPIC under
     # our feet, that makes no difference at this point...
     set( WIN_MACHINE_FLAGS "-fPIC" )
-	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" )
     add_definitions( -DMO_WINDOWS -DMO_MINGW32 -DCONNECT_COMMANDLINE=2048 )
     set( MO_WINDOWS TRUE )
     set( MO_MINGW32 TRUE )
@@ -162,7 +162,7 @@ endif()
 
 set( ADVGETOPT_THROW_FOR_EXIT $ENV{ADVGETOPT_THROW_FOR_EXIT} CACHE BOOL "Throw on exit for testing." )
 if( ADVGETOPT_THROW_FOR_EXIT )
-	add_definitions( -DADVGETOPT_THROW_FOR_EXIT )
+    add_definitions( -DADVGETOPT_THROW_FOR_EXIT )
 endif()
 
 
