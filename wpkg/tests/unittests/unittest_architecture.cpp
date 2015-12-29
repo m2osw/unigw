@@ -243,7 +243,7 @@ CATCH_TEST_CASE( "ArchitectureUnitTests::verify_architecture", "ArchitectureUnit
                     {
                         std::stringstream ss;
                         ss << os->f_name << "-" << processor->f_name;
-                        wpkg_architecture::architecture arch(ss.str());
+                        wpkg_architecture::architecture const arch(ss.str());
 
                         CATCH_REQUIRE(!arch.empty());
                         if(strcmp(os->f_name, "any") == 0
@@ -611,9 +611,9 @@ CATCH_TEST_CASE( "ArchitectureUnitTests::verify_architecture", "ArchitectureUnit
                                             {
                                                 pattern_equal = strcmp(os->f_name, sub_os->f_name) == 0;
                                             }
-                                            if(pattern_equal && vendor == "any")
+                                            if(pattern_equal && vendor != "any")
                                             {
-                                                pattern_equal = (vendor == sub_v) == 0;
+                                                pattern_equal = vendor == sub_v;
                                             }
                                             if(pattern_equal && strcmp(processor->f_name, "any") != 0)
                                             {
@@ -627,9 +627,9 @@ CATCH_TEST_CASE( "ArchitectureUnitTests::verify_architecture", "ArchitectureUnit
                                             {
                                                 pattern_equal = strcmp(os->f_name, sub_os->f_name) == 0;
                                             }
-                                            if(pattern_equal && (sub_v == "any"))
+                                            if(pattern_equal && sub_v != "any")
                                             {
-                                                pattern_equal = (vendor == sub_v);
+                                                pattern_equal = vendor == sub_v;
                                             }
                                             if(pattern_equal && strcmp(sub_processor->f_name, "any") != 0)
                                             {

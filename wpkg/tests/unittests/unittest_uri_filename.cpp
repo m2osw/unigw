@@ -1472,6 +1472,10 @@ CATCH_TEST_CASE("URIFilenameUnitTests::invalid_ms_paths","URIFilenameUnitTests")
         {
         }
     }
+
+    // uses one CATCH so we can see that the test ran successfully
+    // instead of getting a "no tests ran" message
+    CATCH_REQUIRE( "test done" );
 }
 
 

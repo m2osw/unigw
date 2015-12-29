@@ -126,7 +126,7 @@ int unittest_main(int argc, char *argv[])
 
     if( configData.version )
     {
-        printf("%s\n", debian_packages_version_string());
+        std::cout << debian_packages_version_string() << std::endl;
         exit(1);
     }
 
@@ -151,7 +151,7 @@ int unittest_main(int argc, char *argv[])
         remove_from_args( arg_list, "--seed", "-s" );
     }
     srand(seed);
-    printf("wpkg[%d]:unittest: seed is %d\n", getpid(), seed);
+    std::cout << "wpkg[" << getpid() << "]:unittest: seed is " << seed << std::endl;
 
     // we can only have one of those for ALL the tests that directly
     // access the library...
@@ -173,10 +173,10 @@ int unittest_main(int argc, char *argv[])
         remove_from_args( arg_list, "--wpkg", "-w" );
     }
 
-    std::vector<char*> new_argv;
+    std::vector<char *> new_argv;
     std::for_each( arg_list.begin(), arg_list.end(), [&new_argv]( const std::string& arg )
     {
-        new_argv.push_back( const_cast<char*>(arg.c_str()) );
+        new_argv.push_back( const_cast<char *>(arg.c_str()) );
     });
 
     return Catch::Session().run( static_cast<int>(new_argv.size()), &new_argv[0] );

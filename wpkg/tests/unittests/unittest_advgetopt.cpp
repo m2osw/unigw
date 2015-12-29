@@ -51,18 +51,18 @@ AdvGetOptUnitTests::AdvGetOptUnitTests()
     const char *options(getenv("ADVGETOPT_TEST_OPTIONS"));
     if(options != NULL && *options != '\0')
     {
-        fprintf(stderr, "\nerror:unittest_advgetopt: ADVGETOPT_TEST_OPTIONS already exists, the advgetopt tests would not work as expected with such. Please unset that environment variable.\n");
+        std::cerr << std::endl << "error:unittest_advgetopt: ADVGETOPT_TEST_OPTIONS already exists, the advgetopt tests would not work as expected with such. Please unset that environment variable." << std::endl;
         throw std::runtime_error("ADVGETOPT_TEST_OPTIONS already exists");
     }
 #ifndef ADVGETOPT_THROW_FOR_EXIT
-    fprintf(stderr, "\nwarning:unittest_advgetopt: the ADVGETOPT_THROW_FOR_EXIT flag is not defined, usage() calls will not be tested.\n");
+    std::cerr << std::endl << "warning:unittest_advgetopt: the ADVGETOPT_THROW_FOR_EXIT flag is not defined, usage() calls will not be tested." << std::endl;
 #endif
 }
 
 
 void AdvGetOptUnitTests::invalid_parameters()
 {
-    printf("\nAdvanced GetOpt Output:\n");
+    std::cout << std::endl << "Advanced GetOpt Output (expected until the test fails):" << std::endl;
     // default arguments
     const char *cargv[] =
     {
@@ -1427,6 +1427,7 @@ void AdvGetOptUnitTests::invalid_parameters()
     }
 
     // required multiple without arguments
+#ifdef ADVGETOPT_THROW_FOR_EXIT
     {
         const advgetopt::getopt::option options[] =
         {
@@ -1482,8 +1483,10 @@ void AdvGetOptUnitTests::invalid_parameters()
             CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc2, argv2, options, confs, NULL); }, advgetopt::getopt_exception_exiting);
         }
     }
+#endif
 
     // required multiple without arguments, short name only
+#ifdef ADVGETOPT_THROW_FOR_EXIT
     {
         const advgetopt::getopt::option options[] =
         {
@@ -1526,6 +1529,7 @@ void AdvGetOptUnitTests::invalid_parameters()
             CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc2, argv2, options, confs, NULL); }, advgetopt::getopt_exception_exiting);
         }
     }
+#endif
 }
 
 

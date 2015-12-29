@@ -32,6 +32,7 @@
  * information about all the command line arguments.
  */
 #include    <algorithm>
+#include    <iostream>
 #include    "libdebpackages/advgetopt.h"
 #include    "libdebpackages/compatibility.h"
 #include    "libdebpackages/memfile.h"
@@ -1119,7 +1120,7 @@ void getopt::usage(status_t status, const char *msg, ...)
                 {
                     // in this case the user did not want any newlines
                     // in the output (important for help2man tool)
-                    printf("   %s   %s\n", buf, h);
+                    std::cout << "   " << buf << "   " << h << std::endl;
                 }
                 else
                 {
@@ -1151,9 +1152,10 @@ void getopt::usage(status_t status, const char *msg, ...)
                         }
                         if(nl)
                         {
-                            printf("        ");
+                            std::cout << "        ";
                         }
-                        printf("%.*s\n", l, h);
+                        std::string s(h, l);
+                        std::cout << s << std::endl;
                         nl = true;
                     }
                 }

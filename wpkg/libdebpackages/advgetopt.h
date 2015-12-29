@@ -46,35 +46,35 @@ namespace advgetopt
 class getopt_exception : public std::runtime_error
 {
 public:
-    getopt_exception(const std::string& msg) : runtime_error(msg) {}
+    explicit getopt_exception(const std::string& msg) : runtime_error(msg) {}
 };
 
 // problem with a default argument
 class getopt_exception_default : public getopt_exception
 {
 public:
-    getopt_exception_default(const std::string& msg) : getopt_exception(msg) {}
+    explicit getopt_exception_default(const std::string& msg) : getopt_exception(msg) {}
 };
 
 // trying to get an undefined option
 class getopt_exception_undefined : public getopt_exception
 {
 public:
-    getopt_exception_undefined(const std::string& msg) : getopt_exception(msg) {}
+    explicit getopt_exception_undefined(const std::string& msg) : getopt_exception(msg) {}
 };
 
 // something wrong in the user options
 class getopt_exception_invalid : public getopt_exception
 {
 public:
-    getopt_exception_invalid(const std::string& msg) : getopt_exception(msg) {}
+    explicit getopt_exception_invalid(const std::string& msg) : getopt_exception(msg) {}
 };
 
 // usage() was called and the library was compiled in debug mode
 class getopt_exception_exiting : public getopt_exception
 {
 public:
-    getopt_exception_exiting(const std::string& msg) : getopt_exception(msg) {}
+    explicit getopt_exception_exiting(const std::string& msg) : getopt_exception(msg) {}
 };
 
 
