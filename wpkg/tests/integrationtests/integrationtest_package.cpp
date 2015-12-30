@@ -73,10 +73,10 @@ namespace
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
-class PackageUnitTests
+class PackageTests
 {
 public:
-    PackageUnitTests()
+    PackageTests()
     {
         // make sure that the temporary directory is not empty, may be relative
         if(integrationtest::tmp_dir.empty())
@@ -317,7 +317,8 @@ public:
                 core_ctrl.printf("%s", ctrl->get_variable("INSTALL_EXTRACOREFIELDS").c_str());
             }
             core_ctrl.write_file(core_ctrl_filename);
-            std::string core_cmd(integrationtest::wpkg_tool + " --root " + wpkg_util::make_safe_console_string(target_path.path_only())
+            std::string core_cmd(integrationtest::wpkg_tool
+                    + " --root " + wpkg_util::make_safe_console_string(target_path.path_only())
                     + " --create-admindir " + wpkg_util::make_safe_console_string(core_ctrl_filename.path_only()));
             printf("Create AdminDir Command: \"%s\"\n", core_cmd.c_str());
             fflush(stdout);
@@ -4309,7 +4310,7 @@ public:
     }
 
 };
-// class PackageUnitTests
+// class PackageTests
 
 
 
@@ -4322,54 +4323,54 @@ public:
 ///////////////////////////////////////////////////////////////////////////
 
 
-CATCH_TEST_CASE("PackageUnitTests::simple_package","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::simple_package","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.simple_package();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::simple_package_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::simple_package_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.simple_package();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::admindir_package","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::admindir_package","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.admindir_package();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::admindir_package_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::admindir_package_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.admindir_package();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::upgrade_package","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::upgrade_package","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.upgrade_package();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::upgrade_package_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::upgrade_package_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.upgrade_package();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::depends_with_simple_packages","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::depends_with_simple_packages","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.depends_with_simple_packages();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::depends_with_simple_packages_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::depends_with_simple_packages_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     // IMPORTANT: remember that all files are deleted between tests
 
     // run the simple packages with the path transformed to include a space
@@ -4377,302 +4378,302 @@ CATCH_TEST_CASE("PackageUnitTests::depends_with_simple_packages_with_spaces","Pa
     test.depends_with_simple_packages();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::essential_package","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::essential_package","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.essential_package();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::essential_package_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::essential_package_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_a_space;
     test.essential_package();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::file_exists_in_admindir","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::file_exists_in_admindir","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.file_exists_in_admindir();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::file_exists_in_admindir_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::file_exists_in_admindir_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.file_exists_in_admindir();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::depends_distribution_packages","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::depends_distribution_packages","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.depends_distribution_packages();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::depends_distribution_packages_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::depends_distribution_packages_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.depends_distribution_packages();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::conflicting_packages","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::conflicting_packages","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.conflicting_packages();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::conflicting_packages_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::conflicting_packages_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.conflicting_packages();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::sorted_packages_auto_index","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::sorted_packages_auto_index","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.sorted_packages_run(false);
 }
 
-CATCH_TEST_CASE("PackageUnitTests::sorted_packages_auto_index_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::sorted_packages_auto_index_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.sorted_packages_run(false);
 }
 
-CATCH_TEST_CASE("PackageUnitTests::sorted_packages_ready_index","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::sorted_packages_ready_index","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.sorted_packages_run(true);
 }
 
-CATCH_TEST_CASE("PackageUnitTests::sorted_packages_ready_index_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::sorted_packages_ready_index_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.sorted_packages_run(true);
 }
 
-CATCH_TEST_CASE("PackageUnitTests::choices_packages","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::choices_packages","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.choices_packages();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::choices_packages_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::choices_packages_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.choices_packages();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::same_package_two_places_errors","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::same_package_two_places_errors","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.same_package_two_places_errors();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::same_package_two_places_errors_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::same_package_two_places_errors_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.same_package_two_places_errors();
 }
 
 
-CATCH_TEST_CASE("PackageUnitTests::self_upgrade","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::self_upgrade","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.self_upgrade();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::self_upgrade_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::self_upgrade_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.self_upgrade();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::scripts_order","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::scripts_order","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.scripts_order();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::scripts_order_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::scripts_order_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.scripts_order();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::compare_versions","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::compare_versions","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.compare_versions();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::compare_versions_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::compare_versions_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.compare_versions();
 }
 
 
-CATCH_TEST_CASE("PackageUnitTests::auto_upgrade","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::auto_upgrade","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.auto_upgrade();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::auto_upgrade_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::auto_upgrade_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.auto_upgrade();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::auto_downgrade","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::auto_downgrade","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.auto_downgrade();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::auto_downgrade_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::auto_downgrade_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.auto_downgrade();
 }
 
 
-CATCH_TEST_CASE("PackageUnitTests::test_hold","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::test_hold","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.test_hold();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::test_hold_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::test_hold_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.test_hold();
 }
 
 
-CATCH_TEST_CASE("PackageUnitTests::minimum_upgradable_version","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::minimum_upgradable_version","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.minimum_upgradable_version();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::minimum_upgradable_version_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::minimum_upgradable_version_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.minimum_upgradable_version();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::check_drive_subst","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::check_drive_subst","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.check_drive_subst();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::check_drive_subst_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::check_drive_subst_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.check_drive_subst();
 }
 
 
-CATCH_TEST_CASE("PackageUnitTests::check_architecture_vendor","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::check_architecture_vendor","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.check_architecture_vendor();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::check_architecture_vendor_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::check_architecture_vendor_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.check_architecture_vendor();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::check_architecture_vendor2","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::check_architecture_vendor2","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.check_architecture_vendor2();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::check_architecture_vendor2_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::check_architecture_vendor2_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.check_architecture_vendor2();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::install_hooks","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::install_hooks","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.install_hooks();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::install_hooks_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::install_hooks_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.install_hooks();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::auto_remove","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::auto_remove","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.auto_remove();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::auto_remove_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::auto_remove_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.auto_remove();
 }
 
 
-CATCH_TEST_CASE("PackageUnitTests::scripts_selection","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::scripts_selection","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.scripts_selection();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::scripts_selection_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::scripts_selection_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.scripts_selection();
 }
 
 
-CATCH_TEST_CASE("PackageUnitTests::complex_tree_in_repository","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::complex_tree_in_repository","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     test.complex_tree_in_repository();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::complex_tree_in_repository_with_spaces","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::complex_tree_in_repository_with_spaces","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
     raii_tmp_dir_with_space add_spaces;
     test.complex_tree_in_repository();
 }
 
-CATCH_TEST_CASE("PackageUnitTests::unacceptable_filename","PackageUnitTests")
+CATCH_TEST_CASE("PackageTests::unacceptable_filename","PackageTests")
 {
-    PackageUnitTests test;
+    PackageTests test;
 
     // filename ending with a period
     std::shared_ptr<wpkg_control::control_file> ctrl_t1_0(test.get_new_control_file(__FUNCTION__));
