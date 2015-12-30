@@ -101,7 +101,8 @@ if( CATCH_FOUND )
     if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
         set( DEBUG_WORD "_d" )
     endif()
-    add_test( unittests ${PROJECT_NAME} --tmp ${TMPDIR} --wpkg ${CMAKE_BINARY_DIR}/tools/wpkg_static${DEBUG_WORD}${CMAKE_EXECUTABLE_SUFFIX} )
+    add_test( unittests ${PROJECT_NAME} --tmp ${TMPDIR} )
+           
 
 endif( CATCH_FOUND )
 
