@@ -486,7 +486,7 @@ void wpkgar_manager::unlock()
     if(f_lock_count == 0)
     {
         // restore the status also
-        //load_package("core");
+        load_package("core");
         set_field("core", wpkg_control::control_file::field_xstatus_factory_t::canonicalized_name(), "Ready", true);
         // release the lock
         close(f_lock_fd);
@@ -550,7 +550,7 @@ bool wpkgar_manager::remove_lock()
     lock_filename.os_unlink();
 
     // restore the status also
-    //load_package("core");
+    load_package("core");
     set_field("core", wpkg_control::control_file::field_xstatus_factory_t::canonicalized_name(), "Ready", true);
 
     // we had to unlock the database and it worked!
@@ -1679,7 +1679,7 @@ void wpkgar_manager::add_global_hook(const wpkg_filename::uri_filename& script_n
     script.read_file(script_name);
 
     // we'll need to have the core package ready
-    //load_package("core");
+    load_package("core");
     const std::shared_ptr<wpkgar_package> core(get_package("core"));
     const wpkg_filename::uri_filename& core_package_path(core->get_package_path());
     const wpkg_filename::uri_filename hooks_path(core_package_path.append_child("hooks"));
@@ -1714,7 +1714,7 @@ bool wpkgar_manager::remove_global_hook(const wpkg_filename::uri_filename& scrip
     }
 
     // we'll need to have the core package ready
-    //load_package("core");
+    load_package("core");
     const std::shared_ptr<wpkgar_package> core(get_package("core"));
     const wpkg_filename::uri_filename& core_package_path(core->get_package_path());
     const wpkg_filename::uri_filename hooks_path(core_package_path.append_child("hooks"));
@@ -1736,7 +1736,7 @@ bool wpkgar_manager::remove_global_hook(const wpkg_filename::uri_filename& scrip
 void wpkgar_manager::install_hooks(const std::string& package_name)
 {
     // we'll need to have the core package ready
-    //load_package("core");
+    load_package("core");
     const std::shared_ptr<wpkgar_package> core(get_package("core"));
     const wpkg_filename::uri_filename& core_package_path(core->get_package_path());
     const wpkg_filename::uri_filename hooks_path(core_package_path.append_child("hooks"));

@@ -407,19 +407,19 @@ void wpkgar_command::run()
  */
 void wpkgar_command::run_configure()
 {
-    wpkgar::wpkgar_install pkg_install(f_manager);
-    pkg_install.set_configuring();
+    wpkgar::wpkgar_install::pointer_t installer( new wpkgar::wpkgar_install(f_manager) );
+    installer->set_configuring();
 
-    pkg_install.add_package(f_params[0]);
+    installer->add_package(f_params[0]);
 
-    if(pkg_install.validate())
+    if(installer->validate())
     {
         // TODO: test that all the specified packages are indeed unpacked
         //       before attempting to configure them
-        const int max(pkg_install.count());
+        const int max(installer->count());
         for(int i(0); i < max; ++i)
         {
-            if(!pkg_install.configure(i))
+            if(!installer->configure(i))
             {
                 break;
             }
@@ -470,27 +470,27 @@ void wpkgar_command::run_deconfigure()
  */
 void wpkgar_command::run_downgrade()
 {
-    wpkgar::wpkgar_install pkg_install(f_manager);
-    pkg_install.set_installing();
+    wpkgar::wpkgar_install::pointer_t installer( new wpkgar::wpkgar_install(f_manager) );
+    installer->set_installing();
 
     // parameters
-    pkg_install.set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_downgrade, true);
-    pkg_install.set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_file_info, true);
-    pkg_install.set_parameter(wpkgar::wpkgar_install::wpkgar_install_quiet_file_info, true);
-    pkg_install.set_parameter(wpkgar::wpkgar_install::wpkgar_install_recursive, true);
+    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_downgrade, true);
+    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_file_info, true);
+    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_quiet_file_info, true);
+    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_recursive, true);
 
-    pkg_install.add_package(f_params[0]);
+    installer->add_package(f_params[0]);
 
-    if(pkg_install.validate())
+    if(installer->validate())
     {
-        if(pkg_install.pre_configure())
+        if(installer->pre_configure())
         {
-            const int i(pkg_install.unpack());
+            const int i(installer->unpack());
             if(i < 0)
             {
                 return;
             }
-            pkg_install.configure(i);
+            installer->configure(i);
         }
     }
 }
@@ -503,26 +503,26 @@ void wpkgar_command::run_downgrade()
  */
 void wpkgar_command::run_install()
 {
-    wpkgar::wpkgar_install pkg_install(f_manager);
-    pkg_install.set_installing();
+    wpkgar::wpkgar_install::pointer_t installer( new wpkgar::wpkgar_install(f_manager) );
+    installer->set_installing();
 
     // parameters
-    pkg_install.set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_file_info, true);
-    pkg_install.set_parameter(wpkgar::wpkgar_install::wpkgar_install_quiet_file_info, true);
-    pkg_install.set_parameter(wpkgar::wpkgar_install::wpkgar_install_recursive, true);
+    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_file_info, true);
+    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_quiet_file_info, true);
+    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_recursive, true);
 
-    pkg_install.add_package(f_params[0]);
+    installer->add_package(f_params[0]);
 
-    if(pkg_install.validate())
+    if(installer->validate())
     {
-        if(pkg_install.pre_configure())
+        if(installer->pre_configure())
         {
-            const int i(pkg_install.unpack());
+            const int i(installer->unpack());
             if(i < 0)
             {
                 return;
             }
-            pkg_install.configure(i);
+            installer->configure(i);
         }
     }
 }
@@ -569,21 +569,21 @@ void wpkgar_command::run_purge()
  */
 void wpkgar_command::run_unpack()
 {
-    wpkgar::wpkgar_install pkg_install(f_manager);
-    pkg_install.set_installing();
+    wpkgar::wpkgar_install::pointer_t installer( new wpkgar::wpkgar_install(f_manager) );
+    installer->set_installing();
 
     // parameters
-    pkg_install.set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_file_info, true);
-    pkg_install.set_parameter(wpkgar::wpkgar_install::wpkgar_install_quiet_file_info, true);
-    pkg_install.set_parameter(wpkgar::wpkgar_install::wpkgar_install_recursive, true);
+    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_file_info, true);
+    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_quiet_file_info, true);
+    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_recursive, true);
 
-    pkg_install.add_package(f_params[0]);
+    installer->add_package(f_params[0]);
 
-    if(pkg_install.validate())
+    if(installer->validate())
     {
-        if(pkg_install.pre_configure())
+        if(installer->pre_configure())
         {
-            pkg_install.unpack();
+            installer->unpack();
         }
     }
 }
