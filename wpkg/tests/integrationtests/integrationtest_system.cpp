@@ -1,4 +1,4 @@
-/*    unittest_system.cpp
+/*    integrationtest_system.cpp
  *    Copyright (C) 2013-2015  Made to Order Software Corporation
  *
  *    This program is free software; you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  *    Alexis Wilke   alexis@m2osw.com
  */
 
-#include "unittest_main.h"
+#include "integrationtest_main.h"
 #include "libdebpackages/debian_packages.h"
 #include "libdebpackages/wpkg_control.h"
 #include <stdexcept>
@@ -321,22 +321,22 @@ class SystemUnitTests
 SystemUnitTests::SystemUnitTests()
 {
     // make sure that the temporary directory is not empty, may be relative
-    if(unittest::tmp_dir.empty())
+    if(integrationtest::tmp_dir.empty())
     {
-        fprintf(stderr, "\nerror:unittest_system: a temporary directory is required to run the system unit tests.\n");
+        fprintf(stderr, "\nerror:integrationtest_system: a temporary directory is required to run the system unit tests.\n");
         throw std::runtime_error("--tmp <directory> missing");
     }
 
     // path to the wpkg tool must not be empty either, may be relative
-    if(unittest::wpkg_tool.empty())
+    if(integrationtest::wpkg_tool.empty())
     {
-        fprintf(stderr, "\nerror:unittest_system: the path to the wpkg tool is required; we do not use chdir() so a relative path will do.\n");
+        fprintf(stderr, "\nerror:integrationtest_system: the path to the wpkg tool is required; we do not use chdir() so a relative path will do.\n");
         throw std::runtime_error("--wpkg <path-to-wpkg> missing");
     }
 
     // delete everything before running ANY ONE TEST
     // (i.e. the setUp() function is called before each and every test)
-    wpkg_filename::uri_filename root(unittest::tmp_dir);
+    wpkg_filename::uri_filename root(integrationtest::tmp_dir);
     try
     {
         root.os_unlink_rf();
@@ -361,7 +361,7 @@ SystemUnitTests::SystemUnitTests()
 
 void SystemUnitTests::create_projects(project_list_t& list)
 {
-    wpkg_filename::uri_filename root(unittest::tmp_dir);
+    wpkg_filename::uri_filename root(integrationtest::tmp_dir);
 
     wpkg_filename::uri_filename project;
     wpkg_filename::uri_filename filename;
@@ -428,7 +428,7 @@ void SystemUnitTests::create_projects(project_list_t& list)
 
 void SystemUnitTests::create_target()
 {
-    wpkg_filename::uri_filename root(unittest::tmp_dir);
+    wpkg_filename::uri_filename root(integrationtest::tmp_dir);
     wpkg_filename::uri_filename repository(root.append_child("repository"));
 
     wpkg_filename::uri_filename target_path(root.append_child("target"));
@@ -443,7 +443,7 @@ void SystemUnitTests::create_target()
     core_ctrl.write_file(core_ctrl_filename, true);
 
     // install the core.ctrl file in the target system
-    const std::string core_cmd(unittest::wpkg_tool + " --root " + target_path.path_only() + " --create-admindir " + core_ctrl_filename.path_only());
+    const std::string core_cmd(integrationtest::wpkg_tool + " --root " + target_path.path_only() + " --create-admindir " + core_ctrl_filename.path_only());
     printf("Run --create-admindir command: \"%s\"\n", core_cmd.c_str());
     fflush(stdout);
     CATCH_REQUIRE(system(core_cmd.c_str()) == 0);
@@ -452,11 +452,11 @@ void SystemUnitTests::create_target()
 
 void SystemUnitTests::manual_builds()
 {
-    wpkg_filename::uri_filename root(unittest::tmp_dir);
+    wpkg_filename::uri_filename root(integrationtest::tmp_dir);
     root.os_mkdir_p();
     root = root.os_real_path();
 
-    wpkg_filename::uri_filename wpkg(unittest::wpkg_tool);
+    wpkg_filename::uri_filename wpkg(integrationtest::wpkg_tool);
     wpkg = wpkg.os_real_path();
 
     wpkg_filename::uri_filename target_path(root.append_child("target"));
@@ -485,10 +485,12 @@ void SystemUnitTests::manual_builds()
             cmd += " --repository ";
             cmd += repository.full_path();
             cmd += " -D 0100";
-            printf("***\n*** Build source package command: %s\n***\n", cmd.c_str());
+            std::cout << "***" << std::endl
+                      << "*** Build source package command: " << cmd.c_str() << std::endl
+                      << "***" << std::endl;
             fflush(stdout);
             int r(system(cmd.c_str()));
-            printf(" Build command returned %d (expected 0)\n", WEXITSTATUS(r));
+            std::cout << " Build command returned " << WEXITSTATUS(r) << " (expected 0)" << std::endl;
             CATCH_REQUIRE(WEXITSTATUS(r) == 0);
         }
 
@@ -510,10 +512,12 @@ void SystemUnitTests::manual_builds()
             cmd += " --repository ";
             cmd += repository.full_path();
             cmd += " --run-unit-tests";
-            printf("***\n*** Build binary package command: %s\n***\n", cmd.c_str());
+            std::cout << "***" << std::endl
+                      << "*** Build binary package command: " << cmd.c_str() << std::endl
+                      << "***" << std::endl;
             fflush(stdout);
             int r(system(cmd.c_str()));
-            printf(" Build command returned %d (expected 0)\n", WEXITSTATUS(r));
+            std::cout << " Build command returned " << WEXITSTATUS(r) << " (expected 0)" << std::endl;
             CATCH_REQUIRE(WEXITSTATUS(r) == 0);
         }
     }
@@ -523,11 +527,11 @@ void SystemUnitTests::manual_builds()
 
 void SystemUnitTests::automated_builds()
 {
-    wpkg_filename::uri_filename root(unittest::tmp_dir);
+    wpkg_filename::uri_filename root(integrationtest::tmp_dir);
     root.os_mkdir_p();
     root = root.os_real_path();
 
-    wpkg_filename::uri_filename wpkg(unittest::wpkg_tool);
+    wpkg_filename::uri_filename wpkg(integrationtest::wpkg_tool);
     wpkg = wpkg.os_real_path();
 
     wpkg_filename::uri_filename target_path(root.append_child("target"));

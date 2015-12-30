@@ -1,4 +1,4 @@
-/*    unittest_main.h
+/*    integrationtest_main.h
  *    Copyright (C) 2013-2015  Made to Order Software Corporation
  *
  *    This program is free software; you can redistribute it and/or modify
@@ -18,8 +18,8 @@
  *    Authors
  *    Alexis Wilke   alexis@m2osw.com
  */
-#ifndef UNIT_TEST_MAIN_H
-#define UNIT_TEST_MAIN_H
+#ifndef INTEGRATION_TEST_MAIN_H
+#define INTEGRATION_TEST_MAIN_H
 #include <string>
 #include <cstring>
 #include <cstdlib>
@@ -30,10 +30,11 @@
 #pragma warning(disable: 4996)
 #endif
 
-namespace unittest
+namespace integrationtest
 {
 
 extern std::string   tmp_dir;
+extern std::string   wpkg_tool;
 
 class obj_setenv
 {

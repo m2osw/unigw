@@ -1727,7 +1727,8 @@ CATCH_TEST_CASE("URIFilenameUnitTests::long_filename","URIFilenameUnitTests")
     // make sure that the temporary directory is not empty, may be relative
     if(unittest::tmp_dir.empty())
     {
-        fprintf(stderr, "\nerror:unittest_uri_filename: a temporary directory is required to run the long_filename() unit test.\n");
+        std::cerr << std::endl
+                  << "error:unittest_uri_filename: a temporary directory is required to run the long_filename() unit test." << std::endl;
         throw std::runtime_error("--tmp <directory> missing");
     }
 

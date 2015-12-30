@@ -81,6 +81,7 @@ CATCH_TEST_CASE("MemfileUnitTests::buffer1","MemfileUnitTests")
     // Make sure that we can swap in and out of memory, and the data stays
     // consistent.
     // Make sure the swap file is deleted when the object is destroyed.
+    std::cerr << "MemfileUnitTests::buffer1 not yet implemented." << std::endl;
 }
 
 CATCH_TEST_CASE("MemfileUnitTests::compression1","MemfileUnitTests")

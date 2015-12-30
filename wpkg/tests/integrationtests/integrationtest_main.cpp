@@ -1,4 +1,4 @@
-/*    unittest_main.cpp
+/*    integrationtest_main.cpp
  *    Copyright (C) 2013-2015  Made to Order Software Corporation
  *
  *    This program is free software; you can redistribute it and/or modify
@@ -25,9 +25,7 @@
 #include <catch.hpp>
 
 #include "tools/license.h"
-#include "libdebpackages/advgetopt.h"
 #include "libdebpackages/debian_packages.h"
-#include "libdebpackages/compatibility.h"
 #include "time.h"
 #if defined(MO_LINUX) || defined(MO_DARWIN) || defined(MO_SUNOS) || defined(MO_FREEBSD)
 #   include <sys/types.h>
@@ -35,15 +33,16 @@
 #endif
 
 
-namespace unittest
+namespace integrationtest
 {
     std::string   tmp_dir;
+    std::string   wpkg_tool;
 }
 
 
 namespace
 {
-    struct UnitTestCLData
+    struct IntegrationTestCLData
     {
         bool        help;
         bool        license;
@@ -52,7 +51,7 @@ namespace
         std::string wpkg;
         bool        version;
 
-        UnitTestCLData()
+        IntegrationTestCLData()
             : help(false)
             , license(false)
             , seed(0)
@@ -80,38 +79,38 @@ namespace
 // namespace
 
 
-int unittest_main(int argc, char *argv[])
+int integrationtest_main(int argc, char *argv[])
 {
-    UnitTestCLData configData;
-    Clara::CommandLine<UnitTestCLData> cli;
+    IntegrationTestCLData configData;
+    Clara::CommandLine<IntegrationTestCLData> cli;
 
-    cli.bind( &UnitTestCLData::help )
+    cli.bind( &IntegrationTestCLData::help )
         .describe( "display usage information" )
         .shortOpt( "?")
         .shortOpt( "h")
         .longOpt( "help" );
-    cli.bind( &UnitTestCLData::license )
+    cli.bind( &IntegrationTestCLData::license )
         .describe( "prints out the license of the tests" )
         .shortOpt( "l")
         .longOpt( "license" )
         .longOpt( "licence" );
-    cli.bind( &UnitTestCLData::seed )
+    cli.bind( &IntegrationTestCLData::seed )
         .describe( "value to seed the randomizerd" )
         .shortOpt( "S")
         .longOpt( "seed" )
         .hint("the_seed");
-    cli.bind( &UnitTestCLData::tmp )
+    cli.bind( &IntegrationTestCLData::tmp )
         .describe( "path to a temporary directory" )
         .shortOpt( "t")
         .longOpt( "tmp" )
         .hint( "path" );
-    cli.bind( &UnitTestCLData::wpkg )
+    cli.bind( &IntegrationTestCLData::wpkg )
         .describe( "path to the wpkg executable" )
         .shortOpt( "w")
         .longOpt( "wpkg" )
         .hint( "path" );
-    cli.bind( &UnitTestCLData::version )
-        .describe( "print out the wpkg project version these unit tests pertain to" )
+    cli.bind( &IntegrationTestCLData::version )
+        .describe( "print out the wpkg project version these integration tests pertain to" )
         .shortOpt( "V")
         .longOpt( "version" );
     cli.parseInto( argc, argv, configData );
@@ -150,7 +149,7 @@ int unittest_main(int argc, char *argv[])
         remove_from_args( arg_list, "--seed", "-s" );
     }
     srand(seed);
-    std::cout << "wpkg[" << getpid() << "]:unittest: seed is " << seed << std::endl;
+    std::cout << "wpkg[" << getpid() << "]:integrationtest: seed is " << seed << std::endl;
 
     // we can only have one of those for ALL the tests that directly
     // access the library...
@@ -163,8 +162,13 @@ int unittest_main(int argc, char *argv[])
 
     if( !configData.tmp.empty() )
     {
-        unittest::tmp_dir = configData.tmp;
+        integrationtest::tmp_dir = configData.tmp;
         remove_from_args( arg_list, "--tmp", "-t" );
+    }
+    if( !configData.wpkg.empty() )
+    {
+        integrationtest::wpkg_tool = configData.wpkg;
+        remove_from_args( arg_list, "--wpkg", "-w" );
     }
 
     std::vector<char *> new_argv;
@@ -179,7 +183,7 @@ int unittest_main(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-    return unittest_main(argc, argv);
+    return integrationtest_main(argc, argv);
 }
 
 // vim: ts=4 sw=4 et

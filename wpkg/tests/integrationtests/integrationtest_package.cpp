@@ -1,4 +1,4 @@
-/*    unittest_package.cpp
+/*    integrationtest_package.cpp
  *    Copyright (C) 2013-2015  Made to Order Software Corporation
  *
  *    This program is free software; you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  *    Alexis Wilke   alexis@m2osw.com
  */
 
-#include "unittest_main.h"
+#include "integrationtest_main.h"
 #include "libdebpackages/debian_packages.h"
 #include "libdebpackages/wpkg_control.h"
 #include "libdebpackages/wpkg_architecture.h"
@@ -42,14 +42,14 @@ namespace
     struct raii_tmp_dir_with_space
     {
         raii_tmp_dir_with_space()
-            : f_backup(unittest::tmp_dir)
+            : f_backup(integrationtest::tmp_dir)
         {
-            unittest::tmp_dir += "/path with spaces";
+            integrationtest::tmp_dir += "/path with spaces";
         }
 
         ~raii_tmp_dir_with_space()
         {
-            unittest::tmp_dir = f_backup;
+            integrationtest::tmp_dir = f_backup;
         }
 
         private:
@@ -79,16 +79,16 @@ public:
     PackageUnitTests()
     {
         // make sure that the temporary directory is not empty, may be relative
-        if(unittest::tmp_dir.empty())
+        if(integrationtest::tmp_dir.empty())
         {
-            fprintf(stderr, "\nerror:unittest_package: a temporary directory is required to run the package unit tests.\n");
+            fprintf(stderr, "\nerror:integrationtest_package: a temporary directory is required to run the package unit tests.\n");
             throw std::runtime_error("--tmp <directory> missing");
         }
 
         // path to the wpkg tool must not be empty either, may be relative
-        if(unittest::wpkg_tool.empty())
+        if(integrationtest::wpkg_tool.empty())
         {
-            fprintf(stderr, "\nerror:unittest_package: the path to the wpkg tool is required; we do not use chdir() so a relative path will do.\n");
+            fprintf(stderr, "\nerror:integrationtest_package: the path to the wpkg tool is required; we do not use chdir() so a relative path will do.\n");
             throw std::runtime_error("--wpkg <path-to-wpkg> missing");
         }
 
@@ -97,13 +97,13 @@ public:
         const char *env(getenv("WPKG_OPTIONS"));
         if(config1.exists() || config2.exists() || (env != nullptr && *env != '\0'))
         {
-            fprintf(stderr, "\nerror:unittest_package: at least one of the wpkg.conf files or the WPKG_OPTIONS variable exist and could undermine this test. Please delete or rename configuration files (/etc/wpkg/wpkg.conf or ~/.config/wpkg/wpkg.conf) and unset  the WPKG_OPTIONS environment variable.\n");
+            fprintf(stderr, "\nerror:integrationtest_package: at least one of the wpkg.conf files or the WPKG_OPTIONS variable exist and could undermine this test. Please delete or rename configuration files (/etc/wpkg/wpkg.conf or ~/.config/wpkg/wpkg.conf) and unset  the WPKG_OPTIONS environment variable.\n");
             throw std::runtime_error("/etc/wpkg/wpkg.conf, ~/.config/wpkg/wpkg.conf, and WPKG_OPTIONS exist");
         }
 
         // delete everything before running ANY ONE TEST
         // (i.e. the setUp() function is called before each and every test)
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         try
         {
             root.os_unlink_rf();
@@ -206,7 +206,7 @@ public:
      */
     void create_package(const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl, bool reset_wpkg_dir = true)
     {
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         wpkg_filename::uri_filename build_path(root.append_child(name));
         wpkg_filename::uri_filename wpkg_path(build_path.append_child("WPKG"));
 
@@ -245,7 +245,7 @@ public:
         wpkg_filename::uri_filename repository(root.append_child("repository"));
         repository.os_mkdir_p();
 
-        std::string cmd(unittest::wpkg_tool);
+        std::string cmd(integrationtest::wpkg_tool);
         if(ctrl->variable_is_defined("BUILD_PREOPTIONS"))
         {
             cmd += " " + ctrl->get_variable("BUILD_PREOPTIONS");
@@ -293,7 +293,7 @@ public:
      */
     void install_package(const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl, int expected_return_value = 0)
     {
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         wpkg_filename::uri_filename target_path(root.append_child("target"));
         wpkg_filename::uri_filename repository(root.append_child("repository"));
 
@@ -317,7 +317,7 @@ public:
                 core_ctrl.printf("%s", ctrl->get_variable("INSTALL_EXTRACOREFIELDS").c_str());
             }
             core_ctrl.write_file(core_ctrl_filename);
-            std::string core_cmd(unittest::wpkg_tool + " --root " + wpkg_util::make_safe_console_string(target_path.path_only())
+            std::string core_cmd(integrationtest::wpkg_tool + " --root " + wpkg_util::make_safe_console_string(target_path.path_only())
                     + " --create-admindir " + wpkg_util::make_safe_console_string(core_ctrl_filename.path_only()));
             printf("Create AdminDir Command: \"%s\"\n", core_cmd.c_str());
             fflush(stdout);
@@ -329,7 +329,7 @@ public:
             //
             wpkg_filename::uri_filename index_file(repository.append_child("index.tar.gz"));
             std::string cmd;
-            cmd = unittest::wpkg_tool;
+            cmd = integrationtest::wpkg_tool;
             cmd += " --create-index " + wpkg_util::make_safe_console_string(index_file.path_only());
             cmd += " --repository "   + wpkg_util::make_safe_console_string(repository.path_only());
             std::cout << "Build index command: \"" << cmd << "\"" << std::endl << std::flush;
@@ -343,7 +343,7 @@ public:
         {
             cmd += ctrl->get_field("PRE_COMMAND") + " ";
         }
-        cmd += unittest::wpkg_tool;
+        cmd += integrationtest::wpkg_tool;
         if(ctrl->variable_is_defined("INSTALL_PREOPTIONS"))
         {
             cmd += " " + ctrl->get_variable("INSTALL_PREOPTIONS");
@@ -374,10 +374,10 @@ public:
      */
     void remove_package(const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl, int expected_return_value = 0)
     {
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         wpkg_filename::uri_filename target_path(root.append_child("target"));
 
-        std::string cmd(unittest::wpkg_tool);
+        std::string cmd(integrationtest::wpkg_tool);
         if(ctrl->variable_is_defined("REMOVE_PREOPTIONS"))
         {
             cmd += " " + ctrl->get_variable("REMOVE_PREOPTIONS");
@@ -409,10 +409,10 @@ public:
      */
     void purge_package(const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl, int expected_return_value = 0)
     {
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         wpkg_filename::uri_filename target_path(root.append_child("target"));
 
-        std::string cmd(unittest::wpkg_tool);
+        std::string cmd(integrationtest::wpkg_tool);
         if(ctrl->variable_is_defined("PURGE_PREOPTIONS"))
         {
             cmd += " " + ctrl->get_variable("PURGE_PREOPTIONS");
@@ -448,7 +448,7 @@ public:
      */
     void verify_installed_files(const std::string& name)
     {
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         wpkg_filename::uri_filename target_path(root.append_child("target"));
         wpkg_filename::uri_filename build_path(root.append_child(name));
         memfile::memory_file dir;
@@ -526,7 +526,7 @@ public:
      */
     void verify_generated_files(const verify_file_vector_t& files)
     {
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         wpkg_filename::uri_filename target_path(root.append_child("target"));
 
         for(verify_file_vector_t::const_iterator it(files.begin()); it != files.end(); ++it)
@@ -627,7 +627,7 @@ public:
             conffiles.set(ctrl->get_field("Conffiles"));
         }
         wpkg_control::file_list_t::size_type max(conffiles.size());
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         wpkg_filename::uri_filename target_path(root.append_child("target"));
         wpkg_filename::uri_filename build_path(root.append_child(name));
         memfile::memory_file dir;
@@ -699,7 +699,7 @@ public:
      */
     void verify_purged_files(const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl, string_list exceptions = string_list())
     {
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         wpkg_filename::uri_filename target_path(root.append_child("target"));
         wpkg_filename::uri_filename build_path(root.append_child(name));
         memfile::memory_file dir;
@@ -836,7 +836,7 @@ public:
         purge_package("t1", ctrl);
         verify_purged_files("t1", ctrl);
 
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         //wpkg_filename::uri_filename target_path(root.append_child("target"));
         wpkg_filename::uri_filename repository(root.append_child("repository"));
 
@@ -871,7 +871,7 @@ public:
         // in this special case we want to create the target directory to avoid
         // the --create-admindir in it; then create and run --create-admindir
         // in the separate administration directory
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         wpkg_filename::uri_filename target_path(root.append_child("target"));
         wpkg_filename::uri_filename repository(root.append_child("repository"));
         wpkg_filename::uri_filename admindir(root.append_child("admin"));
@@ -882,7 +882,7 @@ public:
         core_ctrl.create(memfile::memory_file::file_format_other);
         core_ctrl.printf("Architecture: %s\nMaintainer: Alexis Wilke <alexis@m2osw.com>\n", debian_packages_architecture());
         core_ctrl.write_file(core_ctrl_filename);
-        std::string core_cmd(unittest::wpkg_tool + " --admindir " + wpkg_util::make_safe_console_string(admindir.os_real_path().full_path()) + " --create-admindir " + wpkg_util::make_safe_console_string(core_ctrl_filename.path_only()));
+        std::string core_cmd(integrationtest::wpkg_tool + " --admindir " + wpkg_util::make_safe_console_string(admindir.os_real_path().full_path()) + " --create-admindir " + wpkg_util::make_safe_console_string(core_ctrl_filename.path_only()));
         printf("  Specilized Create AdminDir Command: \"%s\"  ", core_cmd.c_str());
         fflush(stdout);
         CATCH_REQUIRE(system(core_cmd.c_str()) == 0);
@@ -947,7 +947,7 @@ public:
         verify_installed_files("t1");
 
         // make sure that /usr/bin/t1 was removed
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         wpkg_filename::uri_filename target_path(root.append_child("target"));
         CATCH_REQUIRE(!target_path.append_child("usr/bin/t1").exists());
 
@@ -1035,7 +1035,7 @@ public:
         verify_purged_files("t2", ctrl_t2);
 
         // test with the --repository option
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         wpkg_filename::uri_filename build_path_t2(root.append_child("t2"));
         wpkg_filename::uri_filename wpkg_path_t2(build_path_t2.append_child("WPKG"));
         wpkg_filename::uri_filename repository(root.append_child("repository"));
@@ -1209,7 +1209,7 @@ public:
         create_package("t1", ctrl_t1);
 
         // create a file named "t1" in the admindir to prevent installation
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         wpkg_filename::uri_filename target_path(root.append_child("target"));
         wpkg_filename::uri_filename t1_file(target_path.append_child("var/lib/wpkg/t1"));
         memfile::memory_file t1_data;
@@ -1324,7 +1324,7 @@ public:
                 );
 
         // test with the --repository option
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         wpkg_filename::uri_filename repository(root.append_child("repository"));
         ctrl_t2->set_variable("INSTALL_PREOPTIONS", "--repository " + wpkg_util::make_safe_console_string(repository.path_only()));
 
@@ -1513,7 +1513,7 @@ public:
     {
         // IMPORTANT: remember that all files are deleted between tests
 
-        wpkg_filename::uri_filename const root(unittest::tmp_dir);
+        wpkg_filename::uri_filename const root(integrationtest::tmp_dir);
         wpkg_filename::uri_filename const repository(root.append_child("repository"));
 
         // *** CREATION ***
@@ -1568,7 +1568,7 @@ public:
         // mechanism too once in a while so we randomize the use of that
         if(precreate_index)
         {
-            std::string cmd(unittest::wpkg_tool);
+            std::string cmd(integrationtest::wpkg_tool);
             cmd += " --create-index " + wpkg_util::make_safe_console_string(repository.full_path()) + "/index.tar.gz --repository " + wpkg_util::make_safe_console_string(repository.full_path());
             printf("Create packages index: \"%s\"\n", cmd.c_str());
             fflush(stdout);
@@ -1665,7 +1665,7 @@ public:
         wpkg_filename::os_dir debs(repository);
         const std::string debs_filenames(debs.read_all("*.deb"));
         {
-            std::string cmd(unittest::wpkg_tool);
+            std::string cmd(integrationtest::wpkg_tool);
             //repository.append_child("/*.deb").full_path(true)
             cmd += " --md5sums " + debs_filenames + " >" + wpkg_util::make_safe_console_string(root.append_child("/md5sums.txt").full_path(true)) + " -v";
             printf("Create md5sums: \"%s\"\n", cmd.c_str());
@@ -1673,7 +1673,7 @@ public:
             CATCH_REQUIRE(system(cmd.c_str()) == 0);
         }
         {
-            std::string cmd(unittest::wpkg_tool);
+            std::string cmd(integrationtest::wpkg_tool);
             cmd += " --md5sums-check " + wpkg_util::make_safe_console_string(root.append_child("/md5sums.txt").full_path(true)) + " " + debs_filenames + " -v";
             printf("  check valid md5sums: \"%s\"\n", cmd.c_str());
             fflush(stdout);
@@ -1698,7 +1698,7 @@ public:
 #   pragma GCC diagnostic pop
 #endif
             // try again and this time we MUST get an error
-            std::string cmd(unittest::wpkg_tool);
+            std::string cmd(integrationtest::wpkg_tool);
             cmd += " --md5sums-check " + wpkg_util::make_safe_console_string(root.full_path()) + "/md5sums.txt " + debs_filenames + " -v";
             printf("  check invalid md5sums: \"%s\"\n", cmd.c_str());
             fflush(stdout);
@@ -1711,7 +1711,7 @@ public:
     {
         // IMPORTANT: remember that all files are deleted between tests
 
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         wpkg_filename::uri_filename repository(root.append_child("repository"));
 
         // Failing tree because pb and pc require two different versions of pd
@@ -1854,7 +1854,7 @@ public:
     {
         // IMPORTANT: remember that all files are deleted between tests
 
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         wpkg_filename::uri_filename repository(root.append_child("repository"));
         wpkg_filename::uri_filename rep2(root.append_child("rep2"));
         rep2.os_mkdir_p();
@@ -1993,7 +1993,7 @@ public:
     {
         // IMPORTANT: remember that all files are deleted between tests
 
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         wpkg_filename::uri_filename repository(root.append_child("repository"));
 
         ////////////////////// t1 -- upgrade from full scripts to full scripts
@@ -2808,7 +2808,7 @@ public:
             {
                 for(size_t k(0); k < 10; ++k)
                 {
-                    std::string cmd(unittest::wpkg_tool);
+                    std::string cmd(integrationtest::wpkg_tool);
                     cmd += " --compare-versions ";
                     if(*versions[i].f_left == '\0')
                     {
@@ -2849,7 +2849,7 @@ public:
     {
         // IMPORTANT: remember that all files are deleted between tests
 
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         //wpkg_filename::uri_filename target_path(root.append_child("target"));
         wpkg_filename::uri_filename repository(root.append_child("repository"));
 
@@ -2918,7 +2918,7 @@ public:
     {
         // IMPORTANT: remember that all files are deleted between tests
 
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         //wpkg_filename::uri_filename target_path(root.append_child("target"));
         wpkg_filename::uri_filename repository(root.append_child("repository"));
 
@@ -2988,7 +2988,7 @@ public:
     {
         // IMPORTANT: remember that all files are deleted between tests
 
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         wpkg_filename::uri_filename target_path(root.append_child("target"));
         wpkg_filename::uri_filename repository(root.append_child("repository"));
 
@@ -3013,7 +3013,7 @@ public:
         verify_installed_files("held");
 
         // now we want to mark the package for hold
-        std::string cmd(unittest::wpkg_tool);
+        std::string cmd(integrationtest::wpkg_tool);
         cmd += " --root " + wpkg_util::make_safe_console_string(target_path.path_only());
         cmd += " --set-selection hold held";
         printf("Set Selection Command: \"%s\"\n", cmd.c_str());
@@ -3111,7 +3111,7 @@ public:
     {
         // IMPORTANT: remember that all files are deleted between tests
 
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         //wpkg_filename::uri_filename target_path(root.append_child("target"));
         wpkg_filename::uri_filename repository(root.append_child("repository"));
 
@@ -3172,7 +3172,7 @@ public:
     {
         // IMPORTANT: remember that all files are deleted between tests
 
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
 
         // create a package
         std::shared_ptr<wpkg_control::control_file> ctrl_t1(get_new_control_file(__FUNCTION__ + std::string(" t1")));
@@ -3317,7 +3317,7 @@ public:
     {
         // IMPORTANT: remember that all files are deleted between tests
 
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         //wpkg_filename::uri_filename target_path(root.append_child("target"));
         wpkg_filename::uri_filename repository(root.append_child("repository"));
 
@@ -3367,7 +3367,7 @@ public:
     {
         // IMPORTANT: remember that all files are deleted between tests
 
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         //wpkg_filename::uri_filename target_path(root.append_child("target"));
         wpkg_filename::uri_filename repository(root.append_child("repository"));
 
@@ -3421,7 +3421,7 @@ public:
     {
         // IMPORTANT: remember that all files are deleted between tests
 
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         wpkg_filename::uri_filename target_path(root.append_child("target"));
         wpkg_filename::uri_filename repository(root.append_child("repository"));
 
@@ -3440,7 +3440,7 @@ public:
         // (one day we'll have a popen() and compare output feature...)
         {
             // this would fail because the hooks directory does not exist
-            std::string cmd(unittest::wpkg_tool);
+            std::string cmd(integrationtest::wpkg_tool);
             cmd += " --root " + wpkg_util::make_safe_console_string(target_path.path_only());
             cmd += " --list-hooks";
             printf("List Hooks Command: \"%s\"\n", cmd.c_str());
@@ -3475,7 +3475,7 @@ public:
             hook_validate_filename = repository.append_child("global_validate");
             hook_validate.write_file(hook_validate_filename, true);
 #endif
-            std::string cmd(unittest::wpkg_tool);
+            std::string cmd(integrationtest::wpkg_tool);
             cmd += " --root " + wpkg_util::make_safe_console_string(target_path.path_only());
             cmd += " --add-hooks " + wpkg_util::make_safe_console_string(hook_validate_filename.path_only());
             printf("Add Hooks Command: \"%s\"\n", cmd.c_str());
@@ -3547,7 +3547,7 @@ public:
         // +++++++ list hooks +++++++
         // (one day we'll have a popen() and compare output feature...)
         {
-            std::string cmd(unittest::wpkg_tool);
+            std::string cmd(integrationtest::wpkg_tool);
             cmd += " --root " + wpkg_util::make_safe_console_string(target_path.path_only());
             cmd += " --list-hooks";
             printf("List Hooks Command: \"%s\"\n", cmd.c_str());
@@ -3584,7 +3584,7 @@ public:
 #else
             hook_validate_filename = "global_validate";
 #endif
-            std::string cmd(unittest::wpkg_tool);
+            std::string cmd(integrationtest::wpkg_tool);
             cmd += " --root " + wpkg_util::make_safe_console_string(target_path.path_only());
             cmd += " --remove-hooks " + wpkg_util::make_safe_console_string(hook_validate_filename.path_only());
             printf("Remove Hooks Command: \"%s\"\n", cmd.c_str());
@@ -3597,7 +3597,7 @@ public:
     {
         // IMPORTANT: remember that all files are deleted between tests
 
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         wpkg_filename::uri_filename target_path(root.append_child("target"));
         wpkg_filename::uri_filename repository(root.append_child("repository"));
 
@@ -3666,7 +3666,7 @@ public:
         verify_installed_files("t1");
 
         {
-            std::string cmd(unittest::wpkg_tool);
+            std::string cmd(integrationtest::wpkg_tool);
             cmd += " --root " + wpkg_util::make_safe_console_string(target_path.path_only());
             cmd += " --autoremove ";
             printf("Auto-Remove Command: \"%s\"\n", cmd.c_str());
@@ -3685,7 +3685,7 @@ public:
         verify_installed_files("t4");
 
         {
-            std::string cmd(unittest::wpkg_tool);
+            std::string cmd(integrationtest::wpkg_tool);
             cmd += " --root " + wpkg_util::make_safe_console_string(target_path.path_only());
             cmd += " --autoremove ";
             printf("Auto-Remove Command: \"%s\"\n", cmd.c_str());
@@ -3708,7 +3708,7 @@ public:
         verify_installed_files("t5");
 
         {
-            std::string cmd(unittest::wpkg_tool);
+            std::string cmd(integrationtest::wpkg_tool);
             cmd += " --root " + wpkg_util::make_safe_console_string(target_path.path_only());
             cmd += " --autoremove ";
             printf("Auto-Remove Command: \"%s\"\n", cmd.c_str());
@@ -3732,7 +3732,7 @@ public:
         verify_installed_files("t5");
 
         {
-            std::string cmd(unittest::wpkg_tool);
+            std::string cmd(integrationtest::wpkg_tool);
             cmd += " --root " + wpkg_util::make_safe_console_string(target_path.path_only());
             cmd += " --autoremove ";
             printf("Auto-Remove Command: \"%s\"\n", cmd.c_str());
@@ -3752,7 +3752,7 @@ public:
     {
         // IMPORTANT: remember that all files are deleted between tests
 
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         wpkg_filename::uri_filename repository(root.append_child("repository"));
 
         ////////////////////// t1 -- make sure only Unix or MS-Windows scripts get in the package
@@ -4019,7 +4019,7 @@ public:
     void complex_tree_in_repository()
     {
         // Installing t02 with --repository works
-        wpkg_filename::uri_filename root(unittest::tmp_dir);
+        wpkg_filename::uri_filename root(integrationtest::tmp_dir);
         wpkg_filename::uri_filename repository(root.append_child("repository"));
 
         // IMPORTANT: remember that all files are deleted between tests
