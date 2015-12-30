@@ -3,7 +3,7 @@
 #      CMakeLists.txt
 #
 # Description:
-#      Definitions to create all the unit tests of the wpkg libraries.
+#      Definitions to create all the integration tests of the wpkg tools.
 #
 # Documentation:
 #      See the CMake documentation.
@@ -36,7 +36,7 @@
 
 # Note that if user does not have Catch then this does not get included
 # in the final output
-project(unittest)
+project(integrationtest)
 
 if( NOT CMAKE_MODULE_PATH )
     set( CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake )
@@ -73,15 +73,9 @@ if( CATCH_FOUND )
     )
 
     add_executable( ${PROJECT_NAME}
-        unittest_main.cpp
-        unittest_advgetopt.cpp
-        unittest_architecture.cpp
-        unittest_control.cpp
-        unittest_expr.cpp
-        unittest_libutf8.cpp
-        unittest_memfile.cpp
-        unittest_uri_filename.cpp
-        unittest_version.cpp
+        integrationtest_main.cpp
+        integrationtest_package.cpp
+        integrationtest_system.cpp
         ../../tools/license.cpp
     )
 
@@ -101,7 +95,7 @@ if( CATCH_FOUND )
     if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
         set( DEBUG_WORD "_d" )
     endif()
-    add_test( unittests ${PROJECT_NAME} --tmp ${TMPDIR} --wpkg ${CMAKE_BINARY_DIR}/tools/wpkg_static${DEBUG_WORD}${CMAKE_EXECUTABLE_SUFFIX} )
+    add_test( integrationtests ${PROJECT_NAME} --tmp ${TMPDIR} --wpkg ${CMAKE_BINARY_DIR}/tools/wpkg_static${DEBUG_WORD}${CMAKE_EXECUTABLE_SUFFIX} )
 
 endif( CATCH_FOUND )
 

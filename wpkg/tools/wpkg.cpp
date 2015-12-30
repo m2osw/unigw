@@ -3007,8 +3007,6 @@ void init_installer
     , const wpkg_filename::uri_filename& package_name = wpkg_filename::uri_filename()
     )
 {
-    init_manager(cl, manager, option);
-
     const int max(cl.opt().size(option));
     if(max == 0)
     {
@@ -3199,6 +3197,7 @@ void init_field_variables
 void check_install(command_line& cl)
 {
     wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
+    init_manager(cl, manager, "check-install");
     wpkgar::wpkgar_install pkg_install(manager);
     init_installer(cl, manager, pkg_install, "check-install");
     pkg_install.set_installing();
@@ -3214,6 +3213,7 @@ void check_install(command_line& cl)
 void install(command_line& cl, const wpkg_filename::uri_filename package_name = wpkg_filename::uri_filename(), const std::string& option = "install")
 {
     wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
+    init_manager(cl, manager, option);
     wpkgar::wpkgar_install pkg_install(manager);
     init_installer(cl, manager, pkg_install, option, package_name);
     pkg_install.set_installing();
@@ -3432,6 +3432,7 @@ void install_size(command_line& cl)
 void unpack(command_line& cl)
 {
     wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
+    init_manager(cl, manager, "unpack");
     wpkgar::wpkgar_install pkg_install(manager);
     init_installer(cl, manager, pkg_install, "unpack");
     pkg_install.set_unpacking();
@@ -3692,6 +3693,7 @@ void vendor(command_line& cl)
 void configure(command_line& cl)
 {
     wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
+    init_manager(cl, manager, "configure");
     wpkgar::wpkgar_install pkg_install(manager);
     init_installer(cl, manager, pkg_install, "configure");
     pkg_install.set_configuring();
@@ -3723,6 +3725,7 @@ void configure(command_line& cl)
 void reconfigure(command_line& cl)
 {
     wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
+    init_manager(cl, manager, "reconfigure");
     wpkgar::wpkgar_install pkg_install(manager);
     init_installer(cl, manager, pkg_install, "reconfigure");
     pkg_install.set_reconfiguring();

@@ -203,6 +203,7 @@ add_subdirectory( libdebpackages     )
 ## Tools and others
 add_subdirectory( tools )
 add_subdirectory( tests/unittests )
+add_subdirectory( tests/integrationtests )
 add_subdirectory( documentation )
 
 ## Make sure we have "_d" for debug binaries
