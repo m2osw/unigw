@@ -22,7 +22,9 @@
 #include "libdebpackages/wpkgar_package.h"
 #include "libdebpackages/wpkgar_exception.h"
 
-#include <unistd.h>
+#if defined(MO_LINUX) || defined(MO_DARWIN) || defined(MO_SUNOS) || defined(MO_FREEBSD)
+#   include <unistd.h>
+#endif
 
 namespace wpkgar
 {
