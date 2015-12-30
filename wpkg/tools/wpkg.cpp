@@ -6433,7 +6433,7 @@ void remove(command_line& cl)
 
 void purge(command_line& cl)
 {
-    wpkgar::wpkgar_manager::pointer_t manager;
+    wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     wpkgar::wpkgar_remove pkg_remove(manager);
     pkg_remove.set_purging();
     init_remover(cl, manager, pkg_remove, "purge");
