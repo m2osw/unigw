@@ -30,9 +30,14 @@
  * transparent manner as it will give you direct access to control files
  * and their fields, package data, repositories, etc.
  */
+#pragma once
+
 #ifndef WPKGAR_H
 #define WPKGAR_H
+
 #include    "libdebpackages/wpkg_control.h"
+#include    "libdebpackages/wpkgar_exception.h"
+#include    "libdebpackages/wpkgar_package.h"
 #include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
 #include <memory>
@@ -40,76 +45,12 @@
 namespace wpkgar
 {
 
-class wpkgar_exception : public std::runtime_error
-{
-public:
-    wpkgar_exception(const std::string& what_msg) : runtime_error(what_msg) {}
-};
-
-class wpkgar_exception_parameter : public wpkgar_exception
-{
-public:
-    wpkgar_exception_parameter(const std::string& what_msg) : wpkgar_exception(what_msg) {}
-};
-
-class wpkgar_exception_invalid : public wpkgar_exception
-{
-public:
-    wpkgar_exception_invalid(const std::string& what_msg) : wpkgar_exception(what_msg) {}
-};
-
-class wpkgar_exception_invalid_emptydir : public wpkgar_exception_invalid
-{
-public:
-    wpkgar_exception_invalid_emptydir(const std::string& what_msg) : wpkgar_exception_invalid(what_msg) {}
-};
-
-class wpkgar_exception_compatibility : public wpkgar_exception
-{
-public:
-    wpkgar_exception_compatibility(const std::string& what_msg) : wpkgar_exception(what_msg) {}
-};
-
-class wpkgar_exception_undefined : public wpkgar_exception
-{
-public:
-    wpkgar_exception_undefined(const std::string& what_msg) : wpkgar_exception(what_msg) {}
-};
-
-class wpkgar_exception_io : public wpkgar_exception
-{
-public:
-    wpkgar_exception_io(const std::string& what_msg) : wpkgar_exception(what_msg) {}
-};
-
-class wpkgar_exception_defined_twice : public wpkgar_exception
-{
-public:
-    wpkgar_exception_defined_twice(const std::string& what_msg) : wpkgar_exception(what_msg) {}
-};
-
-class wpkgar_exception_locked : public wpkgar_exception
-{
-public:
-    wpkgar_exception_locked(const std::string& what_msg) : wpkgar_exception(what_msg) {}
-};
-
-class wpkgar_exception_stop : public wpkgar_exception
-{
-public:
-    wpkgar_exception_stop(const std::string& what_msg) : wpkgar_exception(what_msg) {}
-};
-
 class DEBIAN_PACKAGE_EXPORT wpkgar_interrupt
 {
 public:
     virtual ~wpkgar_interrupt();
     virtual bool stop_now();
 };
-
-
-// internal class to handle packages individually
-class DEBIAN_PACKAGE_EXPORT wpkgar_package;
 
 
 // tracker is set in the manager, but tracking is done with another object
@@ -241,8 +182,8 @@ public:
 
     // control file
     void                                    set_control_file_state(std::shared_ptr<wpkg_control::control_file::control_file_state_t> state);
-    void                                    set_field_variable(const std::string& name, const std::string& value);
-    void                                    set_control_variables(wpkg_control::control_file& control);
+    //void                                    set_field_variable(const std::string& name, const std::string& value);
+    //void                                    set_control_variables(wpkg_control::control_file& control);
     void                                    set_package_selection_to_reject(const std::string& package_name);
     bool                                    has_control_file(const wpkg_filename::uri_filename& package_name, const std::string& control_filename) const;
     void                                    get_control_file(memfile::memory_file& p, const wpkg_filename::uri_filename& package_name, std::string& control_filename, bool compress = true);
@@ -278,7 +219,7 @@ private:
 
     typedef std::shared_ptr<wpkgar_package>           package_t;
     typedef std::map<std::string, package_t >         packages_t;
-    typedef std::map<std::string, std::string>        field_variables_t;
+    //typedef std::map<std::string, std::string>        field_variables_t;
     typedef std::map<std::string, int>                self_packages_t;
     typedef controlled_vars::auto_init<int, -1>       lock_fd_t;
 
@@ -289,7 +230,7 @@ private:
     wpkg_filename::uri_filename                         f_database_path;
     packages_t                                          f_packages;
     wpkg_filename::filename_list_t                      f_repository;
-    field_variables_t                                   f_field_variables;
+    //field_variables_t                                   f_field_variables;
     wpkg_filename::uri_filename                         f_lock_filename;
     lock_fd_t                                           f_lock_fd;
     controlled_vars::zint32_t                           f_lock_count;

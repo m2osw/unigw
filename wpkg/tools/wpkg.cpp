@@ -3187,10 +3187,12 @@ void init_field_variables
         {
             field->set_variable(name, value);
         }
+#if 0
         else
         {
             manager->set_field_variable(name, value);
         }
+#endif
     }
 }
 

@@ -87,14 +87,16 @@ set( LIBDEBPACKAGES_INCLUDE_FILES
     md5.h
     memfile.h
     tcp_client_server.h
+    wpkgar.h
     wpkgar_block.h
     wpkgar_build.h
-    wpkg_architecture.h
-    wpkgar.h
+    wpkgar_exception.h
     wpkgar_install.h
     wpkgar_remove.h
     wpkgar_repository.h
+    wpkgar_package.h
     wpkgar_tracker.h
+    wpkg_architecture.h
     wpkg_backup.h
     wpkg_changelog.h
     wpkg_control.h
@@ -127,6 +129,7 @@ set( LIBDEBPACKAGES_SOURCE_FILES
     wpkgar_install.cpp
     wpkgar_remove.cpp
     wpkgar_repository.cpp
+    wpkgar_package.cpp
     wpkgar_tracker.cpp
     wpkg_architecture.cpp
     wpkg_backup.cpp

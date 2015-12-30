@@ -1949,7 +1949,7 @@ void wpkgar_build::build_source()
     // first run a validation
     source_validation sv;
     wpkg_control::source_control_file controlinfo_fields;
-    f_manager->set_control_variables(controlinfo_fields);
+    //f_manager->set_control_variables(controlinfo_fields);
     if(!validate_source(sv, controlinfo_fields))
     {
         return;
@@ -1967,7 +1967,7 @@ void wpkgar_build::build_source()
     std::string package(controlinfo_fields.get_field(wpkg_control::control_file::field_package_factory_t::canonicalized_name()));
 
     wpkg_control::source_control_file fields;
-    f_manager->set_control_variables(fields);
+    //f_manager->set_control_variables(fields);
     wpkg_field::field_file::list_t excluded;
     excluded.push_back(wpkg_control::control_file::field_subpackages_factory_t::canonicalized_name());
     controlinfo_fields.copy(fields, sv.get_value(wpkg_control::control_file::field_subpackages_factory_t::canonicalized_name()), excluded);
@@ -2403,7 +2403,7 @@ void wpkgar_build::build_project_packages()
     f_controlinfo_filename = f_package_source_path.append_child("wpkg/control.info");
     ctrl_file.read_file(f_controlinfo_filename);
     wpkg_control::source_control_file controlinfo_fields;
-    f_manager->set_control_variables(controlinfo_fields);
+    //f_manager->set_control_variables(controlinfo_fields);
     controlinfo_fields.set_input_file(&ctrl_file);
     const bool cf_result(controlinfo_fields.read());
     controlinfo_fields.set_input_file(NULL);
@@ -2942,7 +2942,7 @@ void wpkgar_build::build_info()
         .module(wpkg_output::module_build_package);
     info.read_file(f_build_directory);
     wpkg_control::info_control_file fields;
-    f_manager->set_control_variables(fields);
+    //f_manager->set_control_variables(fields);
     wpkg_output::log("reading .info control fields %1")
             .quoted_arg(f_build_directory)
         .debug(wpkg_output::debug_flags::debug_detail_config)
@@ -3045,7 +3045,7 @@ void wpkgar_build::build_info()
         // create the sub-package control file
         // the type of file is not important as we do not call the read() function
         wpkg_control::binary_control_file sub_control_file(std::shared_ptr<wpkg_control::control_file::control_file_state_t>(new wpkg_control::control_file::build_control_file_state_t));
-        f_manager->set_control_variables(sub_control_file);
+        //f_manager->set_control_variables(sub_control_file);
         fields.copy(sub_control_file, sub_name, excluded);
         if(!fields.field_is_defined(wpkg_control::control_file::field_package_factory_t::canonicalized_name() + ("/" + sub_name), true) && !hide_sub_name)
         {
@@ -3134,7 +3134,7 @@ void wpkgar_build::build_deb(const wpkg_filename::uri_filename& dir_name)
     memfile::memory_file ctrl;
     ctrl.read_file(control_name);
     wpkg_control::binary_control_file fields(std::shared_ptr<wpkg_control::control_file::control_file_state_t>(new wpkg_control::control_file::build_control_file_state_t));
-    f_manager->set_control_variables(fields);
+    //f_manager->set_control_variables(fields);
 
     // the WPKG sub-directory may have a substvars file
     wpkg_filename::uri_filename substvars_name(wpkg_dir.append_child("substvars"));
@@ -3178,7 +3178,7 @@ void wpkgar_build::build_deb(const wpkg_filename::uri_filename& dir_name)
         }
     }
 
-    f_manager->set_control_variables(fields);
+    //f_manager->set_control_variables(fields);
     fields.set_input_file(&ctrl);
     fields.read();
     fields.set_input_file(NULL);

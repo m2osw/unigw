@@ -29,8 +29,8 @@
  * actually compute the final tree of packages to be installed or find out
  * that the specified packages cannot be installed.
  */
-#ifndef WPKGAR_INSTALL_H
-#define WPKGAR_INSTALL_H
+#pragma once
+
 #include    "libdebpackages/wpkgar.h"
 #include    "libdebpackages/wpkgar_repository.h"
 #include    "libdebpackages/wpkg_dependencies.h"
@@ -87,6 +87,14 @@ public:
         wpkgar_install_skip_same_version        // do not re-install over itself
     };
 
+    enum task_t
+    {
+        task_installing_packages,
+        task_configuring_packages,
+        task_reconfiguring_packages,
+        task_unpacking_packages
+    };
+
     typedef std::shared_ptr<wpkgar_install> pointer_t;
 
     wpkgar_install( wpkgar_manager::pointer_t manager );
@@ -95,10 +103,15 @@ public:
 
     void set_parameter(parameter_t flag, int value);
     int get_parameter(parameter_t flag, int default_value) const;
+
+    bool get_task() const;
+    void set_task( task_t task );
+
     void set_installing();
     void set_configuring();
     void set_reconfiguring();
     void set_unpacking();
+
     void add_field_validation(const std::string& expression);
     void add_package( const std::string& package, const std::string& version = std::string(), const bool force_reinstall = false );
     void add_package( wpkgar_repository::package_item_t entry, const bool force_reinstall = false );
@@ -148,18 +161,42 @@ private:
     void validate_directory( installer::package_item_t package );
     bool validate_packages_to_install();
     bool validate_directories();
+    void validate_package_name( installer::package_item_t& pkg );
     void validate_package_names();
     void installing_source();
+    void validate_installed_package( const std::string& pkg );
     void validate_installed_packages();
+    void validate_distribution_package( const installer::package_item_t& package );
     void validate_distribution();
+    void validate_architecture_package( installer::package_item_t& pkg );
     void validate_architecture();
     int match_dependency_version(const wpkg_dependencies::dependencies::dependency_t& d, const installer::package_item_t& name);
+    bool find_installed_predependency_package( installer::package_item_t& pkg, const wpkg_filename::uri_filename& package_name, const wpkg_dependencies::dependencies::dependency_t& d);
     bool find_installed_predependency(const wpkg_filename::uri_filename& package_name, const wpkg_dependencies::dependencies::dependency_t& d);
     void validate_predependencies();
     validation_return_t find_explicit_dependency(wpkgar_package_list_t::size_type index, const wpkg_filename::uri_filename& package_name, const wpkg_dependencies::dependencies::dependency_t& d, const std::string& field_name);
     validation_return_t find_installed_dependency(wpkgar_package_list_t::size_type index, const wpkg_filename::uri_filename& package_name, const wpkg_dependencies::dependencies::dependency_t& d, const std::string& field_name);
+    bool read_repository_index( const wpkg_filename::uri_filename& repo_filename, memfile::memory_file& index_file );
     void read_repositories();
-    void trim_conflicts(wpkgar_package_list_t& tree, wpkgar_package_list_t::size_type idx, bool only_explicit);
+    void trim_conflicts
+        ( const bool check_available
+        , const bool only_explicit
+        , wpkg_filename::uri_filename filename
+        , installer::package_item_t::package_type_t idx_type
+        , installer::package_item_t& parent_package
+        , installer::package_item_t& depends_package
+        , const wpkg_dependencies::dependencies::dependency_t& dependency
+        );
+    void trim_breaks
+        ( const bool check_available
+        , const bool only_explicit
+        , wpkg_filename::uri_filename filename
+        , installer::package_item_t::package_type_t idx_type
+        , installer::package_item_t& parent_package
+        , installer::package_item_t& depends_package
+        , const wpkg_dependencies::dependencies::dependency_t& dependency
+        );
+    void trim_conflicts( wpkgar_package_list_t& tree, wpkgar_package_list_t::size_type idx, bool only_explicit );
     bool trim_dependency
         ( installer::package_item_t& item
         , wpkgar_package_ptrs_t& parents
@@ -226,9 +263,12 @@ private:
     wpkgar_manager::package_status_t          f_original_status;
     wpkgar_package_list_t                     f_packages;
     installer::tree_generator::package_idxs_t f_sorted_packages;
+    task_t                                    f_task;
+#if 0
     controlled_vars::tbool_t                  f_installing_packages;
     controlled_vars::fbool_t                  f_unpacking_packages;
     controlled_vars::fbool_t                  f_reconfiguring_packages;
+#endif
     controlled_vars::fbool_t                  f_repository_packages_loaded;
     controlled_vars::fbool_t                  f_install_includes_choices;
     controlled_vars::zuint32_t                f_tree_max_depth;
@@ -244,6 +284,4 @@ private:
 
 }   // namespace wpkgar
 
-#endif
-//#ifndef WPKGAR_INSTALL_H
 // vim: ts=4 sw=4 et
