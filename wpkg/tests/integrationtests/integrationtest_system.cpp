@@ -128,7 +128,7 @@ const char * const g_projects[] =
         " http://windowspackager.org/contact",
         "Source: http://windowspackager.org/",
         "License: GPL2",
-        "Disclaimer: This package is part of the wpkg unit test environment.",
+        "Disclaimer: This package is part of the wpkg integration test environment.",
         "Copyright:",
         " Copyright (c) 2013-2015 Made to Order Software Corporation",
     ">file wpkg/changelog",
@@ -213,7 +213,7 @@ const char * const g_projects[] =
         " http://windowspackager.org/contact",
         "Source: http://windowspackager.org/",
         "License: GPL2",
-        "Disclaimer: This package is part of the wpkg unit test environment.",
+        "Disclaimer: This package is part of the wpkg integration test environment.",
         "Copyright:",
         " Copyright (c) 2013-2015 Made to Order Software Corporation",
     ">file wpkg/changelog",
@@ -281,7 +281,7 @@ const char * const g_projects[] =
         " http://windowspackager.org/contact",
         "Source: http://windowspackager.org/",
         "License: GPL2",
-        "Disclaimer: This package is part of the wpkg unit test environment.",
+        "Disclaimer: This package is part of the wpkg integration test environment.",
         "Copyright:",
         " Copyright (c) 2013-2015 Made to Order Software Corporation",
     ">file wpkg/changelog",
@@ -305,10 +305,10 @@ const char * const g_projects[] =
 // namespace
 
 
-class SystemUnitTests
+class SystemTests
 {
     public:
-        SystemUnitTests();
+        SystemTests();
 
         void manual_builds();
         void automated_builds();
@@ -318,12 +318,12 @@ class SystemUnitTests
         void create_target();
 };
 
-SystemUnitTests::SystemUnitTests()
+SystemTests::SystemTests()
 {
     // make sure that the temporary directory is not empty, may be relative
     if(integrationtest::tmp_dir.empty())
     {
-        fprintf(stderr, "\nerror:integrationtest_system: a temporary directory is required to run the system unit tests.\n");
+        fprintf(stderr, "\nerror:integrationtest_system: a temporary directory is required to run the system integration tests.\n");
         throw std::runtime_error("--tmp <directory> missing");
     }
 
@@ -359,7 +359,7 @@ SystemUnitTests::SystemUnitTests()
 }
 
 
-void SystemUnitTests::create_projects(project_list_t& list)
+void SystemTests::create_projects(project_list_t& list)
 {
     wpkg_filename::uri_filename root(integrationtest::tmp_dir);
 
@@ -426,7 +426,7 @@ void SystemUnitTests::create_projects(project_list_t& list)
 }
 
 
-void SystemUnitTests::create_target()
+void SystemTests::create_target()
 {
     wpkg_filename::uri_filename root(integrationtest::tmp_dir);
     wpkg_filename::uri_filename repository(root.append_child("repository"));
@@ -450,7 +450,7 @@ void SystemUnitTests::create_target()
 }
 
 
-void SystemUnitTests::manual_builds()
+void SystemTests::manual_builds()
 {
     wpkg_filename::uri_filename root(integrationtest::tmp_dir);
     root.os_mkdir_p();
@@ -525,7 +525,7 @@ void SystemUnitTests::manual_builds()
 
 
 
-void SystemUnitTests::automated_builds()
+void SystemTests::automated_builds()
 {
     wpkg_filename::uri_filename root(integrationtest::tmp_dir);
     root.os_mkdir_p();
@@ -590,16 +590,16 @@ void SystemUnitTests::automated_builds()
 }
 
 
-CATCH_TEST_CASE("SystemUnitTests::manual_builds","SystemUnitTests")
+CATCH_TEST_CASE("SystemTests::manual_builds","SystemTests")
 {
-    SystemUnitTests sut;
+    SystemTests sut;
     sut.manual_builds();
 }
 
 
-CATCH_TEST_CASE("SystemUnitTests::automated_builds","SystemUnitTests")
+CATCH_TEST_CASE("SystemTests::automated_builds","SystemTests")
 {
-    SystemUnitTests sut;
+    SystemTests sut;
     sut.automated_builds();
 }
 
