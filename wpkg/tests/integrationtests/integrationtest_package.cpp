@@ -1548,7 +1548,11 @@ public:
         // *** CREATION ***
         // create 50 to 70 packages and install them in random order
         // then upgrade different packages in a random order
+#ifdef MO_WINDOWS
+        const int max_packages = rand() % 10 + 50;
+#else
         const int max_packages = rand() % 21 + 50;
+#endif
         std::vector<bool> has_conf;
         has_conf.resize(max_packages + 1);
         std::vector<bool> has_dependents;
