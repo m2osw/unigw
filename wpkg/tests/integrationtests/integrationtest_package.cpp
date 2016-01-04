@@ -122,7 +122,7 @@ public:
 #endif
         }
 
-        printf("\n");
+        std::cout << std::endl;
     }
 
     /** \brief create a standard control file
@@ -184,6 +184,20 @@ public:
         file.write_file(path.append_child(filename), true);
 
         files[idx].set_checksum(file.md5sum());
+    }
+
+    typedef std::vector<std::string> string_list_t;
+    int execute_cmd( const std::string& cmd )
+    {
+#ifdef MO_WINDOWS
+        if( cmd.size() > 8191 )
+        {
+            std::cerr << "Error in command line '" << cmd << "'!" << std::endl;
+            std::cerr << "Command string is greater than 8K, and will fail under MS Windows." << std::endl;
+            CATCH_REQUIRE(false);
+        }
+#endif
+        return system( cmd.c_str( ));
     }
 
     /** \brief Create (i.e. --build) a package.
@@ -261,7 +275,7 @@ public:
 
         if(ctrl->variable_is_defined("BUILD_RESULT"))
         {
-            const int r(system(cmd.c_str()));
+            const int r(execute_cmd(cmd));
             const std::string expected_result(ctrl->get_variable("BUILD_RESULT"));
             const int expected_return_value(strtol(expected_result.c_str(), 0, 0));
             printf("  Build result = %d (expected %d)\n", WEXITSTATUS(r), expected_return_value);
@@ -269,7 +283,7 @@ public:
         }
         else
         {
-            CATCH_REQUIRE(system(cmd.c_str()) == 0);
+            CATCH_REQUIRE(execute_cmd(cmd.c_str()) == 0);
         }
     }
 
@@ -322,7 +336,7 @@ public:
                     + " --create-admindir " + wpkg_util::make_safe_console_string(core_ctrl_filename.path_only()));
             printf("Create AdminDir Command: \"%s\"\n", core_cmd.c_str());
             fflush(stdout);
-            CATCH_REQUIRE(system(core_cmd.c_str()) == 0);
+            CATCH_REQUIRE(execute_cmd(core_cmd.c_str()) == 0);
         }
         else
         {
@@ -334,12 +348,26 @@ public:
             cmd += " --create-index " + wpkg_util::make_safe_console_string(index_file.path_only());
             cmd += " --repository "   + wpkg_util::make_safe_console_string(repository.path_only());
             std::cout << "Build index command: \"" << cmd << "\"" << std::endl << std::flush;
-            const int r(system(cmd.c_str()));
+            const int r(execute_cmd(cmd.c_str()));
             std::cout << "  Build index result = " << WEXITSTATUS(r) << std::endl << std::flush;
             CATCH_REQUIRE(WEXITSTATUS(r) == 0);
         }
 
+
+        // The command string (empty to start)
+        //
         std::string cmd;
+
+        if(ctrl->field_is_defined("WPKG_SUBST"))
+        {
+            const std::string field( escape_string( ctrl->get_field("WPKG_SUBST") ) );
+#ifdef MO_WINDOWS
+            cmd = "set WPKG_SUBST=" + field + " && ";
+#else
+            cmd = "WPKG_SUBST='" + field + "' ";
+#endif
+        }
+
         if(ctrl->field_is_defined("PRE_COMMAND"))
         {
             cmd += ctrl->get_field("PRE_COMMAND") + " ";
@@ -360,7 +388,7 @@ public:
         }
         printf("Install Command: \"%s\"\n", cmd.c_str());
         fflush(stdout);
-        const int r(system(cmd.c_str()));
+        const int r(execute_cmd(cmd.c_str()));
         printf("  Install result = %d (expected %d)\n", WEXITSTATUS(r), expected_return_value);
         CATCH_REQUIRE(WEXITSTATUS(r) == expected_return_value);
     }
@@ -394,7 +422,7 @@ public:
         }
         printf("Remove Command: \"%s\"\n", cmd.c_str());
         fflush(stdout);
-        int r(system(cmd.c_str()));
+        int r(execute_cmd(cmd.c_str()));
         printf("  Remove result = %d (expected %d)\n", WEXITSTATUS(r), expected_return_value);
         CATCH_REQUIRE(WEXITSTATUS(r) == expected_return_value);
     }
@@ -429,7 +457,7 @@ public:
         }
         printf("Purge Command: \"%s\"\n", cmd.c_str());
         fflush(stdout);
-        int r(system(cmd.c_str()));
+        int r(execute_cmd(cmd.c_str()));
         printf("  Purge result = %d (expected %d)\n", WEXITSTATUS(r), expected_return_value);
         CATCH_REQUIRE(WEXITSTATUS(r) == expected_return_value);
     }
@@ -886,7 +914,7 @@ public:
         std::string core_cmd(integrationtest::wpkg_tool + " --admindir " + wpkg_util::make_safe_console_string(admindir.os_real_path().full_path()) + " --create-admindir " + wpkg_util::make_safe_console_string(core_ctrl_filename.path_only()));
         printf("  Specilized Create AdminDir Command: \"%s\"  ", core_cmd.c_str());
         fflush(stdout);
-        CATCH_REQUIRE(system(core_cmd.c_str()) == 0);
+        CATCH_REQUIRE(execute_cmd(core_cmd.c_str()) == 0);
         ctrl->set_variable("INSTALL_NOROOT", "Yes");
         ctrl->set_variable("INSTALL_PREOPTIONS", "--admindir " + wpkg_util::make_safe_console_string(admindir.os_real_path().full_path()) + " --instdir " + wpkg_util::make_safe_console_string(target_path.os_real_path().full_path()));
         ctrl->set_variable("REMOVE_NOROOT", "Yes");
@@ -1573,7 +1601,7 @@ public:
             cmd += " --create-index " + wpkg_util::make_safe_console_string(repository.full_path()) + "/index.tar.gz --repository " + wpkg_util::make_safe_console_string(repository.full_path());
             printf("Create packages index: \"%s\"\n", cmd.c_str());
             fflush(stdout);
-            CATCH_REQUIRE(system(cmd.c_str()) == 0);
+            CATCH_REQUIRE(execute_cmd(cmd.c_str()) == 0);
         }
 
         // *** INSTALLATION ***
@@ -1671,14 +1699,14 @@ public:
             cmd += " --md5sums " + debs_filenames + " >" + wpkg_util::make_safe_console_string(root.append_child("/md5sums.txt").full_path(true)) + " -v";
             printf("Create md5sums: \"%s\"\n", cmd.c_str());
             fflush(stdout);
-            CATCH_REQUIRE(system(cmd.c_str()) == 0);
+            CATCH_REQUIRE(execute_cmd(cmd.c_str()) == 0);
         }
         {
             std::string cmd(integrationtest::wpkg_tool);
             cmd += " --md5sums-check " + wpkg_util::make_safe_console_string(root.append_child("/md5sums.txt").full_path(true)) + " " + debs_filenames + " -v";
             printf("  check valid md5sums: \"%s\"\n", cmd.c_str());
             fflush(stdout);
-            CATCH_REQUIRE(system(cmd.c_str()) == 0);
+            CATCH_REQUIRE(execute_cmd(cmd.c_str()) == 0);
         }
         {
             // modify an md5 checksum
@@ -1703,7 +1731,7 @@ public:
             cmd += " --md5sums-check " + wpkg_util::make_safe_console_string(root.full_path()) + "/md5sums.txt " + debs_filenames + " -v";
             printf("  check invalid md5sums: \"%s\"\n", cmd.c_str());
             fflush(stdout);
-            int r(system(cmd.c_str()));
+            int r(execute_cmd(cmd.c_str()));
             CATCH_REQUIRE(WEXITSTATUS(r) == 1);
         }
     }
@@ -2835,7 +2863,7 @@ public:
                         cmd += versions[i].f_right;
                     }
 
-                    int r(system(cmd.c_str()));
+                    int r(execute_cmd(cmd.c_str()));
                     int result(WEXITSTATUS(r));
                     ASSERT_MESSAGE(cmd + " completely failed", result == 0 || result == 1);
                     std::stringstream msg;
@@ -3019,7 +3047,7 @@ public:
         cmd += " --set-selection hold held";
         printf("Set Selection Command: \"%s\"\n", cmd.c_str());
         fflush(stdout);
-        int r(system(cmd.c_str()));
+        int r(execute_cmd(cmd.c_str()));
         printf("  Set selection result = %d (expected 0)\n", WEXITSTATUS(r));
         CATCH_REQUIRE(WEXITSTATUS(r) == 0);
 
@@ -3184,131 +3212,79 @@ public:
         create_package("t1", ctrl_t1);
 
         // invalid pipe (we support only one)
-#if defined(MO_WINDOWS)
-        ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"f=/opt/wpkg|/m2osw/packages|/only/one/pipe/allowed:h=usr/local/bin/wpkg\"");
-#else
-        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='f=/opt/wpkg|/m2osw/packages|/only/one/pipe/allowed:h=usr/local/bin/wpkg'");
-#endif
+        ctrl_t1->set_field("WPKG_SUBST", "f=/opt/wpkg|/m2osw/packages|/only/one/pipe/allowed:h=usr/local/bin/wpkg");
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
         verify_purged_files("t1", ctrl_t1);
 
         // invalid character in directory path (*)
-#if defined(MO_WINDOWS)
-        ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"f=/opt/wpkg|/m2osw*/packages:h=usr/local/bin/wpkg\"");
-#else
-        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='f=/opt/wpkg|/m2osw*/packages:h=usr/local/bin/wpkg'");
-#endif
+        ctrl_t1->set_field("WPKG_SUBST", "f=/opt/wpkg|/m2osw*/packages:h=usr/local/bin/wpkg");
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
         verify_purged_files("t1", ctrl_t1);
 
         // invalid character in subst path (*)
-#if defined(MO_WINDOWS)
-        ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"f=/opt/wpkg*|/m2osw/packages:h=usr/local/bin/wpkg\"");
-#else
-        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='f=/opt/wpkg*|/m2osw/packages:h=usr/local/bin/wpkg'");
-#endif
+        ctrl_t1->set_field("WPKG_SUBST", "f=/opt/wpkg*|/m2osw/packages:h=usr/local/bin/wpkg");
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
         verify_purged_files("t1", ctrl_t1);
 
         // invalid character in directory path (?)
-#if defined(MO_WINDOWS)
-        ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"f=/opt/wpkg///|/m2osw/pack?ages:h=usr/local/bin/wpkg\"");
-#else
-        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='f=/opt/wpkg/\\/|/m2osw/pack?ages:h=usr/local/bin/wpkg'");
-#endif
+        ctrl_t1->set_field("WPKG_SUBST", "f=/opt/wpkg/\\/|/m2osw/pack?ages:h=usr/local/bin/wpkg");
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
         verify_purged_files("t1", ctrl_t1);
 
         // invalid character in subst path (?)
-#if defined(MO_WINDOWS)
-        ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"f=///opt///wp?kg|/m2osw/packages:h=usr/local/bin/wpkg\"");
-#else
-        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='f=/opt/wp?kg|/m2osw/packages:h=usr/local/bin/wpkg'");
-#endif
+        ctrl_t1->set_field("WPKG_SUBST", "f=/opt/wp?kg|/m2osw/packages:h=usr/local/bin/wpkg");
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
         verify_purged_files("t1", ctrl_t1);
 
         // invalid character in directory path (")
-#if defined(MO_WINDOWS)
-        ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"f=/opt/wpkg|/m2osw\\\\packages\"\":h=usr/local/bin/wpkg\"");
-#else
-        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='f=/opt/wpkg|/m2osw\\\\packages\":h=usr/local/bin/wpkg'");
-#endif
+        ctrl_t1->set_field("WPKG_SUBST", "f=/opt/wpkg|/m2osw\\\\packages\":h=usr/local/bin/wpkg");
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
         verify_purged_files("t1", ctrl_t1);
 
         // invalid character in subst path (")
-#if defined(MO_WINDOWS)
-        ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"f=/opt\\\\wpkg\"\"|/m2osw/packages:h=usr/local/bin/wpkg\"");
-#else
-        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='f=/opt\\\\wpkg\"|/m2osw/packages:h=usr/local/bin/wpkg'");
-#endif
+        ctrl_t1->set_field("WPKG_SUBST", "f=/opt\\\\wpkg\\\"|/m2osw/packages:h=usr/local/bin/wpkg");
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
         verify_purged_files("t1", ctrl_t1);
 
         // invalid character in directory path (<)
-#if defined(MO_WINDOWS)
-        ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"f=/opt/wpkg|</m2osw/packages:h=usr/local/bin/wpkg\"");
-#else
-        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='f=/opt/wpkg|</m2osw/packages:h=usr/local/bin/wpkg'");
-#endif
+        ctrl_t1->set_field("WPKG_SUBST", "f=/opt/wpkg|</m2osw/packages:h=usr/local/bin/wpkg");
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
         verify_purged_files("t1", ctrl_t1);
 
         // invalid character in subst path (<)
-#if defined(MO_WINDOWS)
-        ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"f=</opt/wpkg|/m2osw/packages:h=usr/local/bin/wpkg\"");
-#else
-        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='f=</opt/wpkg|/m2osw/packages:h=usr/local/bin/wpkg'");
-#endif
+        ctrl_t1->set_field("WPKG_SUBST", "f=</opt/wpkg|/m2osw/packages:h=usr/local/bin/wpkg");
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
         verify_purged_files("t1", ctrl_t1);
 
         // invalid character in directory path (>)
-#if defined(MO_WINDOWS)
-        ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"f=/opt//wpkg|/>m2osw/packages:h=usr/local/bin/wpkg\"");
-#else
-        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='f=/opt//wpkg|/>m2osw/packages:h=usr/local/bin/wpkg'");
-#endif
+        ctrl_t1->set_field("WPKG_SUBST", "f=/opt//wpkg|/>m2osw/packages:h=usr/local/bin/wpkg");
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
         verify_purged_files("t1", ctrl_t1);
 
         // invalid character in subst path (>)
-#if defined(MO_WINDOWS)
-        ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"F=/>opt/wpkg|/m2osw/packages:h=usr/local/bin/wpkg\"");
-#else
-        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='F=/>opt/wpkg|/m2osw/packages:h=usr/local/bin/wpkg'");
-#endif
+        ctrl_t1->set_field("WPKG_SUBST", "F=/>opt/wpkg|/m2osw/packages:h=usr/local/bin/wpkg");
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
         verify_purged_files("t1", ctrl_t1);
 
         // no equal sign (=)
-#if defined(MO_WINDOWS)
-        ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"g=/valid/path/|good/dir:::f:/opt/wpkg\"");
-#else
-        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='g=/valid/path/|good/dir:::f:/opt/wpkg'");
-#endif
+        ctrl_t1->set_field("WPKG_SUBST", "g=/valid/path/|good/dir:::f:/opt/wpkg");
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
         verify_purged_files("t1", ctrl_t1);
 
         // letter drive
-#if defined(MO_WINDOWS)
-        ctrl_t1->set_field("PRE_COMMAND", "set WPKG_SUBST=\"f=/valid/path/:3=/opt/wpkg\"");
-#else
-        ctrl_t1->set_field("PRE_COMMAND", "WPKG_SUBST='f=/valid/path/:3=/opt/wpkg'");
-#endif
+        ctrl_t1->set_field("WPKG_SUBST", "f=/valid/path/:3=/opt/wpkg");
         ctrl_t1->set_variable("INSTALL_PREOPTIONS", "--repository f:this-file");
         install_package("t1", ctrl_t1, 1);
         verify_purged_files("t1", ctrl_t1);
@@ -3446,7 +3422,7 @@ public:
             cmd += " --list-hooks";
             printf("List Hooks Command: \"%s\"\n", cmd.c_str());
             fflush(stdout);
-            CATCH_REQUIRE(system(cmd.c_str()) == 0);
+            CATCH_REQUIRE(execute_cmd(cmd.c_str()) == 0);
         }
 
 
@@ -3481,7 +3457,7 @@ public:
             cmd += " --add-hooks " + wpkg_util::make_safe_console_string(hook_validate_filename.path_only());
             printf("Add Hooks Command: \"%s\"\n", cmd.c_str());
             fflush(stdout);
-            CATCH_REQUIRE(system(cmd.c_str()) == 0);
+            CATCH_REQUIRE(execute_cmd(cmd.c_str()) == 0);
         }
         // adding a global hook does not run it!
         wpkg_filename::uri_filename global_validate_file(target_path.append_child("global_validate.txt"));
@@ -3553,7 +3529,7 @@ public:
             cmd += " --list-hooks";
             printf("List Hooks Command: \"%s\"\n", cmd.c_str());
             fflush(stdout);
-            CATCH_REQUIRE(system(cmd.c_str()) == 0);
+            CATCH_REQUIRE(execute_cmd(cmd.c_str()) == 0);
         }
 
 
@@ -3590,7 +3566,7 @@ public:
             cmd += " --remove-hooks " + wpkg_util::make_safe_console_string(hook_validate_filename.path_only());
             printf("Remove Hooks Command: \"%s\"\n", cmd.c_str());
             fflush(stdout);
-            CATCH_REQUIRE(system(cmd.c_str()) == 0);
+            CATCH_REQUIRE(execute_cmd(cmd.c_str()) == 0);
         }
     }
 
@@ -3672,7 +3648,7 @@ public:
             cmd += " --autoremove ";
             printf("Auto-Remove Command: \"%s\"\n", cmd.c_str());
             fflush(stdout);
-            CATCH_REQUIRE(system(cmd.c_str()) == 0);
+            CATCH_REQUIRE(execute_cmd(cmd.c_str()) == 0);
         }
 
         // t1 still installed
@@ -3691,7 +3667,7 @@ public:
             cmd += " --autoremove ";
             printf("Auto-Remove Command: \"%s\"\n", cmd.c_str());
             fflush(stdout);
-            CATCH_REQUIRE(system(cmd.c_str()) == 0);
+            CATCH_REQUIRE(execute_cmd(cmd.c_str()) == 0);
         }
 
         // still all there!
@@ -3714,7 +3690,7 @@ public:
             cmd += " --autoremove ";
             printf("Auto-Remove Command: \"%s\"\n", cmd.c_str());
             fflush(stdout);
-            CATCH_REQUIRE(system(cmd.c_str()) == 0);
+            CATCH_REQUIRE(execute_cmd(cmd.c_str()) == 0);
         }
 
         // still all there!!!
@@ -3738,7 +3714,7 @@ public:
             cmd += " --autoremove ";
             printf("Auto-Remove Command: \"%s\"\n", cmd.c_str());
             fflush(stdout);
-            CATCH_REQUIRE(system(cmd.c_str()) == 0);
+            CATCH_REQUIRE(execute_cmd(cmd.c_str()) == 0);
         }
 
         // this time the auto-remove had an effect!
@@ -4309,6 +4285,35 @@ public:
         install_package("t02", ctrl_t02, 0);
     }
 
+
+private:
+    std::string escape_string( const std::string& orig_field )
+    {
+#ifdef MO_WINDOWS
+            std::string field;
+            for( auto ch : orig_field )
+            {
+                switch( ch )
+                {
+                    case '|':
+                    case '"':
+                    case '&':
+                        field.push_back( '^' );
+                        field.push_back( ch );
+                        break;
+
+                    default:
+                        field.push_back( ch );
+                }
+            }
+            return field;
+#else
+            // There is nothing to "auto-escape" for now. Windows just needs
+            // to translate stuff, but Linux has a saner method, IMHO.
+            return orig_field;
+#endif
+        }
+
 };
 // class PackageTests
 
@@ -4671,6 +4676,15 @@ CATCH_TEST_CASE("PackageTests::complex_tree_in_repository_with_spaces","PackageT
     test.complex_tree_in_repository();
 }
 
+#if 0
+// This test is remarked out because it no longer applies. In older versions of MS Windows,
+// you could not create a file with a period and no extension, as it would cause an error.
+// This was to verify that you weren't trying to do that.
+//
+// Now, if you create a file with a period and no extension, it just creates the file basename
+// only, and does not put the period into it. In the long run, this doesn't matter because opening
+// the file "foo." would be the same as opening "foo."
+//
 CATCH_TEST_CASE("PackageTests::unacceptable_filename","PackageTests")
 {
     PackageTests test;
@@ -4687,6 +4701,7 @@ CATCH_TEST_CASE("PackageTests::unacceptable_filename","PackageTests")
     ctrl_t1_0->set_variable("BUILD_RESULT", "1");
     test.create_package("t1", ctrl_t1_0);
 }
+#endif
 
 
 // vim: ts=4 sw=4 et

@@ -175,10 +175,10 @@ int integrationtest_main(int argc, char *argv[])
     }
 
     std::vector<char *> new_argv;
-    std::for_each( arg_list.begin(), arg_list.end(), [&new_argv]( const std::string& arg )
+    for( const auto& arg : arg_list )
     {
         new_argv.push_back( const_cast<char *>(arg.c_str()) );
-    });
+    }
 
     return Catch::Session().run( static_cast<int>(new_argv.size()), &new_argv[0] );
 }
