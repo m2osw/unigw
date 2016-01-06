@@ -3568,7 +3568,7 @@ void wpkgar_install::validate_dependencies()
     // lists to be complete... (explicit + implicit); other lists are
     // ignored except the available while we search for dependencies
 
-    progress_scope s( this, "validate_dependencies", f_packages.size() );
+    progress_scope s( this, "validate_dependencies (multiple trees)", f_packages.size() );
     wpkgar_package_list_t best;
     for(tree_generator tree_gen(f_packages);;)
     {
