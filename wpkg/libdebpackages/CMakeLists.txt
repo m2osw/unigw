@@ -60,7 +60,6 @@ project( debpackages_static )
 include_directories(
     "${CMAKE_BINARY_DIR}"
     "${CMAKE_CURRENT_BINARY_DIR}"
-    "${CMAKE_CURRENT_BINARY_DIR}/libdebpackages"
     "${wpkg_tld_BINARY_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/.."
@@ -72,8 +71,8 @@ include_directories(
 )
 
 set( LIBDEBPACKAGES_INCLUDE_FILES
-    "${PROJECT_SOURCE_DIR}/debian_packages.h.in"
-    "${PROJECT_BINARY_DIR}/debian_packages.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/debian_packages.h.in"
+	"${CMAKE_CURRENT_BINARY_DIR}/debian_packages.h"
     installer/details/disk.h
     installer/install_info.h
     installer/package_item.h
@@ -199,7 +198,6 @@ project( debpackages )
 
 include_directories(
     "${CMAKE_CURRENT_BINARY_DIR}"
-    "${CMAKE_CURRENT_BINARY_DIR}/libdebpackages"
     "${wpkg_tld_BINARY_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/.."
@@ -244,7 +242,7 @@ install(
     ARCHIVE DESTINATION lib COMPONENT development
 )
 install(
-    DIRECTORY ${PROJECT_SOURCE_DIR}/
+	DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
     DESTINATION include/wpkg/libdebpackages
     COMPONENT headers
     FILES_MATCHING PATTERN *.h
