@@ -1,4 +1,4 @@
-/*    wpkgar_install.cpp -- install a debian package
+/*    wpkgar_validator.cpp -- install a debian package
  *    Copyright (C) 2006-2015  Made to Order Software Corporation
  *
  *    This program is free software; you can redistribute it and/or modify
@@ -28,7 +28,7 @@
  * The functions include support to the --install, --unpack, and --configure
  * functions.
  */
-#include    "libdebpackages/wpkgar_install.h"
+#include    "libdebpackages/wpkgar_validator.h"
 #include    "libdebpackages/wpkgar_repository.h"
 #include    "libdebpackages/debian_version.h"
 #include    "libdebpackages/wpkg_backup.h"
@@ -55,28 +55,26 @@ namespace wpkgar
 using namespace installer;
 
 
-/** \class wpkgar_install
- * \brief The package install manager.
+/** \class validator
+ * \brief The package validation manager.
  *
- * This class defines the functions necessary to install a package.
- * Note that before any installation can occur, the system needs to
- * calculate what needs to be done. This is done through the validation
- * process.
+ * This class defines the functions necessary to validate packages
+ * for installation. You may add one or more packages to the list of
+ * packages to be marked for "explicit" installation.
  *
- * In most cases, you want to create a wpkgar_install object, then add
- * one or more packages to be installed, then run validate() to make sure
- * that it will install properly. If validate() returns true, then you
- * can run pre_configure() and finally, unpack(), and configure() for
- * each package to be installed.
+ * In most cases, you want to create a wpkgar_install object, then add one
+ * or more packages to be installed. The validator object is used internally
+ * by wpkgar_install.
  *
- * Note that it is possible to add a package that will not get installed
- * because that very version is already installed and the
- * --skip-same-version was used.
+ * The purpose of this object is to allow unit testing of each function;
+ * not only that, but wpkgar_install has gotten very big, so this refactor
+ * helps reduce the size of the parent object, plus, as I've said above, allow
+ * exposure of previously internal functions for unit testing.
  */
 
 
 
-wpkgar_install::wpkgar_install( wpkgar_manager::pointer_t manager )
+validator::validator( wpkgar_manager::pointer_t manager )
     : f_manager(manager)
     //, f_list_installed_packages() -- auto-init
     //, f_flags() -- auto-init
@@ -98,13 +96,13 @@ wpkgar_install::wpkgar_install( wpkgar_manager::pointer_t manager )
 }
 
 
-void wpkgar_install::set_parameter(parameter_t flag, int value)
+void validator::set_parameter(parameter_t flag, int value)
 {
     f_flags[flag] = value;
 }
 
 
-int wpkgar_install::get_parameter(parameter_t flag, int default_value) const
+int validator::get_parameter(parameter_t flag, int default_value) const
 {
     wpkgar_flags_t::const_iterator it(f_flags.find(flag));
     if(it == f_flags.end())
@@ -117,31 +115,7 @@ int wpkgar_install::get_parameter(parameter_t flag, int default_value) const
 }
 
 
-void wpkgar_install::set_installing()
-{
-    f_task = task_installing_packages;
-}
-
-
-void wpkgar_install::set_configuring()
-{
-    f_task = task_configuring_packages;
-}
-
-
-void wpkgar_install::set_reconfiguring()
-{
-    f_task = task_reconfiguring_packages;
-}
-
-
-void wpkgar_install::set_unpacking()
-{
-    f_task = task_unpacking_packages;
-}
-
-
-wpkgar_install::wpkgar_package_list_t::const_iterator wpkgar_install::find_package_item(const wpkg_filename::uri_filename& filename) const
+validator::wpkgar_package_list_t::const_iterator validator::find_package_item(const wpkg_filename::uri_filename& filename) const
 {
     auto iter = std::find_if( f_packages.begin(), f_packages.end(), [&filename]( const package_item_t& package )
     {
@@ -152,7 +126,7 @@ wpkgar_install::wpkgar_package_list_t::const_iterator wpkgar_install::find_packa
 }
 
 
-wpkgar_install::wpkgar_package_list_t::iterator wpkgar_install::find_package_item_by_name(const std::string& name)
+validator::wpkgar_package_list_t::iterator validator::find_package_item_by_name(const std::string& name)
 {
     auto iter = std::find_if( f_packages.begin(), f_packages.end(), [&name]( const package_item_t& package )
     {
@@ -177,7 +151,7 @@ wpkgar_install::wpkgar_package_list_t::iterator wpkgar_install::find_package_ite
  *
  * \param[in] expression  One expression to add to the installer.
  */
-void wpkgar_install::add_field_validation(const std::string& expression)
+void validator::add_field_validation(const std::string& expression)
 {
     f_field_validations.push_back(expression);
 }
@@ -185,7 +159,7 @@ void wpkgar_install::add_field_validation(const std::string& expression)
 
 /** \brief Add a package directly from the wpkar_repository object, instead of by string.
  */
-void wpkgar_install::add_package( wpkgar_repository::package_item_t entry, const bool force_reinstall )
+void validator::add_package( wpkgar_repository::package_item_t entry, const bool force_reinstall )
 {
     if( entry.get_status() == wpkgar_repository::package_item_t::invalid )
     {
@@ -217,7 +191,7 @@ void wpkgar_install::add_package( wpkgar_repository::package_item_t entry, const
 
 /** \brief Add a package by package name, and option version
  */
-void wpkgar_install::add_package( const std::string& package, const std::string& version, const bool force_reinstall )
+void validator::add_package( const std::string& package, const std::string& version, const bool force_reinstall )
 {
     const wpkg_filename::uri_filename pck(package);
     wpkgar_package_list_t::const_iterator item(find_package_item(pck));
@@ -292,18 +266,18 @@ void wpkgar_install::add_package( const std::string& package, const std::string&
 }
 
 
-const std::string& wpkgar_install::get_package_name(const int idx) const
+const std::string& validator::get_package_name(const int idx) const
 {
     return f_packages[idx].get_name();
 }
 
 
-int wpkgar_install::count() const
+int validator::count() const
 {
     return static_cast<int>(f_packages.size());
 }
 
-void wpkgar_install::validate_directory( package_item_t package )
+void validator::validate_directory( package_item_t package )
 {
     // if we cannot access that file, it's probably a direct package
     // name in which case we're done here (another error should occur
@@ -316,7 +290,7 @@ void wpkgar_install::validate_directory( package_item_t package )
 
         // read the directory *.deb files
         memfile::memory_file r;
-        r.dir_rewind(filename, get_parameter(wpkgar_install_recursive, false) != 0);
+        r.dir_rewind(filename, get_parameter(validator_recursive, false) != 0);
         for(;;)
         {
             f_manager->check_interrupt();
@@ -356,7 +330,7 @@ void wpkgar_install::validate_directory( package_item_t package )
 }
 
 
-bool wpkgar_install::validate_packages_to_install()
+bool validator::validate_packages_to_install()
 {
     // this can happen if the user specify an empty directory as input
     int size(0);
@@ -384,7 +358,7 @@ bool wpkgar_install::validate_packages_to_install()
 
 
 // transform the directories in a list of .deb packages
-bool wpkgar_install::validate_directories()
+bool validator::validate_directories()
 {
     // if not installing (--configure, --reconfigure) then there is nothing to test here
     if(f_task != task_installing_packages)
@@ -408,7 +382,7 @@ bool wpkgar_install::validate_directories()
 }
 
 
-void wpkgar_install::validate_package_name( package_item_t& pkg )
+void validator::validate_package_name( package_item_t& pkg )
 {
     if(!pkg.get_filename().is_deb())
     {
@@ -465,10 +439,10 @@ void wpkgar_install::validate_package_name( package_item_t& pkg )
                     case wpkgar_manager::installed:
                         // perfect -- the type remains explicit
                         {
-                            wpkg_control::control_file::field_xselection_t::selection_t selection( wpkgar_install::get_xselection( pkg.get_filename() ) );
+                            wpkg_control::control_file::field_xselection_t::selection_t selection( validator::get_xselection( pkg.get_filename() ) );
                             if(selection == wpkg_control::control_file::field_xselection_t::selection_hold)
                             {
-                                if(get_parameter(wpkgar_install_force_hold, false))
+                                if(get_parameter(validator_force_hold, false))
                                 {
                                     wpkg_output::log("package %1 is on hold, yet it will be reconfigured.")
                                         .quoted_arg(pkg.get_filename())
@@ -637,10 +611,10 @@ void wpkgar_install::validate_package_name( package_item_t& pkg )
 
                     case wpkgar_manager::unpacked:
                         {
-                            wpkg_control::control_file::field_xselection_t::selection_t selection( wpkgar_install::get_xselection( pkg.get_filename() ) );
+                            wpkg_control::control_file::field_xselection_t::selection_t selection( validator::get_xselection( pkg.get_filename() ) );
                             if(selection == wpkg_control::control_file::field_xselection_t::selection_hold)
                             {
-                                if(get_parameter(wpkgar_install_force_hold, false))
+                                if(get_parameter(validator_force_hold, false))
                                 {
                                     wpkg_output::log("package %1 is on hold, yet it will be configured.")
                                         .quoted_arg(pkg.get_filename())
@@ -775,7 +749,7 @@ void wpkgar_install::validate_package_name( package_item_t& pkg )
 
 // configuring: only already installed package names
 // installing, unpacking, checking an install: only new package names
-void wpkgar_install::validate_package_names()
+void validator::validate_package_names()
 {
     progress_scope s( this, "validate_package_names", f_packages.size() * 2 );
 
@@ -789,7 +763,7 @@ void wpkgar_install::validate_package_names()
 }
 
 
-void wpkgar_install::installing_source()
+void validator::installing_source()
 {
     progress_scope s( this, "installing_source", f_packages.size() );
 
@@ -814,7 +788,7 @@ void wpkgar_install::installing_source()
 }
 
 
-void wpkgar_install::validate_installed_package( const std::string& pkg_name )
+void validator::validate_installed_package( const std::string& pkg_name )
 {
     // this package is an installed package so we cannot
     // just load a control file from an index file; plus
@@ -954,7 +928,7 @@ void wpkgar_install::validate_installed_package( const std::string& pkg_name )
             // sure it is not marked as a "Reject" (X-Selection)
             if(f_manager->field_is_defined(pkg_name, wpkg_control::control_file::field_xselection_factory_t::canonicalized_name()))
             {
-                wpkg_control::control_file::field_xselection_t::selection_t selection( wpkgar_install::get_xselection( pkg_name ) );
+                wpkg_control::control_file::field_xselection_t::selection_t selection( validator::get_xselection( pkg_name ) );
                 wpkgar_package_list_t::iterator item(find_package_item_by_name(pkg_name));
                 if(item != f_packages.end()
                         && item->get_type() == package_item_t::package_type_explicit
@@ -1007,7 +981,7 @@ void wpkgar_install::validate_installed_package( const std::string& pkg_name )
                     if(type == package_item_t::package_type_unpacked)
                     {
                         // you cannot update/upgrade an unpacked package with --install, it needs configuration
-                        if(get_parameter(wpkgar_install_force_configure_any, false))
+                        if(get_parameter(validator_force_configure_any, false))
                         {
                             wpkg_output::log("package %1 is unpacked, it will be configured before getting upgraded.")
                                 .quoted_arg(pkg_name)
@@ -1034,13 +1008,13 @@ void wpkgar_install::validate_installed_package( const std::string& pkg_name )
                 {
                     // Note: using f_manager directly since the package is not
                     //       yet in the f_packages vector
-                    wpkg_control::control_file::field_xselection_t::selection_t selection( wpkgar_install::get_xselection( pkg_name ) );
+                    wpkg_control::control_file::field_xselection_t::selection_t selection( validator::get_xselection( pkg_name ) );
                     std::string vi(f_manager->get_field(pkg_name, wpkg_control::control_file::field_version_factory_t::canonicalized_name()));
                     std::string vo(item->get_version());
                     const int c(wpkg_util::versioncmp(vi, vo));
                     if(c == 0)
                     {
-                        if(get_parameter(wpkgar_install_skip_same_version, false))
+                        if(get_parameter(validator_skip_same_version, false))
                         {
                             // package is already installed, user asked to skip it
                             item->set_type(package_item_t::package_type_same);
@@ -1055,7 +1029,7 @@ void wpkgar_install::validate_installed_package( const std::string& pkg_name )
                     {
                         if(selection == wpkg_control::control_file::field_xselection_t::selection_hold)
                         {
-                            if(get_parameter(wpkgar_install_force_hold, false))
+                            if(get_parameter(validator_force_hold, false))
                             {
                                 wpkg_output::log("package %1 is being upgraded even though it is on hold.")
                                     .quoted_arg(pkg_name)
@@ -1081,7 +1055,7 @@ void wpkgar_install::validate_installed_package( const std::string& pkg_name )
                             const int m(wpkg_util::versioncmp(vi, minimum_version));
                             if(m < 0)
                             {
-                                if(get_parameter(wpkgar_install_force_upgrade_any_version, false))
+                                if(get_parameter(validator_force_upgrade_any_version, false))
                                 {
                                     wpkg_output::log("package %1 version %2 is being upgraded even though the Minimum-Upgradable-Version says it won't work right since it was not upgraded to at least version %3 first.")
                                         .quoted_arg(pkg_name)
@@ -1112,11 +1086,11 @@ void wpkgar_install::validate_installed_package( const std::string& pkg_name )
                     else
                     {
                         // user is trying to downgrade
-                        if(get_parameter(wpkgar_install_force_downgrade, false))
+                        if(get_parameter(validator_force_downgrade, false))
                         {
                             if(selection == wpkg_control::control_file::field_xselection_t::selection_hold)
                             {
-                                if(get_parameter(wpkgar_install_force_hold, false))
+                                if(get_parameter(validator_force_hold, false))
                                 {
                                     wpkg_output::log("package %1 is being downgraded even though it is on hold.")
                                         .quoted_arg(pkg_name)
@@ -1168,7 +1142,7 @@ void wpkgar_install::validate_installed_package( const std::string& pkg_name )
 }
 
 
-void wpkgar_install::validate_installed_packages()
+void validator::validate_installed_packages()
 {
     progress_scope s( this, "validate_installed_packages", f_list_installed_packages.size() );
 
@@ -1196,7 +1170,7 @@ void wpkgar_install::validate_installed_packages()
 }
 
 
-void wpkgar_install::validate_distribution_package( const package_item_t& package )
+void validator::validate_distribution_package( const package_item_t& package )
 {
     const std::string distribution(f_manager->get_field("core", "Distribution"));
     switch(package.get_type())
@@ -1218,7 +1192,7 @@ void wpkgar_install::validate_distribution_package( const package_item_t& packag
                     // is the Distribution field defined?
                     if(!package.field_is_defined("Distribution"))
                     {
-                        if(get_parameter(wpkgar_install_force_distribution, false))
+                        if(get_parameter(validator_force_distribution, false))
                         {
                             wpkg_output::log("package %1 is missing the Distribution field.")
                                 .quoted_arg(filename)
@@ -1243,7 +1217,7 @@ void wpkgar_install::validate_distribution_package( const package_item_t& packag
                     const std::string d(package.get_field("Distribution"));
                     if(d != distribution)
                     {
-                        if(get_parameter(wpkgar_install_force_distribution, false))
+                        if(get_parameter(validator_force_distribution, false))
                         {
                             wpkg_output::log("package %1 may not be compatible with your installation target, it is for a different distribution: %2 instead of %3.")
                                 .quoted_arg(filename)
@@ -1284,7 +1258,7 @@ void wpkgar_install::validate_distribution_package( const package_item_t& packag
  * name of that field has to match all the packages that are about
  * to be installed implicitly or explicitly.
  */
-void wpkgar_install::validate_distribution()
+void validator::validate_distribution()
 {
     progress_scope s( this, "validate_distribution", f_packages.size() );
 
@@ -1304,7 +1278,7 @@ void wpkgar_install::validate_distribution()
 }
 
 
-void wpkgar_install::validate_architecture_package( package_item_t& pkg )
+void validator::validate_architecture_package( package_item_t& pkg )
 {
     if(pkg.get_type() == package_item_t::package_type_explicit)
     {
@@ -1312,10 +1286,10 @@ void wpkgar_install::validate_architecture_package( package_item_t& pkg )
         const std::string arch(pkg.get_architecture());
         // all and source architectures can always be installed
         if(arch != "all" && arch != "src" && arch != "source"
-                && !wpkg_dependencies::dependencies::match_architectures(arch, f_architecture, get_parameter(wpkgar_install_force_vendor, false) != 0))
+                && !wpkg_dependencies::dependencies::match_architectures(arch, f_architecture, get_parameter(validator_force_vendor, false) != 0))
         {
             const wpkg_filename::uri_filename filename(pkg.get_filename());
-            if(!get_parameter(wpkgar_install_force_architecture, false))
+            if(!get_parameter(validator_force_architecture, false))
             {
                 wpkg_output::log("file %1 has an incompatible architecture (%2) for the current target (%3).")
                     .quoted_arg(filename)
@@ -1342,7 +1316,7 @@ void wpkgar_install::validate_architecture_package( package_item_t& pkg )
 }
 
 
-void wpkgar_install::validate_architecture()
+void validator::validate_architecture()
 {
     progress_scope s( this, "validate_architecture", f_packages.size() );
 
@@ -1358,7 +1332,7 @@ void wpkgar_install::validate_architecture()
 // if invalid, return -1
 // if valid but not in range, return 0
 // if valid and in range, return 1
-int wpkgar_install::match_dependency_version(const wpkg_dependencies::dependencies::dependency_t& d, const package_item_t& item)
+int validator::match_dependency_version(const wpkg_dependencies::dependencies::dependency_t& d, const package_item_t& item)
 {
     // check the version if necessary
     if(!d.f_version.empty()
@@ -1415,7 +1389,7 @@ namespace
 }
 
 
-bool wpkgar_install::find_installed_predependency_package( package_item_t& pkg, const wpkg_filename::uri_filename& package_name, const wpkg_dependencies::dependencies::dependency_t& d)
+bool validator::find_installed_predependency_package( package_item_t& pkg, const wpkg_filename::uri_filename& package_name, const wpkg_dependencies::dependencies::dependency_t& d)
 {
     const wpkg_filename::uri_filename filename(pkg.get_filename());
     switch(pkg.get_type())
@@ -1426,7 +1400,7 @@ bool wpkgar_install::find_installed_predependency_package( package_item_t& pkg, 
             // and unpacked packages
             if(match_dependency_version(d, pkg) != 1)
             {
-                if(!get_parameter(wpkgar_install_force_depends_version, false))
+                if(!get_parameter(validator_force_depends_version, false))
                 {
                     // should we mark the package as invalid (instead of explicit?)
                     // since we had an error it's probably not necessary?
@@ -1466,7 +1440,7 @@ bool wpkgar_install::find_installed_predependency_package( package_item_t& pkg, 
 
             // handle the package_item_t::package_type_unpacked case which
             // requires some additional tests
-            if(get_parameter(wpkgar_install_force_configure_any, false))
+            if(get_parameter(validator_force_configure_any, false))
             {
                 // user accepts auto-configurations so mark this package
                 // as requiring a pre-configuration
@@ -1481,7 +1455,7 @@ bool wpkgar_install::find_installed_predependency_package( package_item_t& pkg, 
                 pkg.set_type(package_item_t::package_type_configure);
                 return true;
             }
-            if(get_parameter(wpkgar_install_force_depends, false))
+            if(get_parameter(validator_force_depends, false))
             {
                 // user accepts broken dependencies...
                 wpkg_output::log("file %1 has pre-dependency %2 but it is not yet configured and still accepted because you used --force-depends.")
@@ -1518,7 +1492,7 @@ bool wpkgar_install::find_installed_predependency_package( package_item_t& pkg, 
 }
 
 
-bool wpkgar_install::find_installed_predependency(const wpkg_filename::uri_filename& package_name, const wpkg_dependencies::dependencies::dependency_t& d)
+bool validator::find_installed_predependency(const wpkg_filename::uri_filename& package_name, const wpkg_dependencies::dependencies::dependency_t& d)
 {
     // search for package d.f_name in the list of installed packages
     for( auto& pkg : f_packages )
@@ -1540,7 +1514,7 @@ bool wpkgar_install::find_installed_predependency(const wpkg_filename::uri_filen
     }
 
     // the file doesn't exist (is missing) but user may not care
-    if(get_parameter(wpkgar_install_force_depends, false))
+    if(get_parameter(validator_force_depends, false))
     {
         // user accepts broken dependencies...
         wpkg_output::log("package %1 has pre-dependency %2 which is not installed.")
@@ -1569,7 +1543,7 @@ bool wpkgar_install::find_installed_predependency(const wpkg_filename::uri_filen
 }
 
 
-void wpkgar_install::validate_predependencies()
+void validator::validate_predependencies()
 {
     progress_scope s( this, "validate_predependencies", f_packages.size() );
 
@@ -1601,7 +1575,7 @@ void wpkgar_install::validate_predependencies()
     }
 }
 
-bool wpkgar_install::read_repository_index( const wpkg_filename::uri_filename& repo_filename, memfile::memory_file& index_file )
+bool validator::read_repository_index( const wpkg_filename::uri_filename& repo_filename, memfile::memory_file& index_file )
 {
     // repository must include an index, if not and the repository
     // is a direct filename then we attempt to create the index now
@@ -1622,7 +1596,7 @@ bool wpkgar_install::read_repository_index( const wpkg_filename::uri_filename& r
             wpkgar_repository repository(f_manager);
             // If the user wants a recursive repository index he will have to do it manually because --recursive is already
             // used for another purpose along the --install and I do not think that it is wise to do this here anyway
-            //repository.set_parameter(wpkgar::wpkgar_repository::wpkgar_repository_recursive, get_parameter(wpkgar_install_recursive, false));
+            //repository.set_parameter(wpkgar::wpkgar_repository::wpkgar_repository_recursive, get_parameter(validator_recursive, false));
             repository.create_index(index_file);
             index_file.compress(compressed, memfile::memory_file::file_format_gz);
             compressed.write_file(index_filename);
@@ -1670,7 +1644,7 @@ bool wpkgar_install::read_repository_index( const wpkg_filename::uri_filename& r
     return true;
 }
 
-void wpkgar_install::read_repositories()
+void validator::read_repositories()
 {
     // load the files once
     if(f_repository_packages_loaded)
@@ -1715,7 +1689,7 @@ void wpkgar_install::read_repositories()
 
             // verify package architecture
             const std::string arch(package.get_architecture());
-            if(arch != "all" && !wpkg_dependencies::dependencies::match_architectures(arch, f_architecture, get_parameter(wpkgar_install_force_vendor, false) != 0))
+            if(arch != "all" && !wpkg_dependencies::dependencies::match_architectures(arch, f_architecture, get_parameter(validator_force_vendor, false) != 0))
             {
                 // this is not an error, although in the end we may not
                 // find any package that satisfy this dependency...
@@ -1735,7 +1709,7 @@ void wpkgar_install::read_repositories()
 }
 
 
-void wpkgar_install::trim_conflicts
+void validator::trim_conflicts
     ( const bool check_available
     , const bool only_explicit
     , wpkg_filename::uri_filename filename
@@ -1818,7 +1792,7 @@ void wpkgar_install::trim_conflicts
                     {
                         // we do not mark explicit/installed packages
                         // as invalid; output an error instead
-                        if(get_parameter(wpkgar_install_force_conflicts, false))
+                        if(get_parameter(validator_force_conflicts, false))
                         {
                             // user accepts conflicts, use a warning
                             err = 0;
@@ -1846,7 +1820,7 @@ void wpkgar_install::trim_conflicts
 }
 
 
-void wpkgar_install::trim_breaks
+void validator::trim_breaks
     ( const bool check_available
     , const bool only_explicit
     , wpkg_filename::uri_filename filename
@@ -1928,7 +1902,7 @@ void wpkgar_install::trim_breaks
                     {
                         // we do not mark explicit/installed packages
                         // as invalid; generate an error instead
-                        if(get_parameter(wpkgar_install_force_breaks, false))
+                        if(get_parameter(validator_force_breaks, false))
                         {
                             // user accepts Breaks, use a warning
                             err = 0;
@@ -1976,7 +1950,7 @@ void wpkgar_install::trim_breaks
  * \param[in] idx  The index of the item being checked.
  * \param[in] only_explicit  Whether only explicit packages are checked.
  */
-void wpkgar_install::trim_conflicts(wpkgar_package_list_t& tree, const wpkgar_package_list_t::size_type idx, const bool only_explicit)
+void validator::trim_conflicts(wpkgar_package_list_t& tree, const wpkgar_package_list_t::size_type idx, const bool only_explicit)
 {
     auto& parent_package( tree[idx] );
     wpkg_filename::uri_filename filename(parent_package.get_filename());
@@ -2042,7 +2016,7 @@ void wpkgar_install::trim_conflicts(wpkgar_package_list_t& tree, const wpkgar_pa
 }
 
 
-bool wpkgar_install::trim_dependency
+bool validator::trim_dependency
     ( package_item_t& item
     , wpkgar_package_ptrs_t& parents
     , const wpkg_dependencies::dependencies::dependency_t& dependency
@@ -2076,7 +2050,7 @@ bool wpkgar_install::trim_dependency
             }
             else
             {
-                if(!get_parameter(wpkgar_install_force_depends_version, false))
+                if(!get_parameter(validator_force_depends_version, false))
                 {
                     // since we cannot replace an explicit dependency, we
                     // generate an error in this case
@@ -2319,7 +2293,7 @@ bool wpkgar_install::trim_dependency
                     // is no package that satisfies the dependency
                     //
                     // XXX add a --force-auto-upgrade flag?
-                    if(!get_parameter(wpkgar_install_force_depends, false))
+                    if(!get_parameter(validator_force_depends, false))
                     {
                         wpkg_output::log("package %1 depends on %2 which is an installed package with an incompatible version constraint (%3).")
                                 .quoted_arg(filename)
@@ -2350,7 +2324,7 @@ bool wpkgar_install::trim_dependency
             }
             else
             {
-                if(!get_parameter(wpkgar_install_force_depends, false))
+                if(!get_parameter(validator_force_depends, false))
                 {
                     wpkg_output::log("no explicit or implicit package satisfy dependency %1 of package %2.")
                         .quoted_arg(dependency.to_string())
@@ -2388,7 +2362,7 @@ bool wpkgar_install::trim_dependency
 }
 
 
-void wpkgar_install::trim_available( package_item_t& item, wpkgar_package_ptrs_t& parents )
+void validator::trim_available( package_item_t& item, wpkgar_package_ptrs_t& parents )
 {
     const wpkg_filename::uri_filename filename(item.get_filename());
 
@@ -2438,7 +2412,7 @@ void wpkgar_install::trim_available( package_item_t& item, wpkgar_package_ptrs_t
 }
 
 
-void wpkgar_install::trim_available_packages()
+void validator::trim_available_packages()
 {
     progress_scope s( this, "trim_available_packages", f_packages.size() );
 
@@ -2519,7 +2493,7 @@ void wpkgar_install::trim_available_packages()
  *
  * \return Return whether all the dependencies could be found or not.
  */
-wpkgar_install::validation_return_t wpkgar_install::find_explicit_dependency(wpkgar_package_list_t::size_type index, const wpkg_filename::uri_filename& package_name, const wpkg_dependencies::dependencies::dependency_t& d, const std::string& field_name)
+validator::validation_return_t validator::find_explicit_dependency(wpkgar_package_list_t::size_type index, const wpkg_filename::uri_filename& package_name, const wpkg_dependencies::dependencies::dependency_t& d, const std::string& field_name)
 {
     // check whether it is part of the list of packages the user
     // specified on the command line (explicit)
@@ -2624,7 +2598,7 @@ wpkgar_install::validation_return_t wpkgar_install::find_explicit_dependency(wpk
  *
  * \return Return whether all the dependencies could be found or not.
  */
-wpkgar_install::validation_return_t wpkgar_install::find_installed_dependency(wpkgar_package_list_t::size_type index, const wpkg_filename::uri_filename& package_name, const wpkg_dependencies::dependencies::dependency_t& d, const std::string& field_name)
+validator::validation_return_t validator::find_installed_dependency(wpkgar_package_list_t::size_type index, const wpkg_filename::uri_filename& package_name, const wpkg_dependencies::dependencies::dependency_t& d, const std::string& field_name)
 {
     // check whether it is part of the list of packages the user
     // specified on the command line (explicit)
@@ -2699,7 +2673,7 @@ wpkgar_install::validation_return_t wpkgar_install::find_installed_dependency(wp
 }
 
 
-wpkgar_install::validation_return_t wpkgar_install::validate_installed_depends_field(const wpkgar_package_list_t::size_type idx, const std::string& field_name)
+validator::validation_return_t validator::validate_installed_depends_field(const wpkgar_package_list_t::size_type idx, const std::string& field_name)
 {
     // full path to package
     const wpkg_filename::uri_filename filename(f_packages[idx].get_filename());
@@ -2735,7 +2709,7 @@ wpkgar_install::validation_return_t wpkgar_install::validate_installed_depends_f
 }
 
 
-wpkgar_install::validation_return_t wpkgar_install::validate_installed_dependencies()
+validator::validation_return_t validator::validate_installed_dependencies()
 {
     // first check whether all the dependencies are self contained (i.e. the
     // package being installed only needs already installed packages or has
@@ -2800,7 +2774,7 @@ wpkgar_install::validation_return_t wpkgar_install::validate_installed_dependenc
 }
 
 
-bool wpkgar_install::check_implicit_for_upgrade(wpkgar_package_list_t& tree, const wpkgar_package_list_t::size_type idx)
+bool validator::check_implicit_for_upgrade(wpkgar_package_list_t& tree, const wpkgar_package_list_t::size_type idx)
 {
     // check whether this implicit package is upgrading an existing package
     // because if so we have to mark the already installed package as being
@@ -2918,12 +2892,12 @@ bool wpkgar_install::check_implicit_for_upgrade(wpkgar_package_list_t& tree, con
  * \return selection, or "selection_normal" if not defined.
  *
  */
-wpkg_control::control_file::field_xselection_t::selection_t wpkgar_install::get_xselection( const wpkg_filename::uri_filename& filename ) const
+wpkg_control::control_file::field_xselection_t::selection_t validator::get_xselection( const wpkg_filename::uri_filename& filename ) const
 {
     return get_xselection( filename.os_filename().get_utf8() );
 }
 
-wpkg_control::control_file::field_xselection_t::selection_t wpkgar_install::get_xselection( const std::string& filename ) const
+wpkg_control::control_file::field_xselection_t::selection_t validator::get_xselection( const std::string& filename ) const
 {
     wpkg_control::control_file::field_xselection_t::selection_t
         selection( wpkg_control::control_file::field_xselection_t::selection_normal );
@@ -2947,7 +2921,7 @@ wpkg_control::control_file::field_xselection_t::selection_t wpkgar_install::get_
  * If necessary and the user specified a repository, it promotes packages
  * that are available to implicit status when found.
  */
-void wpkgar_install::find_dependencies( wpkgar_package_list_t& tree, const wpkgar_package_list_t::size_type idx, wpkgar_dependency_list_t& missing, wpkgar_dependency_list_t& held )
+void validator::find_dependencies( wpkgar_package_list_t& tree, const wpkgar_package_list_t::size_type idx, wpkgar_dependency_list_t& missing, wpkgar_dependency_list_t& held )
 {
     const auto& tree_pkg( tree[idx] );
     const wpkg_filename::uri_filename filename(tree_pkg.get_filename());
@@ -3025,7 +2999,7 @@ void wpkgar_install::find_dependencies( wpkgar_package_list_t& tree, const wpkga
                                 if( the_file.is_deb() )
                                 {
                                     wpkg_control::control_file::field_xselection_t::selection_t
-                                            selection( wpkgar_install::get_xselection( tree_item.get_filename() ) );
+                                            selection( validator::get_xselection( tree_item.get_filename() ) );
 
                                     if( selection == wpkg_control::control_file::field_xselection_t::selection_hold )
                                     {
@@ -3067,7 +3041,7 @@ void wpkgar_install::find_dependencies( wpkgar_package_list_t& tree, const wpkga
             if(found == validation_return_unpacked)
             {
                 // this is either an error or we can mark that package as configure
-                if(get_parameter(wpkgar_install_force_configure_any, false))
+                if(get_parameter(validator_force_configure_any, false))
                 {
                     f_packages[unpacked_idx].set_type(package_item_t::package_type_configure);
                     found = validation_return_success;
@@ -3107,7 +3081,7 @@ void wpkgar_install::find_dependencies( wpkgar_package_list_t& tree, const wpkga
 }
 
 
-bool wpkgar_install::verify_tree( wpkgar_package_list_t& tree, wpkgar_dependency_list_t& missing, wpkgar_dependency_list_t& held )
+bool validator::verify_tree( wpkgar_package_list_t& tree, wpkgar_dependency_list_t& missing, wpkgar_dependency_list_t& held )
 {
     // if reconfiguring we have a good tree (i.e. the existing installation
     // tree is supposed to be proper)
@@ -3158,7 +3132,7 @@ bool wpkgar_install::verify_tree( wpkgar_package_list_t& tree, wpkgar_dependency
  * \returns Returns \c true if both trees will install the same versions
  *          of the same packages, \c false if not.
  */
-bool wpkgar_install::trees_are_practically_identical(
+bool validator::trees_are_practically_identical(
     const wpkgar_package_list_t& left,
     const wpkgar_package_list_t& right) const
 {
@@ -3166,7 +3140,7 @@ bool wpkgar_install::trees_are_practically_identical(
     // hoisted out here to make the comparison loop below easier to read.
     // Ideally this would be floating outside the function altogether,
     // but there's not much point while the types it references are only
-    // defined inside wpkgar_install.
+    // defined inside validator.
     struct is_equivalent : std::unary_function<const package_item_t&, bool>
     {
         is_equivalent(const package_item_t& pkg)
@@ -3235,7 +3209,7 @@ bool wpkgar_install::trees_are_practically_identical(
 }
 
 
-int wpkgar_install::compare_trees(const wpkgar_package_list_t& left, const wpkgar_package_list_t& right) const
+int validator::compare_trees(const wpkgar_package_list_t& left, const wpkgar_package_list_t& right) const
 {
     // comparing both trees we keep the one that has packages
     // with larger versions; if left has the largest then the
@@ -3318,7 +3292,7 @@ int wpkgar_install::compare_trees(const wpkgar_package_list_t& left, const wpkga
 }
 
 
-void wpkgar_install::output_tree(int file_count, const wpkgar_package_list_t& tree, const std::string& sub_title)
+void validator::output_tree(int file_count, const wpkgar_package_list_t& tree, const std::string& sub_title)
 {
     memfile::memory_file dot;
     dot.create(memfile::memory_file::file_format_other);
@@ -3456,7 +3430,7 @@ void wpkgar_install::output_tree(int file_count, const wpkgar_package_list_t& tr
  * testing the next possibility we use a counter. The counter is
  * decreased by one until the counter returns to zero.
  */
-void wpkgar_install::validate_dependencies()
+void validator::validate_dependencies()
 {
     // self-contained with explicit and installed dependencies?
     if(validate_installed_dependencies() != validation_return_missing)
@@ -3647,7 +3621,7 @@ void wpkgar_install::validate_dependencies()
 }
 
 
-bool wpkgar_install::find_essential_file(std::string filename, const size_t skip_idx)
+bool validator::find_essential_file(std::string filename, const size_t skip_idx)
 {
     // filename should never be empty
     if(filename.empty())
@@ -3732,7 +3706,7 @@ bool wpkgar_install::find_essential_file(std::string filename, const size_t skip
 
 
 
-void wpkgar_install::validate_packager_version()
+void validator::validate_packager_version()
 {
     progress_scope s( this, "validate_packager_version", f_packages.size() );
 
@@ -3831,7 +3805,7 @@ void wpkgar_install::validate_packager_version()
  * This function also determines whether a package being installed
  * is actually upgrading an already installed package.
  */
-void wpkgar_install::validate_installed_size_and_overwrite()
+void validator::validate_installed_size_and_overwrite()
 {
 #if !defined(MO_DARWIN) && !defined(MO_SUNOS) && !defined(MO_FREEBSD)
     details::disk_list_t     disks( f_manager, this->shared_from_this() );
@@ -3984,7 +3958,7 @@ void wpkgar_install::validate_installed_size_and_overwrite()
  * was mounted in read/write or read-only mode, we right away
  * fail if it were read-only.
  */
-void wpkgar_install::validate_fields()
+void validator::validate_fields()
 {
     // if there are not validations, return immediately
     if(f_field_validations.empty())
@@ -4031,7 +4005,7 @@ void wpkgar_install::validate_fields()
 
 
 
-void wpkgar_install::sort_package_dependencies(const std::string& name, wpkgar_package_listed_t& listed)
+void validator::sort_package_dependencies(const std::string& name, wpkgar_package_listed_t& listed)
 {
     // note: we do not check the depth limit here because we already
     //       have done so in a validation function
@@ -4094,7 +4068,7 @@ void wpkgar_install::sort_package_dependencies(const std::string& name, wpkgar_p
  * Packages without dependencies are added as is since the order
  * is not important for them.
  */
-void wpkgar_install::sort_packages()
+void validator::sort_packages()
 {
     progress_scope s( this, "sort_packages", f_packages.size() );
 
@@ -4128,7 +4102,7 @@ void wpkgar_install::sort_packages()
  * upgraded may get their scripts ran twice (the new version first and then
  * their old version.)
  */
-void wpkgar_install::validate_scripts()
+void validator::validate_scripts()
 {
     progress_scope s( this, "validate_scripts", f_packages.size() );
 
@@ -4196,8 +4170,8 @@ void wpkgar_install::validate_scripts()
 }
 
 
-wpkgar_install::progress_scope::progress_scope
-    ( wpkgar_install* inst
+validator::progress_scope::progress_scope
+    ( validator* inst
     , const std::string& what
     , const uint64_t max )
         : f_installer( inst )
@@ -4206,13 +4180,13 @@ wpkgar_install::progress_scope::progress_scope
 }
 
 
-wpkgar_install::progress_scope::~progress_scope()
+validator::progress_scope::~progress_scope()
 {
     f_installer->pop_progess_record();
 }
 
 
-void wpkgar_install::add_progess_record( const std::string& what, const uint64_t max )
+void validator::add_progess_record( const std::string& what, const uint64_t max )
 {
     wpkg_output::progress_record_t record;
     record.set_progress_what ( what );
@@ -4227,7 +4201,7 @@ void wpkgar_install::add_progess_record( const std::string& what, const uint64_t
 }
 
 
-void wpkgar_install::increment_progress()
+void validator::increment_progress()
 {
     if( f_progress_stack.empty() )
     {
@@ -4244,7 +4218,7 @@ void wpkgar_install::increment_progress()
 }
 
 
-void wpkgar_install::pop_progess_record()
+void validator::pop_progess_record()
 {
     if( f_progress_stack.empty() )
     {
@@ -4364,14 +4338,14 @@ void wpkgar_install::pop_progess_record()
  * in which both options were specified (i.e. the no-force or refuse
  * options have higher priority.)
  */
-bool wpkgar_install::validate()
+bool validator::validate()
 {
     progress_scope s( this, "validate", 13 );
 
     // the caller is responsible for locking the database
     if(!f_manager->was_locked())
     {
-        throw std::logic_error("the manager must be locked before calling wpkgar_install::validate()");
+        throw std::logic_error("the manager must be locked before calling validator::validate()");
     }
 
     // list of all the dependency fields to test here
@@ -4594,7 +4568,7 @@ wpkgar_manager::pointer_t wpkgar_manager::get_manager() const
  * differentiate the type of install it is going to be. Useful for informing
  * the user of the pending database changes and any new packages to be installed.
  */
-install_info_list_t wpkgar_install::get_install_list()
+install_info_list_t validator::get_install_list()
 {
     install_info_list_t list;
 
@@ -4643,409 +4617,7 @@ install_info_list_t wpkgar_install::get_install_list()
 }
 
 
-
-
-
-
-bool wpkgar_install::preupgrade_scripts(package_item_t *item, package_item_t *upgrade)
-{
-    f_manager->set_field(upgrade->get_filename(), wpkg_control::control_file::field_xstatus_factory_t::canonicalized_name(), "Half-Installed", true);
-
-    // run the prerm only if the old version is currently installed
-    // (opposed to just unpacked, half-installed, etc.)
-    if(f_original_status != wpkgar_manager::installed)
-    {
-        return true;
-    }
-
-    // old-hooks-prerm upgrade <package-name> <new-version>
-    wpkgar_manager::script_parameters_t hook_params;
-    hook_params.push_back("upgrade");
-    hook_params.push_back(item->get_name());
-    hook_params.push_back(item->get_version());
-    if(!f_manager->run_script("core", wpkgar_manager::wpkgar_script_prerm, hook_params))
-    {
-        wpkg_output::log("a prerm global validation hook failed for package %1, the installation is canceled.")
-                .quoted_arg(item->get_name())
-            .level(wpkg_output::level_error)
-            .module(wpkg_output::module_unpack_package)
-            .action("install-unpack");
-        return false;
-    }
-
-    // old-prerm upgrade <new-version>
-    wpkgar_manager::script_parameters_t params;
-    params.push_back("upgrade");
-    params.push_back(item->get_version());
-    if(!f_manager->run_script(upgrade->get_filename(), wpkgar_manager::wpkgar_script_prerm, params))
-    {
-        // new-prerm failed-upgrade <old-version>
-        params.clear();
-        params.push_back("failed-upgrade");
-        params.push_back(upgrade->get_version());
-        if(!f_manager->run_script(item->get_filename(), wpkgar_manager::wpkgar_script_prerm, params))
-        {
-            f_manager->set_field(upgrade->get_filename(), wpkg_control::control_file::field_xstatus_factory_t::canonicalized_name(), "Half-Configured", true);
-
-            // old-postinst abort-upgrade <new-version>
-            params.clear();
-            params.push_back("abort-upgrade");
-            params.push_back(item->get_version());
-            if(!f_manager->run_script(upgrade->get_filename(), wpkgar_manager::wpkgar_script_postinst, params))
-            {
-                wpkg_output::log("the upgrade scripts failed to prepare the upgrade, package %1 is now Half-Configured.")
-                        .quoted_arg(upgrade->get_name())
-                    .level(wpkg_output::level_error)
-                    .module(wpkg_output::module_unpack_package)
-                    .package(item->get_name())
-                    .action("install-unpack");
-            }
-            else
-            {
-                // restore the status, but stop the upgrade
-                // note: we can hard code "Installed" because we run this code only if
-                //       the package was installed
-                f_manager->set_field(upgrade->get_filename(), wpkg_control::control_file::field_xstatus_factory_t::canonicalized_name(), "Installed", true);
-                wpkg_output::log("the upgrade scripts failed to prepare the upgrade, however it could restore the package state so %1 is marked as Installed.")
-                        .quoted_arg(upgrade->get_name())
-                    .level(wpkg_output::level_error)
-                    .module(wpkg_output::module_unpack_package)
-                    .package(item->get_name())
-                    .action("install-unpack");
-            }
-            return false;
-        }
-        // the old package script failed, but the new package script
-        // succeeded so we proceed anyway
-    }
-
-    return true;
-}
-
-bool wpkgar_install::postupgrade_scripts(package_item_t *item, package_item_t *upgrade, wpkg_backup::wpkgar_backup& backup)
-{
-    // old-postrm upgrade <new-version>
-    wpkgar_manager::script_parameters_t params;
-    params.push_back("upgrade");
-    params.push_back(item->get_version());
-    if(!f_manager->run_script(upgrade->get_filename(), wpkgar_manager::wpkgar_script_postrm, params))
-    {
-        // new-postrm failed-upgrade <old-version>
-        params.clear();
-        params.push_back("failed-upgrade");
-        params.push_back(upgrade->get_version());
-        if(!f_manager->run_script(item->get_filename(), wpkgar_manager::wpkgar_script_postrm, params))
-        {
-            cancel_upgrade_scripts(item, upgrade, backup);
-            return false;
-        }
-        // the old package script failed, but the new package script
-        // succeeded so we proceed anyway
-    }
-
-    // hooks-postrm upgrade <package-name> <new-version> <old-version>
-    wpkgar_manager::script_parameters_t hooks_params;
-    hooks_params.push_back("upgrade");
-    hooks_params.push_back(item->get_name());
-    hooks_params.push_back(item->get_version());
-    hooks_params.push_back(upgrade->get_version());
-    if(!f_manager->run_script("core", wpkgar_manager::wpkgar_script_postrm, hooks_params))
-    {
-        wpkg_output::log("a postrm global validation hook failed for package %1, the installation is canceled.")
-                .quoted_arg(item->get_name())
-            .level(wpkg_output::level_error)
-            .module(wpkg_output::module_unpack_package)
-            .action("install-unpack");
-        return false;
-    }
-
-    return true;
-}
-
-void wpkgar_install::cancel_upgrade_scripts(package_item_t *item, package_item_t *upgrade, wpkg_backup::wpkgar_backup& backup)
-{
-    f_manager->set_field(upgrade->get_filename(), wpkg_control::control_file::field_xstatus_factory_t::canonicalized_name(), "Half-Installed", true);
-    backup.restore(); // restore as many files as possible
-
-    // old-preinst abort-upgrade <new-version>
-    wpkgar_manager::script_parameters_t params;
-    params.push_back("abort-upgrade");
-    params.push_back(item->get_version());
-    if(!f_manager->run_script(upgrade->get_filename(), wpkgar_manager::wpkgar_script_preinst, params))
-    {
-        wpkg_output::log("the upgrade scripts failed to cancel the upgrade, package %1 is now half-installed.")
-                .quoted_arg(upgrade->get_name())
-            .level(wpkg_output::level_error)
-            .module(wpkg_output::module_unpack_package)
-            .package(item->get_name())
-            .action("install-unpack");
-        return;
-    }
-
-    // new-postrm abort-upgrade <old-version>
-    params.clear();
-    params.push_back("abort-upgrade");
-    params.push_back(upgrade->get_version());
-    if(!f_manager->run_script(item->get_filename(), wpkgar_manager::wpkgar_script_postrm, params))
-    {
-        wpkg_output::log("the upgrade scripts failed to cancel the upgrade, and it could not properly restore the state of %1 (half-installed).")
-                .quoted_arg(upgrade->get_name())
-            .level(wpkg_output::level_error)
-            .module(wpkg_output::module_unpack_package)
-            .package(item->get_name())
-            .action("install-unpack");
-        return;
-    }
-
-    // old-postinst abort-upgrade <new-version>
-    params.clear();
-    params.push_back("abort-upgrade");
-    params.push_back(item->get_version());
-    if(!f_manager->run_script(upgrade->get_filename(), wpkgar_manager::wpkgar_script_postinst, params))
-    {
-        // could not reconfigure...
-        f_manager->set_field(upgrade->get_filename(), wpkg_control::control_file::field_xstatus_factory_t::canonicalized_name(), "Unpacked", true);
-        wpkg_output::log("the upgrade scripts failed to cancel the upgrade, and it could not properly restore the state of %1 (unpacked).")
-                .quoted_arg(upgrade->get_name())
-            .level(wpkg_output::level_error)
-            .module(wpkg_output::module_unpack_package)
-            .package(item->get_name())
-            .action("install-unpack");
-        return;
-    }
-
-    // cancel successful!
-    // use the original status: Installed or Unpacked
-    f_manager->set_field(upgrade->get_filename(), wpkg_control::control_file::field_xstatus_factory_t::canonicalized_name(), f_original_status == wpkgar_manager::installed ? "Installed" : "Unpacked", true);
-    wpkg_output::log("the upgrade was canceled, yet it could properly restore the package state so %1 is marked as installed.")
-            .quoted_arg(upgrade->get_name())
-        .level(wpkg_output::level_error)
-        .module(wpkg_output::module_unpack_package)
-        .package(item->get_name())
-        .action("install-unpack");
-}
-
-bool wpkgar_install::preinst_scripts(package_item_t *item, package_item_t *upgrade, package_item_t *& conf_install)
-{
-    wpkgar_manager::script_parameters_t params;
-    if(upgrade == NULL)
-    {
-        // new-preinst install [<old-version>]
-        std::string old_version;
-        for( auto& pkg : f_packages )
-        {
-            if(pkg.get_type() == package_item_t::package_type_not_installed
-            && pkg.get_name() == item->get_name())
-            {
-                if(f_manager->package_status(pkg.get_filename()) == wpkgar_manager::config_files)
-                {
-                    // we found a package that is being re-installed
-                    // (i.e. package configuration files exist,
-                    // and it's not being upgraded)
-                    old_version = pkg.get_version();
-                    conf_install = &pkg;
-                }
-                break;
-            }
-        }
-        params.push_back("install");
-        if(conf_install != NULL)
-        {
-            params.push_back(old_version);
-        }
-        else
-        {
-            // create new package entry so we can have a current status
-            item->copy_package_in_database();
-        }
-        set_status(item, upgrade, conf_install, "Half-Installed");
-
-        // hooks-preinst install <package-name> <new-version> [<old-version>]
-        wpkgar_manager::script_parameters_t hooks_params;
-        hooks_params.push_back("install");
-        hooks_params.push_back(item->get_name());
-        hooks_params.push_back(item->get_version());
-        if(conf_install != NULL)
-        {
-            hooks_params.push_back(old_version);
-        }
-        if(!f_manager->run_script("core", wpkgar_manager::wpkgar_script_preinst, hooks_params))
-        {
-            wpkg_output::log("a preinst global validation hook failed for package %1, the installation is canceled.")
-                    .quoted_arg(item->get_name())
-                .level(wpkg_output::level_error)
-                .module(wpkg_output::module_unpack_package)
-                .action("install-unpack");
-            return false;
-        }
-
-        if(!f_manager->run_script(item->get_filename(), wpkgar_manager::wpkgar_script_preinst, params))
-        {
-            wpkg_output::log("the preinst install script failed to initialize package %1.")
-                    .quoted_arg(item->get_name())
-                .level(wpkg_output::level_error)
-                .module(wpkg_output::module_unpack_package)
-                .package(item->get_name())
-                .action("install-unpack");
-
-            // new-postrm abort-install [<old-version>]
-            params.clear();
-            params.push_back("abort-install");
-            if(!old_version.empty())
-            {
-                params.push_back(old_version);
-            }
-            if(f_manager->run_script(item->get_filename(), wpkgar_manager::wpkgar_script_postrm, params))
-            {
-                // the error unwind worked so we switch the state back
-                // to normal
-                if(conf_install)
-                {
-                    f_manager->set_field(conf_install->get_filename(), wpkg_control::control_file::field_xstatus_factory_t::canonicalized_name(), "Config-Files", true);
-                }
-                else
-                {
-                    // note: we could also remove the whole thing since
-                    // it's not installed although this is a signal that
-                    // an attempt was made and failed
-                    f_manager->set_field(item->get_name(), wpkg_control::control_file::field_xstatus_factory_t::canonicalized_name(), "Not-Installed", true);
-                }
-
-                wpkg_output::log("the postrm abort-install script succeeded for package %1;; its previous status was restored.")
-                        .quoted_arg(item->get_name())
-                    .module(wpkg_output::module_unpack_package)
-                    .package(item->get_name())
-                    .action("install-unpack");
-            }
-            else
-            {
-                wpkg_output::log("the postrm abort-install script failed for package %1;; package is marked as Half-Installed, although it was not yet unpacked.")
-                        .quoted_arg(item->get_name())
-                    .level(wpkg_output::level_error)
-                    .module(wpkg_output::module_unpack_package)
-                    .package(item->get_name())
-                    .action("install-unpack");
-            }
-            // else the package stays in an half-installed state
-            return false;
-        }
-    }
-    else
-    {
-        // if the package was marked for upgrade then its status is
-        // "installed" so we do not have to check that here
-
-        // hooks-preinst upgrade <package-name> <new-version> <old-version>
-        wpkgar_manager::script_parameters_t hooks_params;
-        hooks_params.push_back("upgrade");
-        hooks_params.push_back(item->get_name());
-        hooks_params.push_back(item->get_version());
-        hooks_params.push_back(upgrade->get_version());
-        if(!f_manager->run_script("core", wpkgar_manager::wpkgar_script_preinst, hooks_params))
-        {
-            wpkg_output::log("a preinst global validation hook failed for package %1, the installation is canceled.")
-                    .quoted_arg(item->get_name())
-                .level(wpkg_output::level_error)
-                .module(wpkg_output::module_unpack_package)
-                .action("install-unpack");
-            return false;
-        }
-
-        // new-preinst upgrade <old-version>
-        params.push_back("upgrade");
-        params.push_back(upgrade->get_version());
-        if(!f_manager->run_script(item->get_filename(), wpkgar_manager::wpkgar_script_preinst, params))
-        {
-            // new-postrm abort-upgrade <old-version>
-            params.clear();
-            params.push_back("abort-upgrade");
-            params.push_back(upgrade->get_version());
-            if(f_manager->run_script(item->get_filename(), wpkgar_manager::wpkgar_script_postrm, params))
-            {
-                f_manager->set_field(upgrade->get_filename(), wpkg_control::control_file::field_xstatus_factory_t::canonicalized_name(), "Unpacked", true);
-
-                // old-postinst abort-upgrade <new-version>
-                params.clear();
-                params.push_back("abort-upgrade");
-                params.push_back(item->get_version());
-                if(!f_manager->run_script(upgrade->get_filename(), wpkgar_manager::wpkgar_script_postinst, params))
-                {
-                    wpkg_output::log("the upgrade scripts failed to initialize the upgrade, package %1 is now unpacked.")
-                            .quoted_arg(upgrade->get_name())
-                        .level(wpkg_output::level_error)
-                        .module(wpkg_output::module_unpack_package)
-                        .package(item->get_name())
-                        .action("install-unpack");
-                }
-                else
-                {
-                    // restore the status, but stop the upgrade
-                    // note: the original status may be Installed or Unpacked
-                    f_manager->set_field(upgrade->get_filename(), wpkg_control::control_file::field_xstatus_factory_t::canonicalized_name(), f_original_status == wpkgar_manager::installed ? "Installed" : "Unpacked", true);
-                    wpkg_output::log("the upgrade scripts failed to initialize the upgrade, however it could restore the package state so %1 is marked as installed.")
-                            .quoted_arg(upgrade->get_name())
-                        .level(wpkg_output::level_error)
-                        .module(wpkg_output::module_unpack_package)
-                        .package(item->get_name())
-                        .action("install-unpack");
-                }
-                return false;
-            }
-            // restoring the old package failed, we're Half-Installed
-            wpkg_output::log("the \"preinst install/upgrade %1\" script of %2 failed and restoring with \"new-postrm abort-upgrade %1\" did not restore the state properly.")
-                    .arg(upgrade->get_version())
-                    .quoted_arg(item->get_name())
-                .level(wpkg_output::level_error)
-                .module(wpkg_output::module_unpack_package)
-                .package(item->get_name())
-                .action("install-unpack");
-            return false;
-        }
-    }
-
-    return true;
-}
-
-void wpkgar_install::cancel_install_scripts(package_item_t *item, package_item_t *conf_install, wpkg_backup::wpkgar_backup& backup)
-{
-    // restore the backed up files (it has to happen before running the scripts)
-    backup.restore();
-
-    // new-postrm abort-install [<old-version>]
-    wpkgar_manager::script_parameters_t params;
-    params.push_back("abort-install");
-    if(conf_install != NULL)
-    {
-        params.push_back(conf_install->get_version());
-    }
-    if(f_manager->run_script(item->get_filename(), wpkgar_manager::wpkgar_script_postrm, params))
-    {
-        // the error unwind worked so we switch the state back to normal
-        if(conf_install)
-        {
-            f_manager->set_field(conf_install->get_filename(), wpkg_control::control_file::field_xstatus_factory_t::canonicalized_name(), "Config-Files", true);
-        }
-        else
-        {
-            // note: we could also remove the whole thing since
-            // it's not installed although this is a signal that
-            // an attempt was made and failed
-            f_manager->set_field(item->get_name(), wpkg_control::control_file::field_xstatus_factory_t::canonicalized_name(), "Not-Installed", true);
-        }
-    }
-    else
-    {
-        // else the package stays in an Half-Installed state
-        wpkg_output::log("installation cancellation of package %1 failed, it will remain in the Half-Installed state.")
-                .quoted_arg(item->get_name())
-            .level(wpkg_output::level_error)
-            .module(wpkg_output::module_unpack_package)
-            .package(item->get_name())
-            .action("install-unpack");
-    }
-}
-
-void wpkgar_install::set_status(package_item_t *item, package_item_t *upgrade, package_item_t *conf_install, const std::string& status)
+void validator::set_status(package_item_t *item, package_item_t *upgrade, package_item_t *conf_install, const std::string& status)
 {
     if(conf_install)
     {
@@ -5064,401 +4636,6 @@ void wpkgar_install::set_status(package_item_t *item, package_item_t *upgrade, p
     }
 }
 
-void wpkgar_install::unpack_file(package_item_t *item, const wpkg_filename::uri_filename& destination, const memfile::memory_file::file_info& info)
-{
-    int file_info_err(get_parameter(wpkgar_install_force_file_info, false) ? memfile::memory_file::file_info_return_errors : memfile::memory_file::file_info_throw);
-
-    // apply the file info
-    memfile::memory_file::info_to_disk_file(destination, info, file_info_err);
-
-    if(file_info_err & memfile::memory_file::file_info_permissions_error)
-    {
-        if(get_parameter(wpkgar_install_quiet_file_info, false) == 0)
-        {
-            wpkg_output::log("file %1 permissions could not be setup up, chmod() failed.")
-                    .quoted_arg(info.get_filename())
-                .level(wpkg_output::level_warning)
-                .module(wpkg_output::module_unpack_package)
-                .package(item->get_name())
-                .action("install-unpack");
-        }
-    }
-
-    if(file_info_err & memfile::memory_file::file_info_owner_error)
-    {
-        if(get_parameter(wpkgar_install_quiet_file_info, false) == 0)
-        {
-            wpkg_output::log("file %1 ownership could not be setup up, chown() failed.")
-                    .quoted_arg(info.get_filename())
-                .level(wpkg_output::level_warning)
-                .module(wpkg_output::module_unpack_package)
-                .package(item->get_name())
-                .action("install-unpack");
-        }
-    }
-}
-
-
-/** \brief Unpack the files of a package.
- *
- * This function actually extracts the files from the data.tar.gz tarball.
- * If the package has configuration files, those are extracted with the
- * special .wpkg-new extension, meaning that the package is not yet installed
- * (it is considered unpacked, but not configured.)
- *
- * When upgrading, the system runs upgrade specific scripts and allows for
- * overwriting files that existed in the previous version. Different fields
- * are also setup in the status file. Finally, files that existed in the old
- * package but are not present in the new package get removed.
- *
- * If the process fails, then the package stays in an Half-Installed status.
- *
- * \param[in] item  The package to unpack.
- * \param[in] upgrade  The package to upgrade or NULL if we are not upgrading.
- */
-bool wpkgar_install::do_unpack(package_item_t *item, package_item_t *upgrade)
-{
-    f_original_status = wpkgar_manager::not_installed;
-
-    if(upgrade != NULL)
-    {
-        f_original_status = upgrade->get_original_status();
-
-        if(!preupgrade_scripts(item, upgrade))
-        {
-            return false;
-        }
-    }
-
-    // IMPORTANT: the preinst_script() function creates the database
-    //            for this package if it was not installed yet
-    package_item_t *conf_install(NULL);
-    if(f_task != task_reconfiguring_packages)
-    {
-        // the reconfigure does not re-run the preinst script
-        // (it could because of the expected idempotency of scripts)
-        if(!preinst_scripts(item, upgrade, conf_install))
-        {
-            return false;
-        }
-    }
-
-    // RAII backup, by default we restore the backup files;
-    // if everything works as expected we call success() which
-    // prevents the restore; either way the object deletes the
-    // backup files it creates (see the wpkgar_backup::backup()
-    // function for details)
-    wpkg_backup::wpkgar_backup backup(f_manager, item->get_name(), "install-unpack");
-
-    long count_files(0);
-    long count_directories(0);
-
-    // get the data archive of item (new package) and unpack it
-    try
-    {
-        if(upgrade != NULL)
-        {
-            set_status(item, upgrade, conf_install, "Upgrading");
-            if(f_task == task_reconfiguring_packages)
-            {
-                f_manager->set_field(item->get_name(), "X-Last-Reconfigure-Date", wpkg_util::rfc2822_date(), true);
-                f_manager->set_field(item->get_name(), "X-Last-Reconfigure-Packager-Version", debian_packages_version_string(), true);
-            }
-            else
-            {
-                f_manager->set_field(item->get_name(), "X-Last-Upgrade-Date", wpkg_util::rfc2822_date(), true);
-                f_manager->set_field(item->get_name(), "X-Last-Upgrade-Packager-Version", debian_packages_version_string(), true);
-                if(item->get_type() != package_item_t::package_type_implicit)
-                {
-                    f_manager->set_field(item->get_name(), "X-Explicit", "Yes", true);
-                }
-            }
-        }
-        else
-        {
-            set_status(item, upgrade, conf_install, "Installing");
-            f_manager->set_field(item->get_name(), "X-Install-Date", wpkg_util::rfc2822_date(), true);
-            f_manager->set_field(item->get_name(), "X-Install-Packager-Version", debian_packages_version_string(), true);
-            if(item->get_type() != package_item_t::package_type_implicit)
-            {
-                f_manager->set_field(item->get_name(), "X-Explicit", "Yes", true);
-            }
-            else
-            {
-                // Implicit
-                f_manager->set_field(item->get_name(), "X-Explicit", "No", true);
-            }
-        }
-        {
-            const wpkg_filename::uri_filename package_name(item->get_filename());
-            memfile::memory_file data;
-            std::string data_filename("data.tar");
-            wpkg_filename::uri_filename database(f_manager->get_database_path());
-            const int segment_max(database.segment_size());
-            f_manager->get_control_file(data, item->get_filename(), data_filename, false);
-            for(;;)
-            {
-                memfile::memory_file::file_info info;
-                memfile::memory_file file;
-                if(!data.dir_next(info, &file))
-                {
-                    break;
-                }
-                const std::string filename(info.get_filename());
-                if(filename.empty())
-                {
-                    throw std::runtime_error("a filename in the data.tar archive file cannot be empty");
-                }
-                if(filename[0] == '/' || filename[0] == '\\')
-                {
-                    throw std::runtime_error("a filename in the data.tar archive file cannot start with \"/\"");
-                }
-                // get the destination filename and make sure it doesn't
-                // match the database path
-                wpkg_filename::uri_filename destination(f_manager->get_inst_path().append_child(filename));
-                if(destination.segment_size() >= segment_max)
-                {
-                    int i(0);
-                    for(; i < segment_max; ++i)
-                    {
-                        if(destination.segment(i) != database.segment(i))
-                        {
-                            break;
-                        }
-                    }
-                    if(i == segment_max)
-                    {
-                        std::string msg;
-                        wpkg_output::log(msg, "file %1 has a path that would place it in your administration directory; this is not allowed and the unpack process must be canceled.")
-                                .quoted_arg(destination);
-                        throw std::runtime_error(msg);
-                    }
-                }
-                switch(info.get_file_type())
-                {
-                case memfile::memory_file::file_info::regular_file:
-                case memfile::memory_file::file_info::continuous:
-                    {
-                        const bool is_config(f_manager->is_conffile(package_name, filename));
-                        if(is_config)
-                        {
-                            // configuration files are renamed at this point
-                            destination = destination.append_path(".wpkg-new");
-                        }
-                        if(is_config || f_task != task_reconfiguring_packages)
-                        {
-                            // do a backup no matter what
-                            backup.backup(destination);
-                            // write that file on disk
-                            file.write_file(destination, true, true);
-                            unpack_file(item, destination, info);
-                            ++count_files;
-
-                            wpkg_output::log("%1 unpacked...")
-                                    .quoted_arg(destination)
-                                .debug(wpkg_output::debug_flags::debug_files)
-                                .module(wpkg_output::module_unpack_package)
-                                .package(package_name);
-                        }
-                    }
-                    break;
-
-                case memfile::memory_file::file_info::directory:
-                    if(f_task != task_reconfiguring_packages)
-                    {
-                        // TODO: we need to support copying directories recursively
-                        //       (and of course restore them too!)
-                        // do a backup no matter what
-                        //backup.backup(destination); -- not implemented yet!
-                        // create directory if it doesn't exist yet
-                        destination.os_mkdir_p();
-                        unpack_file(item, destination, info);
-                        ++count_directories;
-                    }
-                    break;
-
-                case memfile::memory_file::file_info::symbolic_link:
-                    if(f_task != task_reconfiguring_packages)
-                    {
-                        const wpkg_filename::uri_filename dest(f_manager->get_inst_path().append_child(info.get_filename()));
-                        wpkg_filename::uri_filename path(dest.dirname());
-
-                        const wpkg_filename::uri_filename source( path.append_child( info.get_link() ) );
-                        backup.backup(dest);
-
-                        source.os_symlink(dest);
-
-                        //std::cout << "symlinked " << source << " to " << dest << std::endl;
-                        //
-                        // TODO: this is not done because the symlink is mistaken for a file...
-                        // this fails because the symlink might precede the real file in the archive.
-                        // So what we need is a method that can detect the symlink and alter the permissions
-                        // for the symlink only, not the file it points to (which might not exist yet and
-                        // which should have its own permissions/owner/group information anyway!).
-                        //
-                        // unpack_file(item, destination, info);
-                        //
-                        ++count_files;
-                        wpkg_output::log("%1 --> %2 symlinked...")
-                                .quoted_arg(source)
-                                .quoted_arg(dest)
-                            .debug(wpkg_output::debug_flags::debug_files)
-                            .module(wpkg_output::module_unpack_package)
-                            .package(package_name);
-                    }
-                    break;
-
-                // TODO: To get hard links to work we need to memorize what
-                //       the file before this entry was (i.e. tarball have
-                //       hard links right after the file it is linking to.)
-                //       Also we must prevent hard links to configuration
-                //       files if we couldn't catch that problem with the
-                //       --build command.
-                //case memfile::memory_file::file_info::hard_link:
-
-                default:
-                    if(f_task != task_reconfiguring_packages)
-                    {
-                        // at this point we ignore other file types because they
-                        // are not supported under MS-Windows so we don't have
-                        // to do anything with them anyway
-                        wpkg_output::log( "file %1 is not a regular file or a directory, it will be ignored.")
-                                .quoted_arg(destination)
-                            .level(wpkg_output::level_warning)
-                            .module(wpkg_output::module_unpack_package)
-                            .package(item->get_name())
-                            .action("install-unpack");
-                    }
-                    break;
-
-                }
-            }
-        }
-
-        // the post upgrade script is run before we delete the files that
-        // the upgrade may invalidate (because they are not available
-        // in the new version of the package)
-        set_status(item, upgrade, conf_install, "Half-Installed");
-        if(upgrade != NULL)
-        {
-            if(!postupgrade_scripts(item, upgrade, backup))
-            {
-                return false;
-            }
-        }
-
-        // if upgrading, now we want to delete files that "disappeared" from
-        // the old package
-        if(upgrade != NULL)
-        {
-            set_status(item, upgrade, conf_install, "Upgrading"); // could it be Removing?
-            const wpkg_filename::uri_filename package_name(upgrade->get_filename());
-            memfile::memory_file data;
-            std::string data_filename("data.tar");
-            f_manager->get_control_file(data, item->get_name(), data_filename, false);
-            for(;;)
-            {
-                // in this case we don't need the data
-                memfile::memory_file::file_info info;
-                if(!data.dir_next(info, NULL))
-                {
-                    break;
-                }
-                std::string filename(info.get_filename());
-                if(filename.empty())
-                {
-                    throw std::runtime_error("a filename in the data.tar archive file cannot be empty");
-                }
-                if(filename[0] == '/' || filename[0] == '\\')
-                {
-                    throw std::runtime_error("a filename in the data.tar archive file cannot start with \"/\"");
-                }
-                // backup any regular file (we can restore anything else without the need of a full backup)
-                // configuration files are silently skipped in the unpack process
-                if((info.get_file_type() == memfile::memory_file::file_info::regular_file
-                        || info.get_file_type() == memfile::memory_file::file_info::continuous)
-                && !f_manager->is_conffile(package_name, filename))
-                {
-                    const wpkg_filename::uri_filename destination(f_manager->get_inst_path().append_child(filename));
-                    // if saving a backup succeeds then we want to delete
-                    // the file on the target (i.e. it's not present in the
-                    // new version of the package)
-                    if(backup.backup(destination))
-                    {
-                        // delete that file as we're upgrading
-                        try
-                        {
-                            if(!destination.os_unlink())
-                            {
-                                // the file did not exist, post a log, but ignore otherwise
-                                wpkg_output::log("file %1 could not be removed while upgrading because it did not exist.")
-                                        .quoted_arg(destination)
-                                    .debug(wpkg_output::debug_flags::debug_detail_files)
-                                    .module(wpkg_output::module_unpack_package)
-                                    .package(package_name);
-                            }
-                        }
-                        catch(const wpkg_filename::wpkg_filename_exception_io&)
-                        {
-                            // we capture the exception so we can continue
-                            // to process the installation but we generate
-                            // an error so in the end it fails
-                            wpkg_output::log("file %1 from the previous version of the package could not be deleted.")
-                                    .quoted_arg(destination)
-                                .level(wpkg_output::level_error)
-                                .module(wpkg_output::module_unpack_package)
-                                .package(item->get_name())
-                                .action("install-unpack");
-                        }
-                    }
-                }
-            }
-        }
-    }
-    catch(const std::runtime_error&)
-    {
-        // we are not annihilating the catch but we want to run scripts
-        // to cancel the process when an error occurs;
-        set_status(item, upgrade, conf_install, "Half-Installed");
-        if(upgrade != NULL)
-        {
-            cancel_upgrade_scripts(item, upgrade, backup);
-        }
-        else
-        {
-            cancel_install_scripts(item, conf_install, backup);
-        }
-        throw;
-    }
-
-    if( (f_task != task_reconfiguring_packages) && (upgrade != NULL || conf_install != NULL))
-    {
-        item->copy_package_in_database();
-    }
-
-    set_status(item, upgrade, conf_install, "Unpacked");
-
-    if(f_task == task_reconfiguring_packages)
-    {
-        f_manager->set_field(item->get_name(), "X-Reconfigure-Date", wpkg_util::rfc2822_date(), true);
-    }
-    else
-    {
-        f_manager->set_field(item->get_name(), "X-Unpack-Date", wpkg_util::rfc2822_date(), true);
-        f_manager->set_field(item->get_name(), "X-Installed-Files", count_files, true);
-        f_manager->set_field(item->get_name(), "X-Created-Directories", count_directories, true);
-    }
-
-    // just delete all those backups but don't restore!
-    backup.success();
-
-    // it worked
-    item->mark_unpacked();
-
-    return true;
-}
-
-
 /** \brief Pre-configure packages.
  *
  * This function is run to pre-configure all the packages that were unpacked
@@ -5470,12 +4647,12 @@ bool wpkgar_install::do_unpack(package_item_t *item, package_item_t *upgrade)
  *
  * \return The function returns false if an error was detected.
  */
-bool wpkgar_install::pre_configure()
+bool validator::pre_configure()
 {
     // the caller is responsible for locking the database
     if(!f_manager->was_locked())
     {
-        throw std::logic_error("the manager must be locked before calling wpkgar_install::pre_configure()");
+        throw std::logic_error("the manager must be locked before calling validator::pre_configure()");
     }
 
     // TODO: We have to respect the order which at this point we do not
@@ -5506,152 +4683,7 @@ bool wpkgar_install::pre_configure()
 }
 
 
-
-/** \brief Unpack the files from a package.
- *
- * This process is equivalent to:
- *
- * \code
- * tar xzf data.tar.gz
- * \endcode
- *
- * Except that configuration files (those listed in conffiles) are not
- * extracted.
- *
- * The function searches for the first package that has all of its
- * dependencies satisfied and returns its index when successfully
- * unpacked. The index can be used to call the configure() function
- * in order to finish the installation by configuring the package.
- *
- * In case of an update, the function first backs up the existing
- * files. These files are restored if an error occurs before the
- * extraction is complete or if some of the upgrade scripts fail.
- * Note that under MS-Windows a file that is currently opened
- * cannot be overwritten so such errors can occur more frequently
- * under that operating system.
- *
- *   - Starting here, if the process fails we first try to restore
- *     the files saved before the extraction process
- *     - Sort the packages so the packages that do not have dependencies
- *       or dependencies already installed are installed first;
- *       especially, pre-dependencies are fully installed before
- *       anything else
- *     - Extraction process run against one package at a time
- *       - Set the database status to "working"
- *       - In case we're upgrading, backup the existing files using hard
- *         links if possible
- *       - If the package is being installed, move the temporary folder
- *         to the installed folder (one directory up)
- *       - Change the package status, if upgrading, set it to "upgrading",
- *         otherwise set it to "installing"
- *       - If upgrading, run the prerm of the old package
- *       - Run the preinst of the old package
- *       - Extract all the files except the configuration files
- *       - If we're upgrading delete any file that was present in the
- *         old package but is not available in the new package
- *       - If we're upgrading, run the postrm of the old package
- *       - If we're upgrading, copy the new package data to the parent
- *         folder (in the database)
- *       - Set the package status to "half-installed"
- *       - Set the database status to "ready"
- *
- * \note
- * Since MS-Windows does not offer a very safe way to rename files we
- * directly extract all the files in their destination file; this
- * means the target should not be in use when we do an update (anyway
- * you cannot open a file for writing if already in use under MS-Windows
- * so that's hardly a limitation of the packager.)
- *
- * \note
- * When the installation process fails while upgrading a package we can
- * attempt to restore that package. However, if upgrading package A
- * succeeds and then upgrading package B fails, then we may end up in
- * a situation where package A is now installed but is the wrong version
- * for the current installation (i.e. because the old package B cannot
- * work right with the new package A.)
- *
- * \note
- * The detailed Debian policy about the maintainer scripts:
- * http://www.debian.org/doc/debian-policy/ch-maintainerscripts.html
- *
- * \return The index of the item that got unpacked (a positive value,)
- * this index can be used to call the configure() function, or
- * WPKGAR_EOP (end of packages) when all packages were unpacked,
- * or WPKGAR_ERROR when an error occured and the whole process
- * should stop.
- */
-int wpkgar_install::unpack()
-{
-    // the caller is responsible for locking the database
-    if(!f_manager->was_locked())
-    {
-        throw std::logic_error("the manager must be locked before calling wpkgar_install::unpack()");
-    }
-
-    for( auto idx : f_sorted_packages )
-    {
-        auto& package( f_packages[idx] );
-        if(!package.is_unpacked())
-        {
-            switch(package.get_type())
-            {
-            case package_item_t::package_type_explicit:
-            case package_item_t::package_type_implicit:
-                {
-                    const std::string package_name(package.get_name());
-                    wpkg_output::log("unpacking %1")
-                                .quoted_arg(package_name)
-                        .level(wpkg_output::level_info)
-                        .debug(wpkg_output::debug_flags::debug_progress)
-                        .module(wpkg_output::module_validate_installation);
-
-                    package_item_t *upgrade(NULL);
-                    const int32_t upgrade_idx(package.get_upgrade());
-                    if(upgrade_idx != -1)
-                    {
-                        upgrade = &f_packages[upgrade_idx];
-
-                        // restore in case of an upgrade requires an
-                        // original package from a repository
-                        std::string restore_name(package_name + "_" + upgrade->get_version());
-                        if(upgrade->get_architecture() != "src"
-                        && upgrade->get_architecture() != "source")
-                        {
-                            restore_name += upgrade->get_architecture();
-                        }
-                        restore_name += ".deb ";
-                        f_manager->track("downgrade " + restore_name, package_name);
-                    }
-                    else
-                    {
-                        // it was not installed yet, just purge the whole thing
-                        f_manager->track("purge " + package_name, package_name);
-                    }
-                    if(!do_unpack(&package, upgrade))
-                    {
-                        // an error occured, we cannot continue
-                        // TBD: should we throw?
-                        return WPKGAR_ERROR;
-                    }
-                    return static_cast<int>(idx);
-                }
-                break;
-
-            default:
-                // anything else is already unpacked or ignored
-                break;
-
-            }
-        }
-    }
-
-    // End of Packages
-    return WPKGAR_EOP;
-}
-
-
-
-bool wpkgar_install::configure_package(package_item_t *item)
+bool validator::configure_package(package_item_t *item)
 {
     // count errors that occur here
     int err(0);
@@ -5870,17 +4902,17 @@ bool wpkgar_install::configure_package(package_item_t *item)
  *
  * \return true if no error occured, false otherwise
  */
-bool wpkgar_install::configure(int idx)
+bool validator::configure(int idx)
 {
     // the caller is responsible for locking the database
     if(!f_manager->was_locked())
     {
-        throw std::logic_error("the manager must be locked before calling wpkgar_install::configure()");
+        throw std::logic_error("the manager must be locked before calling validator::configure()");
     }
 
     if(idx < 0 || static_cast<wpkgar_package_list_t::size_type>(idx) >= f_packages.size())
     {
-        throw std::range_error("index out of range in wpkgar_install::configure()");
+        throw std::range_error("index out of range in validator::configure()");
     }
 
     auto& pkg( f_packages[idx] );
@@ -5890,7 +4922,7 @@ bool wpkgar_install::configure(int idx)
     case package_item_t::package_type_implicit:
         if(!pkg.is_unpacked())
         {
-            throw std::logic_error("somehow the wpkgar_install::configure() function was called on a package that is not yet unpacked.");
+            throw std::logic_error("somehow the validator::configure() function was called on a package that is not yet unpacked.");
         }
         break;
 
@@ -5904,7 +4936,7 @@ bool wpkgar_install::configure(int idx)
         return true;
 
     default:
-        throw std::logic_error("the wpkgar_install::configure() function cannot be called with an index representing a package other than explicit or implicit.");
+        throw std::logic_error("the validator::configure() function cannot be called with an index representing a package other than explicit or implicit.");
 
     }
 
@@ -5965,12 +4997,12 @@ bool wpkgar_install::configure(int idx)
  * \return the index of the next package to reconfigure after we processed
  *         the unpack part (prerm + unpack of configuration files)
  */
-int wpkgar_install::reconfigure()
+int validator::reconfigure()
 {
     // the caller is responsible for locking the database
     if(!f_manager->was_locked())
     {
-        throw std::logic_error("the manager must be locked before calling wpkgar_install::reconfigure()");
+        throw std::logic_error("the manager must be locked before calling validator::reconfigure()");
     }
 
     int idx = 0;

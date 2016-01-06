@@ -96,6 +96,7 @@ set( LIBDEBPACKAGES_INCLUDE_FILES
     wpkgar_repository.h
     wpkgar_package.h
     wpkgar_tracker.h
+    wpkgar_validator.h
     wpkg_architecture.h
     wpkg_backup.h
     wpkg_changelog.h
@@ -131,6 +132,7 @@ set( LIBDEBPACKAGES_SOURCE_FILES
     wpkgar_repository.cpp
     wpkgar_package.cpp
     wpkgar_tracker.cpp
+    wpkgar_validator.cpp
     wpkg_architecture.cpp
     wpkg_backup.cpp
     wpkg_changelog.cpp
