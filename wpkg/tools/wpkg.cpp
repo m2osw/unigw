@@ -3013,88 +3013,90 @@ void init_installer
         throw std::runtime_error("--" + option + " requires at least one parameter");
     }
 
+    auto validator( installer->get_validator() );
+
     // add the force, no-force/refuse parameters
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_architecture,
+    validator->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_architecture,
         (cl.opt().is_defined("force-architecture") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-architecture")
                             && !cl.opt().is_defined("refuse-architecture")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_breaks,
+    validator->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_breaks,
         (cl.opt().is_defined("force-breaks") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-breaks")
                             && !cl.opt().is_defined("refuse-breaks")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_configure_any,
+    validator->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_configure_any,
         (cl.opt().is_defined("force-configure-any") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-configure-any")
                             && !cl.opt().is_defined("refuse-configure-any")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_conflicts,
+    validator->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_conflicts,
         (cl.opt().is_defined("force-conflicts") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-conflicts")
                             && !cl.opt().is_defined("refuse-conflicts")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_depends,
+    validator->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_depends,
         (cl.opt().is_defined("force-depends") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-depends")
                             && !cl.opt().is_defined("refuse-depends")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_depends_version,
+    validator->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_depends_version,
         (cl.opt().is_defined("force-depends-version") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-depends-version")
                             && !cl.opt().is_defined("refuse-depends-version")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_distribution,
+    validator->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_distribution,
         (cl.opt().is_defined("force-distribution") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-distribution")
                             && !cl.opt().is_defined("refuse-distribution")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_downgrade,
+    validator->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_downgrade,
         (cl.opt().is_defined("force-downgrade") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-downgrade")
                             && !cl.opt().is_defined("refuse-downgrade")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_file_info,
+    validator->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_file_info,
         (cl.opt().is_defined("force-file-info") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-file-info")
                             && !cl.opt().is_defined("refuse-file-info")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_hold,
+    validator->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_hold,
         (cl.opt().is_defined("force-hold") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-hold")
                             && !cl.opt().is_defined("refuse-hold")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_upgrade_any_version,
+    validator->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_upgrade_any_version,
         (cl.opt().is_defined("force-upgrade-any-version") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-upgrade-any-version")
                             && !cl.opt().is_defined("refuse-upgrade-any-version")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_overwrite,
+    validator->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_overwrite,
         (cl.opt().is_defined("force-overwrite") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-overwrite")
                             && !cl.opt().is_defined("refuse-overwrite")
                             && !cl.opt().is_defined("refuse-all"));
     // overwriting directories is just way too ugly to include in --force-all
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_overwrite_dir,
+    validator->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_overwrite_dir,
         (cl.opt().is_defined("force-overwrite-dir") /*|| cl.opt().is_defined("force-all")*/)
                             && !cl.opt().is_defined("no-force-overwrite-dir")
                             && !cl.opt().is_defined("refuse-overwrite-dir")
                             && !cl.opt().is_defined("refuse-all"));
     // the rollback is kind of a positive thing so we don't use it on --force-all
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_rollback,
+    validator->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_rollback,
         (cl.opt().is_defined("force-rollback") /*|| cl.opt().is_defined("force-all")*/)
                             && !cl.opt().is_defined("no-force-rollback")
                             && !cl.opt().is_defined("refuse-rollback")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_vendor,
+    validator->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_vendor,
         (cl.opt().is_defined("force-vendor") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-vendor")
                             && !cl.opt().is_defined("refuse-vendor")
                             && !cl.opt().is_defined("refuse-all"));
 
     // some additional parameters
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_skip_same_version, cl.opt().is_defined("skip-same-version"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_recursive, cl.opt().is_defined("recursive"));
+    validator->set_parameter(wpkgar::wpkgar_install::wpkgar_install_skip_same_version, cl.opt().is_defined("skip-same-version"));
+    validator->set_parameter(wpkgar::wpkgar_install::wpkgar_install_recursive, cl.opt().is_defined("recursive"));
 
     // add the list of verify-fields expressions if any
     if(cl.opt().is_defined("verify-fields"))
@@ -3102,7 +3104,7 @@ void init_installer
         const int fields_max(cl.opt().size("verify-fields"));
         for(int i(0); i < fields_max; ++i)
         {
-            installer->add_field_validation(cl.opt().get_string("verify-fields", i));
+            validator->add_field_validation(cl.opt().get_string("verify-fields", i));
         }
     }
 
@@ -3114,10 +3116,10 @@ void init_installer
             for(int i(0); i < max; ++i)
             {
                 const std::string& name( cl.get_string( option, i ) );
-                installer->add_package( name, std::string(), cl.opt().is_defined( "force-reinstall" ) );
+                validator->add_package( name, std::string(), cl.opt().is_defined( "force-reinstall" ) );
             }
 
-            if( installer->count() == 0 )
+            if( validator->count() == 0 )
             {
                 wpkg_output::log("You are attempting to install one or more packages that are already installed. Nothing done! Use '--force-reinstall' to force a reinstallation.")
                         .level(wpkg_output::level_warning)
@@ -3126,7 +3128,7 @@ void init_installer
                 exit(0);
             }
             //
-            if( installer->count() != max )
+            if( validator->count() != max )
             {
                 wpkg_output::log("One or more packages you specified for installation are already installed. See the '--force-reinstall' option.")
                         .level(wpkg_output::level_warning)
@@ -3136,7 +3138,7 @@ void init_installer
         }
         else
         {
-            installer->add_package(package_name.full_path());
+            validator->add_package(package_name.full_path());
         }
     }
     catch( const std::exception& e )

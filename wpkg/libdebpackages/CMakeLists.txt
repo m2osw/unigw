@@ -74,8 +74,11 @@ set( LIBDEBPACKAGES_INCLUDE_FILES
 	"${CMAKE_CURRENT_SOURCE_DIR}/debian_packages.h.in"
 	"${CMAKE_CURRENT_BINARY_DIR}/debian_packages.h"
     installer/details/disk.h
+    installer/dependencies.h
+    installer/flags.h
     installer/install_info.h
     installer/package_item.h
+    installer/package_list.h
     installer/tree_generator.h
     advgetopt.h
     case_insensitive_string.h
@@ -95,7 +98,6 @@ set( LIBDEBPACKAGES_INCLUDE_FILES
     wpkgar_repository.h
     wpkgar_package.h
     wpkgar_tracker.h
-    wpkgar_validator.h
     wpkg_architecture.h
     wpkg_backup.h
     wpkg_changelog.h
@@ -111,8 +113,11 @@ set( LIBDEBPACKAGES_INCLUDE_FILES
 
 set( LIBDEBPACKAGES_SOURCE_FILES
     installer/details/disk.cpp
+    installer/dependencies.cpp
+    installer/flags.cpp
     installer/install_info.cpp
     installer/package_item.cpp
+    installer/package_list.cpp
     installer/tree_generator.cpp
     advgetopt.cpp
     case_insensitive_string.cpp
@@ -131,7 +136,6 @@ set( LIBDEBPACKAGES_SOURCE_FILES
     wpkgar_repository.cpp
     wpkgar_package.cpp
     wpkgar_tracker.cpp
-    wpkgar_validator.cpp
     wpkg_architecture.cpp
     wpkg_backup.cpp
     wpkg_changelog.cpp

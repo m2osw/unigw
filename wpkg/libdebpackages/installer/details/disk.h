@@ -28,12 +28,16 @@
 #if !defined(MO_DARWIN) && !defined(MO_SUNOS) && !defined(MO_FREEBSD)
 
 #include "libdebpackages/wpkgar.h"
-#include "libdebpackages/wpkgar_install.h"
+#include "libdebpackages/installer/flags.h"
 #include "libdebpackages/installer/package_item.h"
+#include "libdebpackages/installer/package_list.h"
 
 #include <memory>
 
 namespace wpkgar
+{
+
+namespace installer
 {
 
 namespace details
@@ -98,11 +102,15 @@ private:
 class DEBIAN_PACKAGE_EXPORT disk_list_t
 {
 public:
-    disk_list_t(wpkgar_manager::pointer_t manager, std::shared_ptr<wpkgar_install> install);
+    disk_list_t
+        ( wpkgar_manager::pointer_t manager
+        , package_list::pointer_t package_list
+        , flags::pointer_t flags
+        );
     void add_size(const std::string& path, int64_t size);
     void compute_size_and_verify_overwrite
-        ( const wpkgar_install::wpkgar_package_list_t::size_type idx
-        , const installer::package_item_t& item
+        ( const package_item_t::list_t::size_type idx
+        , const package_item_t& item
         , const wpkg_filename::uri_filename& root
         , memfile::memory_file *data
         , memfile::memory_file *upgrade
@@ -115,14 +123,17 @@ private:
 
     disk_t *find_disk(const std::string& path);
 
-    wpkgar_manager::pointer_t f_manager;
-    std::shared_ptr<wpkgar_install> f_install;
+    wpkgar_manager::pointer_t       f_manager;
+    package_list::pointer_t         f_package_list;
+    flags::pointer_t                f_flags;
     std::vector<disk_t>             f_disks;
     disk_t *                        f_default_disk; // used in win32 only
     filename_info_map_t             f_filenames;
 };
 
 }   // details namespace
+
+}   // installer namespace
 
 }   // namespace wpkgar
 
