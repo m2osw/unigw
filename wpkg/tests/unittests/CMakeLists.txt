@@ -78,6 +78,7 @@ if( CATCH_FOUND )
         unittest_architecture.cpp
         unittest_control.cpp
         unittest_expr.cpp
+        unittest_installer.cpp
         unittest_libutf8.cpp
         unittest_memfile.cpp
         unittest_uri_filename.cpp
