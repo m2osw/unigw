@@ -1,5 +1,5 @@
 /*    dependencies.h -- determine dependencies for installation of explicit packages
- *    Copyright (C) 2012-2015  Made to Order Software Corporation
+ *    Copyright (C) 2012-2016  Made to Order Software Corporation
  *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@
 #include    "libdebpackages/installer/package_item.h"
 #include    "libdebpackages/installer/package_list.h"
 #include    "libdebpackages/installer/progress_scope.h"
+#include    "libdebpackages/installer/task.h"
 #include    "libdebpackages/installer/tree_generator.h"
 #include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
@@ -68,26 +69,35 @@ public:
         validation_return_unpacked
     };
 
-    typedef std::shared_ptr<dependencies>                              pointer_t;
-    typedef std::vector<package_item_t*>                               package_ptrs_t;
-    typedef std::vector<wpkg_dependencies::dependencies::dependency_t> dependency_list_t;
-    typedef std::vector<std::string>                                   string_list_t;
+    typedef std::shared_ptr<dependencies>                               pointer_t;
+    typedef std::vector<package_item_t*>                                package_ptrs_t;
+    typedef std::vector<wpkg_dependencies::dependencies::dependency_t>  dependency_list_t;
+    typedef std::vector<std::string>                                    string_list_t;
+    typedef wpkg_control::control_file::field_xselection_t::selection_t selection_t;
 
     dependencies
         ( wpkgar_manager::pointer_t manager
         , package_list::pointer_t   list
         , flags::pointer_t          flags
+        , task::pointer_t           task
         );
 
-    bool get_install_includes_choices() const;  // f_install_includes_choices
+    void                   init_field_names();
+    string_list_t&         get_field_names();
+    const string_list_t&   get_field_names() const;
+
+    bool                   get_install_includes_choices() const;  // f_install_includes_choices
 
     // validation sub-functions
+    bool                check_implicit_for_upgrade(package_list::list_t& tree, const package_list::list_t::size_type idx);
     int                 compare_trees(const package_list::list_t& left, const package_list::list_t& right) const;
     void                find_dependencies( package_list::list_t& tree, const package_list::list_t::size_type idx, dependency_list_t& missing, dependency_list_t& held );
     validation_return_t find_explicit_dependency(package_list::list_t::size_type index, const wpkg_filename::uri_filename& package_name, const wpkg_dependencies::dependencies::dependency_t& d, const std::string& field_name);
     validation_return_t find_installed_dependency(package_list::list_t::size_type index, const wpkg_filename::uri_filename& package_name, const wpkg_dependencies::dependencies::dependency_t& d, const std::string& field_name);
     bool                find_installed_predependency_package( package_item_t& pkg, const wpkg_filename::uri_filename& package_name, const wpkg_dependencies::dependencies::dependency_t& d);
     void                find_installed_predependency(const wpkg_filename::uri_filename& package_name, const wpkg_dependencies::dependencies::dependency_t& d);
+    selection_t         get_xselection( const wpkg_filename::uri_filename& filename ) const;
+    selection_t         get_xselection( const std::string& filename ) const;
     int                 match_dependency_version(const wpkg_dependencies::dependencies::dependency_t& d, const package_item_t& name);
     void                output_tree(int count, const package_list::list_t& tree, const std::string& sub_title);
     void                read_repositories();
@@ -137,9 +147,11 @@ private:
     controlled_vars::fbool_t   f_install_includes_choices;
     controlled_vars::zuint32_t f_tree_max_depth;
     string_list_t              f_field_names;
-    progress_scope             f_progress_scope;
+    std::string                f_architecture;
+    task::pointer_t            f_task;
 
-    typedef progress_scope_t<dependencies,uint64_t> progress_scope;
+    typedef installer::progress_scope_t<installer::progress_stack,uint64_t> progress_scope;
+    installer::progress_stack  f_progress_stack;
 };
 
 }   // namespace installer

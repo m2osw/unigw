@@ -83,6 +83,7 @@ dependencies::dependencies
     ( wpkgar_manager::pointer_t manager
     , package_list::pointer_t   list
     , flags::pointer_t          flags
+    , task::pointer_t           task
     )
         : f_manager(manager)
         , f_package_list(list)
@@ -91,9 +92,35 @@ dependencies::dependencies
         //, f_install_includes_choices(false)   -- auto-init
         //, f_tree_max_depth(0)                 -- auto-init
         //, f_field_names()                     -- auto-init
+        //, f_architecture()                    -- auto-init
+        , f_task(task)
 {
+    f_architecture = f_manager->get_field
+                        ( "core"
+                        , wpkg_control::control_file::field_architecture_factory_t::canonicalized_name()
+                        );
+    init_field_names();
 }
 
+
+void dependencies::init_field_names()
+{
+    // WARNING: the Depends field MUST be the first entry
+    //
+    f_field_names.clear();
+    f_field_names.push_back( wpkg_control::control_file::field_depends_factory_t::canonicalized_name() );
+}
+
+dependencies::string_list_t& dependencies::get_field_names()
+{
+    return f_field_names;
+}
+
+
+const dependencies::string_list_t& dependencies::get_field_names() const
+{
+    return f_field_names;
+}
 
 
 bool dependencies::get_install_includes_choices() const
@@ -318,7 +345,7 @@ void dependencies::find_installed_predependency(const wpkg_filename::uri_filenam
 
 void dependencies::validate_predependencies()
 {
-    progress_scope s( this, "validate_predependencies", f_package_list->get_package_list().size() );
+    progress_scope s( &f_progress_stack, "validate_predependencies", f_package_list->get_package_list().size() );
 
     // note: at this point we have not read repositories yet
 
@@ -327,7 +354,7 @@ void dependencies::validate_predependencies()
     for( auto& pkg : f_package_list->get_package_list() )
     {
         f_manager->check_interrupt();
-        increment_progress();
+        f_progress_stack.increment_progress();
 
         if(pkg.get_type() == package_item_t::package_type_explicit)
         {
@@ -427,11 +454,11 @@ void dependencies::read_repositories()
 
     f_repository_packages_loaded = true;
     const auto& repositories(f_manager->get_repositories());
-    progress_scope s( this, "repositories", repositories.size() );
+    progress_scope s( &f_progress_stack, "repositories", repositories.size() );
     for( auto& repo_filename : repositories )
     {
         f_manager->check_interrupt();
-        increment_progress();
+        f_progress_stack.increment_progress();
 
         memfile::memory_file index_file;
         if( !read_repository_index( repo_filename, index_file ) )
@@ -463,8 +490,7 @@ void dependencies::read_repositories()
             // verify package architecture
             const std::string arch(package.get_architecture());
             if(arch != "all" && !wpkg_dependencies::dependencies::match_architectures
-                (
-                arch
+                ( arch
                 , f_architecture
                 , f_flags->get_parameter(flags::param_force_vendor, false) != 0)
                 )
@@ -779,7 +805,7 @@ void dependencies::trim_conflicts(package_list::list_t& tree, const package_list
     }
 
     // breaks don't apply if we're just unpacking
-    if(f_task == task_unpacking_packages)
+    if(*f_task == task::task_unpacking_packages)
     {
         return;
     }
@@ -806,7 +832,7 @@ void dependencies::trim_conflicts(package_list::list_t& tree, const package_list
 
 bool dependencies::trim_dependency
     ( package_item_t& item
-    , wpkgar_package_ptrs_t& parents
+    , package_ptrs_t& parents
     , const wpkg_dependencies::dependencies::dependency_t& dependency
     , const std::string& field_name
     )
@@ -1153,7 +1179,7 @@ bool dependencies::trim_dependency
 }
 
 
-void dependencies::trim_available( package_item_t& item, wpkgar_package_ptrs_t& parents )
+void dependencies::trim_available( package_item_t& item, package_ptrs_t& parents )
 {
     const wpkg_filename::uri_filename filename(item.get_filename());
 
@@ -1171,7 +1197,7 @@ void dependencies::trim_available( package_item_t& item, wpkgar_package_ptrs_t& 
     }
 
     // verify loops (i.e. A -> B -> A)
-    for(wpkgar_package_ptrs_t::size_type q(0); q < parents.size(); ++q)
+    for(package_ptrs_t::size_type q(0); q < parents.size(); ++q)
     {
         if(parents[q] == &item)
         {
@@ -1205,20 +1231,20 @@ void dependencies::trim_available( package_item_t& item, wpkgar_package_ptrs_t& 
 
 void dependencies::trim_available_packages()
 {
-    progress_scope s( this, "trim_available_packages", f_package_list->get_package_list().size() );
+    progress_scope s( &f_progress_stack, "trim_available_packages", f_package_list->get_package_list().size() );
 
     // start by removing all the available packages that are in conflict with
     // the explicit packages because we'll never be able to use them
     for( package_list::list_t::size_type idx(0); idx < f_package_list->get_package_list().size(); ++idx)
     {
-        increment_progress();
+        f_progress_stack.increment_progress();
 
         auto& pkg( f_package_list->get_package_list()[idx] );
         // start from the top level (i.e. only check explicit dependencies)
         switch(pkg.get_type())
         {
         case package_item_t::package_type_explicit:
-            if(f_task != task_reconfiguring_packages)
+            if(*f_task != task::task_reconfiguring_packages)
             {
                 trim_conflicts(f_package_list->get_package_list(), idx, false);
             }
@@ -1246,9 +1272,9 @@ void dependencies::trim_available_packages()
         }
     }
 
-    if(f_task != task_reconfiguring_packages)
+    if(*f_task != task::task_reconfiguring_packages)
     {
-        wpkgar_package_ptrs_t parents;
+        package_ptrs_t parents;
         for( auto& pkg : f_package_list->get_package_list() )
         {
             // start from the top level (i.e. only check explicit dependencies)
@@ -1473,11 +1499,11 @@ dependencies::validation_return_t dependencies::validate_installed_depends_field
 
     // we already checked that the field existed in the previous function
     wpkg_dependencies::dependencies depends(f_package_list->get_package_list()[idx].get_field(field_name));
-    progress_scope s( this, "validate_installed_depends_field", depends.size() );
+    progress_scope s( &f_progress_stack, "validate_installed_depends_field", depends.size() );
     for(int i(0); i < depends.size(); ++i)
     {
         f_manager->check_interrupt();
-        increment_progress();
+        f_progress_stack.increment_progress();
 
         const wpkg_dependencies::dependencies::dependency_t& d(depends.get_dependency(i));
         validation_return_t r(find_explicit_dependency(idx, filename, d, field_name));
@@ -1513,12 +1539,12 @@ dependencies::validation_return_t dependencies::validate_installed_dependencies(
     // result is success by default
     validation_return_t result(validation_return_success);
 
-    progress_scope s( this, "validate_installed_dependencies", f_package_list->get_package_list().size() );
+    progress_scope s( &f_progress_stack, "validate_installed_dependencies", f_package_list->get_package_list().size() );
 
     for( package_list::list_t::size_type idx(0); idx < f_package_list->get_package_list().size(); ++idx )
     {
         auto& pkg( f_package_list->get_package_list()[idx] );
-        increment_progress();
+        f_progress_stack.increment_progress();
         if(pkg.get_type() == package_item_t::package_type_explicit)
         {
             // full path to package
@@ -1576,7 +1602,7 @@ bool dependencies::check_implicit_for_upgrade(package_list::list_t& tree, const 
 
     // TBD: if not installing I do not think we should end up here...
     //      but just in case I test
-    if(f_task != task_installing_packages)
+    if(*f_task != task::task_installing_packages)
     {
         return true;
     }
@@ -1611,7 +1637,7 @@ bool dependencies::check_implicit_for_upgrade(package_list::list_t& tree, const 
     case wpkgar_manager::unpacked:
         // with --install we cannot upgrade a package that was just unpacked.
         // (it needs an explicit --configure first)
-        if(!f_task == task_unpacking_packages)
+        if(*f_task != task::task_unpacking_packages)
         {
             // we do not allow auto-configure of implicit targets
             return false;
@@ -1714,7 +1740,12 @@ wpkg_control::control_file::field_xselection_t::selection_t dependencies::get_xs
  * If necessary and the user specified a repository, it promotes packages
  * that are available to implicit status when found.
  */
-void dependencies::find_dependencies( package_list::list_t& tree, const package_list::list_t::size_type idx, wpkgar_dependency_list_t& missing, wpkgar_dependency_list_t& held )
+void dependencies::find_dependencies
+    ( package_list::list_t& tree
+    , const package_list::list_t::size_type idx
+    , dependency_list_t& missing
+    , dependency_list_t& held
+    )
 {
     const auto& tree_pkg( tree[idx] );
     const wpkg_filename::uri_filename filename(tree_pkg.get_filename());
@@ -1875,20 +1906,20 @@ void dependencies::find_dependencies( package_list::list_t& tree, const package_
 }
 
 
-bool dependencies::verify_tree( package_list::list_t& tree, wpkgar_dependency_list_t& missing, wpkgar_dependency_list_t& held )
+bool dependencies::verify_tree( package_list::list_t& tree, dependency_list_t& missing, dependency_list_t& held )
 {
     // if reconfiguring we have a good tree (i.e. the existing installation
     // tree is supposed to be proper)
-    if(f_task == task_reconfiguring_packages)
+    if(*f_task == task::task_reconfiguring_packages)
     {
         return true;
     }
 
-    progress_scope s( this, "verify_tree", tree.size() );
+    progress_scope s( &f_progress_stack, "verify_tree", tree.size() );
 
     // save so we know whether any dependencies are missing
-    wpkgar_dependency_list_t::size_type missing_count(missing.size());
-    wpkgar_dependency_list_t::size_type held_count(held.size());
+    dependency_list_t::size_type missing_count(missing.size());
+    dependency_list_t::size_type held_count(held.size());
 
     // verifying means checking that all dependencies are satisfied
     // also, in this case "available" dependencies that are required
@@ -1896,7 +1927,7 @@ bool dependencies::verify_tree( package_list::list_t& tree, wpkgar_dependency_li
     // and we can save the correct status in the package once installed
     for( package_list::list_t::size_type idx(0); idx < tree.size(); ++idx )
     {
-        increment_progress();
+        f_progress_stack.increment_progress();
 
         if(tree[idx].get_type() == package_item_t::package_type_explicit)
         {
@@ -2279,8 +2310,8 @@ void dependencies::validate_dependencies()
     // it for the next step and if it fails, we're done...
     if(!f_install_includes_choices)
     {
-        wpkgar_dependency_list_t missing;
-        wpkgar_dependency_list_t held;
+        dependency_list_t missing;
+        dependency_list_t held;
         if(!verify_tree(f_package_list->get_package_list(), missing, held))
         {
             std::stringstream ss;
@@ -2337,11 +2368,11 @@ void dependencies::validate_dependencies()
     // lists to be complete... (explicit + implicit); other lists are
     // ignored except the available while we search for dependencies
 
-    progress_scope s( this, "validate_dependencies", f_package_list->get_package_list().size() );
+    progress_scope s( &f_progress_stack, "validate_dependencies", f_package_list->get_package_list().size() );
     package_list::list_t best;
     for(tree_generator tree_gen(f_package_list->get_package_list());;)
     {
-        increment_progress();
+        f_progress_stack.increment_progress();
         package_list::list_t tree(tree_gen.next());
         if(tree.empty())
         {
@@ -2354,8 +2385,8 @@ void dependencies::validate_dependencies()
             break;
         }
 
-        wpkgar_dependency_list_t missing;
-        wpkgar_dependency_list_t held;
+        dependency_list_t missing;
+        dependency_list_t held;
         bool verified(verify_tree(tree, missing, held));
 
         if((wpkg_output::get_output_debug_flags() & wpkg_output::debug_flags::debug_depends_graph) != 0)
@@ -2414,56 +2445,6 @@ void dependencies::validate_dependencies()
 
     // just keep the best, all the other trees we can discard
     f_package_list->get_package_list() = best;
-}
-
-
-void dependencies::add_progess_record( const std::string& what, const uint64_t max )
-{
-    wpkg_output::progress_record_t record;
-    record.set_progress_what ( what );
-    record.set_progress_max  ( max  );
-    f_progress_stack.push( record );
-
-    wpkg_output::log("progress")
-        .level(wpkg_output::level_info)
-        .debug(wpkg_output::debug_flags::debug_progress)
-        .module(wpkg_output::module_validate_installation)
-        .progress( record );
-}
-
-
-void dependencies::increment_progress()
-{
-    if( f_progress_stack.empty() )
-    {
-        return;
-    }
-
-    f_progress_stack.top().increment_current_progress();
-
-    wpkg_output::log("increment progress")
-        .level(wpkg_output::level_info)
-        .debug(wpkg_output::debug_flags::debug_progress)
-        .module(wpkg_output::module_validate_installation)
-        .progress( f_progress_stack.top() );
-}
-
-
-void dependencies::pop_progess_record()
-{
-    if( f_progress_stack.empty() )
-    {
-        return;
-    }
-
-    wpkg_output::progress_record_t record( f_progress_stack.top() );
-    f_progress_stack.pop();
-
-    wpkg_output::log("pop progress")
-        .level(wpkg_output::level_info)
-        .debug(wpkg_output::debug_flags::debug_progress)
-        .module(wpkg_output::module_validate_installation)
-        .progress( record );
 }
 
 }   // installer namespace

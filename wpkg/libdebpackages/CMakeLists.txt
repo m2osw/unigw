@@ -79,6 +79,8 @@ set( LIBDEBPACKAGES_INCLUDE_FILES
     installer/install_info.h
     installer/package_item.h
     installer/package_list.h
+    installer/progress_scope.h
+    installer/task.h
     installer/tree_generator.h
     advgetopt.h
     case_insensitive_string.h
@@ -118,6 +120,8 @@ set( LIBDEBPACKAGES_SOURCE_FILES
     installer/install_info.cpp
     installer/package_item.cpp
     installer/package_list.cpp
+    installer/progress_scope.cpp
+    installer/task.cpp
     installer/tree_generator.cpp
     advgetopt.cpp
     case_insensitive_string.cpp

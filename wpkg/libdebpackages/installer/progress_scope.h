@@ -22,6 +22,7 @@
 #pragma once
 
 #include "libdebpackages/debian_export.h"
+#include "libdebpackages/wpkg_output.h"
 
 #include <string>
 #include <stack>
@@ -32,29 +33,8 @@ namespace wpkgar
 namespace installer
 {
 
-template <class T, class P>
-class DEBIAN_PACKAGE_EXPORT progress_scope_t
-{
-public:
-	progress_scope_t( T* inst
-				  , const std::string& what
-				  , const P max );
-    {
-        f_inst->add_progess_record( what, max );
-    }
 
-
-    progress_scope_t::~progress_scope_t()
-    {
-        f_inst->pop_progess_record();
-    }
-
-private:
-	T*	f_inst;
-};
-
-
-class progress_stack
+class DEBIAN_PACKAGE_EXPORT progress_stack
 {
 public:
     progress_stack();
@@ -69,6 +49,27 @@ private:
     stack_t     f_progress_stack;
 };
 
+
+template <class T, class P>
+class DEBIAN_PACKAGE_EXPORT progress_scope_t
+{
+public:
+	progress_scope_t( T* inst
+				  , const std::string& what
+                  , const P max )
+    {
+        f_inst->add_progess_record( what, max );
+    }
+
+
+    ~progress_scope_t()
+    {
+        f_inst->pop_progess_record();
+    }
+
+private:
+	T*	f_inst;
+};
 
 } // installer
 

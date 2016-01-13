@@ -30,6 +30,8 @@
 #include    "libdebpackages/wpkgar_repository.h"
 #include    "libdebpackages/installer/package_item.h"
 
+#include    "controlled_vars/controlled_vars.h"
+
 namespace wpkgar
 {
 
@@ -42,37 +44,37 @@ class DEBIAN_PACKAGE_EXPORT package_list
 public:
     typedef std::shared_ptr<package_list> pointer_t;
     typedef std::vector<std::string>      string_list_t;
+    typedef package_item_t::list_t        list_t;
 
     package_list( wpkgar_manager::pointer_t manager );
 
     void add_package( const std::string& package, const std::string& version = std::string(), const bool force_reinstall = false );
     void add_package( wpkgar_repository::package_item_t entry, const bool force_reinstall = false );
     const std::string& get_package_name( const int idx ) const;
-    int count() const;
+    list_t::size_type count() const;
 
     // functions used internally
     bool find_essential_file( std::string filename, const size_t skip_idx );
 
-    typedef package_item_t::list_t list_t;
     const list_t& get_package_list() const;
     list_t&       get_package_list();
 
     const wpkgar_manager::package_list_t& get_installed_package_list() const;
     wpkgar_manager::package_list_t&       get_installed_package_list();
 
-private:
     list_t::const_iterator find_package_item(const wpkg_filename::uri_filename& filename) const;
     list_t::iterator       find_package_item_by_name(const std::string& name);
 
+private:
     wpkgar_manager::pointer_t        f_manager;
     list_t                           f_packages;
     string_list_t                    f_essential_files;
-    wpkgar_manager::package_list_t   f_list_installed_packages;
+    wpkgar_manager::package_list_t   f_installed_packages;
+    controlled_vars::fbool_t         f_read_essentials;
 };
 
-}
-// namespace installer
+} // namespace installer
 
-}   // namespace wpkgar
+} // namespace wpkgar
 
 // vim: ts=4 sw=4 et

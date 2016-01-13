@@ -410,14 +410,14 @@ void wpkgar_command::run_configure()
     wpkgar::wpkgar_install::pointer_t installer( new wpkgar::wpkgar_install(f_manager) );
     installer->set_configuring();
 
-    installer->add_package(f_params[0]);
+    installer->get_package_list()->add_package(f_params[0]);
 
     if(installer->validate())
     {
         // TODO: test that all the specified packages are indeed unpacked
         //       before attempting to configure them
-        const int max(installer->count());
-        for(int i(0); i < max; ++i)
+        const auto max(installer->get_package_list()->count());
+        for(size_t i(0); i < max; ++i)
         {
             if(!installer->configure(i))
             {
@@ -474,12 +474,13 @@ void wpkgar_command::run_downgrade()
     installer->set_installing();
 
     // parameters
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_downgrade, true);
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_file_info, true);
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_quiet_file_info, true);
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_recursive, true);
+    auto flags( installer->get_flags() );
+    flags->set_parameter(wpkgar::installer::flags::param_force_downgrade, true);
+    flags->set_parameter(wpkgar::installer::flags::param_force_file_info, true);
+    flags->set_parameter(wpkgar::installer::flags::param_quiet_file_info, true);
+    flags->set_parameter(wpkgar::installer::flags::param_recursive, true);
 
-    installer->add_package(f_params[0]);
+    installer->get_package_list()->add_package(f_params[0]);
 
     if(installer->validate())
     {
@@ -507,11 +508,12 @@ void wpkgar_command::run_install()
     installer->set_installing();
 
     // parameters
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_file_info, true);
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_quiet_file_info, true);
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_recursive, true);
+    auto flags( installer->get_flags() );
+    flags->set_parameter(wpkgar::installer::flags::param_force_file_info, true);
+    flags->set_parameter(wpkgar::installer::flags::param_quiet_file_info, true);
+    flags->set_parameter(wpkgar::installer::flags::param_recursive, true);
 
-    installer->add_package(f_params[0]);
+    installer->get_package_list()->add_package(f_params[0]);
 
     if(installer->validate())
     {
@@ -573,11 +575,12 @@ void wpkgar_command::run_unpack()
     installer->set_installing();
 
     // parameters
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_file_info, true);
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_quiet_file_info, true);
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_recursive, true);
+    auto flags( installer->get_flags() );
+    flags->set_parameter(wpkgar::installer::flags::param_force_file_info, true);
+    flags->set_parameter(wpkgar::installer::flags::param_quiet_file_info, true);
+    flags->set_parameter(wpkgar::installer::flags::param_recursive, true);
 
-    installer->add_package(f_params[0]);
+    installer->get_package_list()->add_package(f_params[0]);
 
     if(installer->validate())
     {

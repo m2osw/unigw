@@ -40,6 +40,7 @@
 #include    "libdebpackages/installer/package_item.h"
 #include    "libdebpackages/installer/package_list.h"
 #include    "libdebpackages/installer/progress_scope.h"
+#include    "libdebpackages/installer/task.h"
 #include    "libdebpackages/installer/tree_generator.h"
 #include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
@@ -73,9 +74,10 @@ public:
 
     wpkgar_install( wpkgar_manager::pointer_t manager );
 
-    wpkgar_manager::pointer_t       get_manager() const;
-    installer::validator::pointer_t get_validator() const;
-    installer::install_info_list_t  get_install_list();
+    wpkgar_manager::pointer_t          get_manager()      const;
+    installer::install_info_list_t     get_install_list() const;
+    installer::flags::pointer_t        get_flags()        const;
+    installer::package_list::pointer_t get_package_list() const;
 
     void set_installing();
     void set_configuring();
@@ -83,13 +85,8 @@ public:
     void set_unpacking();
 
     void add_field_validation(const std::string& expression);
-#if 0
-    void add_package( const std::string& package, const std::string& version = std::string(), const bool force_reinstall = false );
-    void add_package( wpkgar_repository::package_item_t entry, const bool force_reinstall = false );
-    const std::string& get_package_name( const int idx ) const;
-    int count() const;
-#endif
 
+    int  count() const;
     bool validate();
     bool pre_configure();
     int  unpack();
@@ -101,19 +98,15 @@ private:
     friend class details::disk_list_t;
 #endif
 
-    typedef std::map<parameter_t, int>                                    wpkgar_flags_t;
+    //typedef std::map<parameter_t, int>                                    wpkgar_flags_t;
     typedef installer::package_item_t::list_t                             wpkgar_package_list_t;
     typedef std::vector<installer::package_item_t *>                      wpkgar_package_ptrs_t;
     typedef std::vector<wpkg_dependencies::dependencies::dependency_t>    wpkgar_dependency_list_t;
     typedef std::map<std::string, bool>                                   wpkgar_package_listed_t;
-    //typedef std::vector<std::string>                                      wpkgar_list_of_strings_t;
 
     // disallow copying
     wpkgar_install(const wpkgar_install& rhs);
     wpkgar_install& operator = (const wpkgar_install& rhs);
-
-    wpkgar_package_list_t::const_iterator find_package_item(const wpkg_filename::uri_filename& filename) const;
-    wpkgar_package_list_t::iterator find_package_item_by_name(const std::string& name);
 
     // validation sub-functions
     void validate_directory( installer::package_item_t package );
@@ -136,9 +129,6 @@ private:
     void validate_scripts();
     void sort_package_dependencies(const std::string& name, wpkgar_package_listed_t& listed);
     void sort_packages();
-
-    wpkg_control::control_file::field_xselection_t::selection_t get_xselection( const wpkg_filename::uri_filename& filename ) const;
-    wpkg_control::control_file::field_xselection_t::selection_t get_xselection( const std::string& filename ) const;
 
     // unpack sub-functions
     bool preupgrade_scripts(installer::package_item_t *item, installer::package_item_t *upgrade);
@@ -163,18 +153,20 @@ private:
     wpkgar_manager::package_status_t          f_original_status;
     //wpkgar_package_list_t                     f_packages;
     installer::tree_generator::package_idxs_t f_sorted_packages;
-    task_t                                    f_task;
+    installer::task::pointer_t                f_task;
     //controlled_vars::fbool_t                  f_repository_packages_loaded;
     //controlled_vars::fbool_t                  f_install_includes_choices;
     controlled_vars::zuint32_t                f_tree_max_depth;
     //wpkgar_list_of_strings_t                  f_essential_files;
-    //wpkgar_list_of_strings_t                  f_field_validations;
     //wpkgar_list_of_strings_t                  f_field_names;
-    controlled_vars::fbool_t                  f_read_essentials;
+    //controlled_vars::fbool_t                  f_read_essentials;
     controlled_vars::fbool_t                  f_install_source;
-    installer::progress_scope                 f_progress_scope;
 
-    typedef progress_scope_t<wpkgar_install,uint64_t> progress_scope;
+    typedef std::vector<std::string> string_list_t;
+    string_list_t                             f_field_validations;
+
+    typedef installer::progress_scope_t<installer::progress_stack,uint64_t> progress_scope;
+    installer::progress_stack                 f_progress_stack;
 };
 
 }   // namespace wpkgar

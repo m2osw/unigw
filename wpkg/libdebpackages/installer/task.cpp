@@ -1,5 +1,5 @@
-/*    flags.cpp -- installation flags
- *    Copyright (C) 2016  Made to Order Software Corporation
+/*    task.cpp -- set the task for the installer
+ *    Copyright (C) 2012-2016  Made to Order Software Corporation
  *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
  *    Alexis Wilke   alexis@m2osw.com
  *    Doug Barbieri  doug@dooglio.net
  */
-#include "libdebpackages/installer/flags.h"
+#include "libdebpackages/installer/task.h"
 
 namespace wpkgar
 {
@@ -27,38 +27,37 @@ namespace wpkgar
 namespace installer
 {
 
-
-flags::flags()
+task::task( task_t init_task )
+    : f_task( init_task )
 {
 }
 
-
-flags::~flags()
+task::~task()
 {
 }
 
-
-int  flags::get_parameter( const parameter_t flag, const int default_value ) const
+bool task::operator ==( task_t t ) const
 {
-    flags_map_t::const_iterator it(f_flags_map.find(flag));
-    if(it == f_flags_map.end())
-    {
-        // This line is not currently used from wpkg because all the
-        // parameters are always all defined from command line arguments
-        return default_value; // LCOV_EXCL_LINE
-    }
-    return it->second;
+    return t == f_task;
 }
 
-
-void flags::set_parameter( const parameter_t flag, const int value )
+bool task::operator !=( task_t t ) const
 {
-    f_flags_map[flag] = value;
+    return t != f_task;
 }
 
-
+task::task_t task::get_task() const
+{
+    return f_task;
 }
-// namespace installer
 
+void task::set_task( task_t val )
+{
+    f_task = val;
 }
-// namespace wpkgar
+
+}   // namespace installer
+
+}   // namespace wpkgar
+
+// vim: ts=4 sw=4 et

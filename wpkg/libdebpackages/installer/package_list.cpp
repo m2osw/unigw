@@ -32,10 +32,10 @@ namespace installer
 
 package_list::package_list( wpkgar_manager::pointer_t manager )
     : f_manager(manager)
-    //, f_list_installed_packages() -- auto-init
+    //, f_installed_packages() -- auto-init
     //, f_packages() -- auto-init
 {
-    f_manager->list_installed_packages(f_list_installed_packages);
+    f_manager->list_installed_packages( f_installed_packages );
 }
 
 
@@ -170,6 +170,12 @@ void package_list::add_package( const std::string& package, const std::string& v
 }
 
 
+package_list::list_t::size_type package_list::count() const
+{
+    return f_packages.size();
+}
+
+
 bool package_list::find_essential_file(std::string filename, const size_t skip_idx)
 {
     // filename should never be empty
@@ -185,10 +191,10 @@ bool package_list::find_essential_file(std::string filename, const size_t skip_i
     if(!f_read_essentials)
     {
         f_read_essentials = true;
-        for( wpkgar_package_list_t::size_type idx = 0; idx < f_packages.size(); ++idx )
+        for( wpkgar_manager::package_list_t::size_type idx = 0; idx < f_packages.size(); ++idx )
         {
             auto& pkg( f_packages[idx] );
-            if(static_cast<wpkgar_package_list_t::size_type>(skip_idx) == idx)
+            if(static_cast<wpkgar_manager::package_list_t::size_type>(skip_idx) == idx)
             {
                 // this is the package we're working on and obviously
                 // filename will exist in this package

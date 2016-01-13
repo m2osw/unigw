@@ -2225,12 +2225,22 @@ void wpkgar_build::install_source_package()
     pkg_install->set_installing();
 
     // some additional parameters
-    pkg_install->set_parameter(wpkgar::wpkgar_install::wpkgar_install_recursive, get_parameter(wpkgar::wpkgar_build::wpkgar_build_recursive, false) != 0);
-    pkg_install->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_file_info, get_parameter(wpkgar::wpkgar_build::wpkgar_build_force_file_info, false) != 0);
-    pkg_install->set_parameter(wpkgar::wpkgar_install::wpkgar_install_quiet_file_info, true);
+    auto flags( pkg_install->get_flags() );
+    flags->set_parameter
+        ( wpkgar::installer::flags::param_recursive
+        , get_parameter( wpkgar::wpkgar_build::wpkgar_build_recursive, false ) != 0
+        );
+    flags->set_parameter
+        ( wpkgar::installer::flags::param_force_file_info
+        , get_parameter( wpkgar::wpkgar_build::wpkgar_build_force_file_info, false ) != 0
+        );
+    flags->set_parameter
+        ( wpkgar::installer::flags::param_quiet_file_info
+        , true
+        );
 
     // add the source package we're working on
-    pkg_install->add_package(f_build_directory.full_path());
+    pkg_install->get_package_list()->add_package(f_build_directory.full_path());
 
     // The database must be locked before we call this function
     //wpkgar::wpkgar_lock lock_wpkg(f_manager, "Installing");
