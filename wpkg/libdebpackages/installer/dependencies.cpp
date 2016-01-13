@@ -1,4 +1,4 @@
-/*    wpkgar_validator.cpp -- install a debian package
+/*    dependencies.cpp -- install a debian package
  *    Copyright (C) 2006-2015  Made to Order Software Corporation
  *
  *    This program is free software; you can redistribute it and/or modify
@@ -2414,6 +2414,56 @@ void dependencies::validate_dependencies()
 
     // just keep the best, all the other trees we can discard
     f_package_list->get_package_list() = best;
+}
+
+
+void dependencies::add_progess_record( const std::string& what, const uint64_t max )
+{
+    wpkg_output::progress_record_t record;
+    record.set_progress_what ( what );
+    record.set_progress_max  ( max  );
+    f_progress_stack.push( record );
+
+    wpkg_output::log("progress")
+        .level(wpkg_output::level_info)
+        .debug(wpkg_output::debug_flags::debug_progress)
+        .module(wpkg_output::module_validate_installation)
+        .progress( record );
+}
+
+
+void dependencies::increment_progress()
+{
+    if( f_progress_stack.empty() )
+    {
+        return;
+    }
+
+    f_progress_stack.top().increment_current_progress();
+
+    wpkg_output::log("increment progress")
+        .level(wpkg_output::level_info)
+        .debug(wpkg_output::debug_flags::debug_progress)
+        .module(wpkg_output::module_validate_installation)
+        .progress( f_progress_stack.top() );
+}
+
+
+void dependencies::pop_progess_record()
+{
+    if( f_progress_stack.empty() )
+    {
+        return;
+    }
+
+    wpkg_output::progress_record_t record( f_progress_stack.top() );
+    f_progress_stack.pop();
+
+    wpkg_output::log("pop progress")
+        .level(wpkg_output::level_info)
+        .debug(wpkg_output::debug_flags::debug_progress)
+        .module(wpkg_output::module_validate_installation)
+        .progress( record );
 }
 
 }   // installer namespace

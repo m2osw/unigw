@@ -38,6 +38,7 @@
 #include    "libdebpackages/installer/install_info.h"
 #include    "libdebpackages/installer/package_item.h"
 #include    "libdebpackages/installer/package_list.h"
+#include    "libdebpackages/installer/progress_scope.h"
 #include    "libdebpackages/installer/tree_generator.h"
 #include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
@@ -136,6 +137,9 @@ private:
     controlled_vars::fbool_t   f_install_includes_choices;
     controlled_vars::zuint32_t f_tree_max_depth;
     string_list_t              f_field_names;
+    progress_scope             f_progress_scope;
+
+    typedef progress_scope_t<dependencies,uint64_t> progress_scope;
 };
 
 }   // namespace installer

@@ -39,6 +39,7 @@
 #include    "libdebpackages/installer/install_info.h"
 #include    "libdebpackages/installer/package_item.h"
 #include    "libdebpackages/installer/package_list.h"
+#include    "libdebpackages/installer/progress_scope.h"
 #include    "libdebpackages/installer/tree_generator.h"
 #include    "controlled_vars/controlled_vars_auto_enum_init.h"
 
@@ -152,24 +153,6 @@ private:
     // configuration sub-functions
     bool configure_package(installer::package_item_t *item);
 
-    class progress_scope
-    {
-    public:
-        progress_scope( wpkgar_install* inst
-                      , const std::string& what
-                      , const uint64_t max );
-        ~progress_scope();
-
-    private:
-        wpkgar_install* f_installer;
-    };
-
-    friend class progress_scope;
-
-    void add_progess_record( const std::string& what, const uint64_t max );
-    void pop_progess_record();
-    void increment_progress();
-
     wpkgar_manager::pointer_t                 f_manager;
     installer::flags::pointer_t               f_flags;
     installer::package_list::pointer_t        f_package_list;
@@ -189,9 +172,9 @@ private:
     //wpkgar_list_of_strings_t                  f_field_names;
     controlled_vars::fbool_t                  f_read_essentials;
     controlled_vars::fbool_t                  f_install_source;
+    installer::progress_scope                 f_progress_scope;
 
-    typedef std::stack<wpkg_output::progress_record_t> progress_stack_t;
-    progress_stack_t                    f_progress_stack;
+    typedef progress_scope_t<wpkgar_install,uint64_t> progress_scope;
 };
 
 }   // namespace wpkgar
