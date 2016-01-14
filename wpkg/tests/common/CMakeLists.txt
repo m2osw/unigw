@@ -3,13 +3,13 @@
 #      CMakeLists.txt
 #
 # Description:
-#      Definitions to create all the integration tests of the wpkg tools.
+#      Definitions to create common code for unit and integration tests.
 #
 # Documentation:
 #      See the CMake documentation.
 #
 # License:
-#      Copyright (c) 2013-2015 Made to Order Software Corp.
+#      Copyright (c) 2016 Made to Order Software Corp.
 #
 #      https://sourceforge.net/projects/unigw/
 #      contact@m2osw.com
@@ -34,31 +34,19 @@
 #      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-project(integrationtest)
+# Note that if user does not have Catch then this does not get included
+# in the final output
+project(tests_common)
 
 include_directories(
     "${PROJECT_BINARY_DIR}"
     "${PROJECT_SOURCE_DIR}"
 )
 
-add_executable( ${PROJECT_NAME}
-    integrationtest_main.cpp
-    integrationtest_package.cpp
-    integrationtest_system.cpp
-    ${CMAKE_SOURCE_DIR}/tools/license.cpp
+add_library( ${PROJECT_NAME} STATIC
+    wpkg_tools.h
+    wpkg_tools.cpp
 )
 
-target_link_libraries( ${PROJECT_NAME}
-    debpackages_static
-    expr_static
-    wpkg_z_static
-    wpkg_bz2_static
-)
-
-unset( DEBUG_WORD )
-if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
-    set( DEBUG_WORD "_d" )
-endif()
-add_test( integrationtests ${PROJECT_NAME} --tmp ${TMPDIR} --wpkg ${CMAKE_BINARY_DIR}/tools/wpkg_static${DEBUG_WORD}${CMAKE_EXECUTABLE_SUFFIX} )
 
 # vim: ts=4 sw=4 et

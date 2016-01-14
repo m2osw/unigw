@@ -305,7 +305,7 @@ const char * const g_projects[] =
 // namespace
 
 
-class SystemUnitTests
+class SystemUnitTests : public wpkg_tools
 {
     public:
         SystemUnitTests();
@@ -318,44 +318,8 @@ class SystemUnitTests
         void create_target();
 };
 
-SystemUnitTests::SystemUnitTests()
+SystemUnitTests::SystemUnitTests() : wpkg_tools()
 {
-    // make sure that the temporary directory is not empty, may be relative
-    if(integrationtest::tmp_dir.empty())
-    {
-        fprintf(stderr, "\nerror:integrationtest_system: a temporary directory is required to run the system unit tests.\n");
-        throw std::runtime_error("--tmp <directory> missing");
-    }
-
-    // path to the wpkg tool must not be empty either, may be relative
-    if(integrationtest::wpkg_tool.empty())
-    {
-        fprintf(stderr, "\nerror:integrationtest_system: the path to the wpkg tool is required; we do not use chdir() so a relative path will do.\n");
-        throw std::runtime_error("--wpkg <path-to-wpkg> missing");
-    }
-
-    // delete everything before running ANY ONE TEST
-    // (i.e. the setUp() function is called before each and every test)
-    wpkg_filename::uri_filename root(integrationtest::tmp_dir);
-    try
-    {
-        root.os_unlink_rf();
-    }
-    catch(const wpkg_filename::wpkg_filename_exception_io&)
-    {
-#ifdef MO_WINDOWS
-        // at times MS-Windows needs a little pause...
-        fprintf(stderr, "\n+++ Pause Between Package Tests +++\n");
-        Sleep(200);
-        root.os_unlink_rf();
-#else
-        // otherwise just rethrow
-        throw;
-#endif
-    }
-
-    printf("\n");
-    fflush(stdout);
 }
 
 

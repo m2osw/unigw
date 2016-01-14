@@ -26,7 +26,7 @@
 #include <catch.hpp>
 
 
-class InstallerUnitTests
+class InstallerUnitTests : public WpkgTools
 {
 public:
     InstallerUnitTests();
@@ -35,7 +35,7 @@ public:
 };
 
 
-InstallerUnitTests::InstallerUnitTests()
+InstallerUnitTests::InstallerUnitTests() : WpkgTools()
 {
 }
 

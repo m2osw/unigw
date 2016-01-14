@@ -18,8 +18,10 @@
  *    Authors
  *    Alexis Wilke   alexis@m2osw.com
  */
-#ifndef UNIT_TEST_MAIN_H
-#define UNIT_TEST_MAIN_H
+#pragma once
+
+#include "wpkg_tools.h"
+
 #include <string>
 #include <cstring>
 #include <cstdlib>
@@ -27,36 +29,7 @@
 #ifdef _MSC_VER
 // The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: ... See online help for details.
 // This is because of the putenv() and strdup() used in the class below
-#pragma warning(disable: 4996)
+#	pragma warning(disable: 4996)
 #endif
 
-namespace unittest
-{
-
-extern std::string   tmp_dir;
-
-class obj_setenv
-{
-public:
-	obj_setenv(const std::string& var)
-		: f_copy(strdup(var.c_str()))
-	{
-		putenv(f_copy);
-		std::string::size_type p(var.find_first_of('='));
-		f_name = var.substr(0, p);
-	}
-	~obj_setenv()
-	{
-		putenv(strdup((f_name + "=").c_str()));
-		free(f_copy);
-	}
-
-private:
-	char *		f_copy;
-	std::string	f_name;
-};
-
-
-
-}
-#endif
+// vim: ts=4 sw=4 et
