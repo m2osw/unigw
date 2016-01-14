@@ -2625,6 +2625,16 @@ void field_file::set_variable(const std::string& name, const std::string& value)
     set_variable(field);
 }
 
+#if 0
+void field_file::set_variable(const std::string& name, const int32_t value)
+{
+    std::stringstream ss;
+    ss << value;
+    std::shared_ptr<field_t> field( create_variable( name, ss.str() ) );
+    set_variable(field);
+}
+#endif
+
 
 /** \brief Retrieve a variable by name.
  *

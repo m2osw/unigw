@@ -58,14 +58,17 @@ if( CATCH_FOUND )
 
     # Include for every folder below
     include_directories(
-        "${CMAKE_BINARY_DIR}"
+        "${wpkg_project_SOURCE_DIR}"
+        "${wpkg_project_BINARY_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}"
         "${CMAKE_CURRENT_BINARY_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/common"
         "${debpackages_BINARY_DIR}"
         "${debpackages_SOURCE_DIR}"
         "${expr_BINARY_DIR}"
-        "${expr_SOURCE_DIR}/libexpr"
+        "${expr_SOURCE_DIR}"
         "${utf8_BINARY_DIR}"
-        "${utf8_SOURCE_DIR}/libutf8"
+        "${utf8_SOURCE_DIR}"
         "${wpkg_bz2_BINARY_DIR}"
         "${wpkg_bz2_SOURCE_DIR}"
         "${wpkg_tld_BINARY_DIR}"

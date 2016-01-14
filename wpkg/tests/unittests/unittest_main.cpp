@@ -22,6 +22,8 @@
 // Tell catch we want it to add the runner code in this file.
 #define CATCH_CONFIG_RUNNER
 
+#include "unittest_main.h"
+
 #include <catch.hpp>
 
 #include "tools/license.h"
@@ -34,12 +36,7 @@
 #   include <unistd.h>
 #endif
 
-
-namespace unittest
-{
-    std::string   tmp_dir;
-}
-
+using namespace test_common;
 
 namespace
 {
@@ -156,7 +153,7 @@ int unittest_main(int argc, char *argv[])
 
     if( !configData.tmp.empty() )
     {
-        unittest::tmp_dir = configData.tmp;
+        wpkg_tools::set_tmp_dir( configData.tmp );
         remove_from_args( arg_list, "--tmp", "-t" );
     }
 

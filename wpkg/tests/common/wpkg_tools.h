@@ -19,6 +19,12 @@
  *    Alexis Wilke   alexis@m2osw.com
  */
 
+#include "libdebpackages/wpkg_control.h"
+
+#include <memory>
+#include <string>
+#include <vector>
+
 namespace test_common
 {
 
@@ -26,18 +32,8 @@ namespace test_common
 class obj_setenv
 {
 public:
-	obj_setenv(const std::string& var)
-		: f_copy(strdup(var.c_str()))
-	{
-		putenv(f_copy);
-		std::string::size_type p(var.find_first_of('='));
-		f_name = var.substr(0, p);
-	}
-	~obj_setenv()
-	{
-		putenv(strdup((f_name + "=").c_str()));
-		free(f_copy);
-	}
+    obj_setenv(const std::string& var);
+    ~obj_setenv();
 
 private:
 	char *		f_copy;
@@ -51,6 +47,9 @@ public:
     wpkg_tools();
     virtual ~wpkg_tools();
 
+    static std::string get_tmp_dir  () { return f_tmp_dir; }
+    static std::string get_wpkg_tool() { return f_wpkg_tool; }
+    //
     static void set_tmp_dir  ( const std::string& val ) { f_tmp_dir   = val; }
     static void set_wpkg_tool( const std::string& val ) { f_wpkg_tool = val; }
 
@@ -65,6 +64,7 @@ protected:
     control_file_pointer_t  get_new_control_file(const std::string& test_name);
 
     void    create_file     ( wpkg_control::file_list_t& files, wpkg_control::file_list_t::size_type idx, wpkg_filename::uri_filename path );
+    void    create_package  ( const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl, bool reset_wpkg_dir = true);
     void    create_package  ( const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl, int expected_return_value, bool reset_wpkg_dir = true);
     void    install_package ( const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl );
     void    install_package ( const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl, int expected_return_value );

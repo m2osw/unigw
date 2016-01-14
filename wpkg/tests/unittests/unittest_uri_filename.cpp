@@ -1725,23 +1725,23 @@ CATCH_TEST_CASE("URIFilenameUnitTests::long_filename","URIFilenameUnitTests")
 #endif
 
     // make sure that the temporary directory is not empty, may be relative
-    if(unittest::tmp_dir.empty())
+    if(test_common::wpkg_tools::get_tmp_dir().empty())
     {
         std::cerr << std::endl
                   << "error:unittest_uri_filename: a temporary directory is required to run the long_filename() unit test." << std::endl;
         throw std::runtime_error("--tmp <directory> missing");
     }
 
-    wpkg_filename::uri_filename real_tmpdir(unittest::tmp_dir);
+    wpkg_filename::uri_filename real_tmpdir(test_common::wpkg_tools::get_tmp_dir());
     real_tmpdir.os_unlink_rf(); // clean up the existing mess before we start our test
     real_tmpdir.os_mkdir_p();
     real_tmpdir = real_tmpdir.os_real_path();
-    const int offset(static_cast<int>(real_tmpdir.full_path().length() - unittest::tmp_dir.length() + 10));
+    const int offset(static_cast<int>(real_tmpdir.full_path().length() - test_common::wpkg_tools::get_tmp_dir().length() + 10));
 
     const int count(5);
     for(int i(0); i < count; ++i)
     {
-        wpkg_filename::uri_filename filename(unittest::tmp_dir);
+        wpkg_filename::uri_filename filename(test_common::wpkg_tools::get_tmp_dir());
         for(;;)
         {
             const int size(static_cast<int>(filename.full_path().length()));

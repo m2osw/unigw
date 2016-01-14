@@ -19,12 +19,40 @@
  *    Alexis Wilke   alexis@m2osw.com
  */
 
+
+#include "wpkg_tools.h"
+
+#include "libdebpackages/debian_packages.h"
+#include "libdebpackages/wpkg_util.h"
+
+#include <catch.hpp>
+
+#include <iostream>
+#include <string.h>
+
+
 namespace test_common
 {
 
 
 std::string wpkg_tools::f_tmp_dir;
 std::string wpkg_tools::f_wpkg_tool;
+
+
+obj_setenv::obj_setenv(const std::string& var)
+    : f_copy(strdup(var.c_str()))
+{
+    putenv(f_copy);
+    std::string::size_type p(var.find_first_of('='));
+    f_name = var.substr(0, p);
+}
+
+
+obj_setenv::~obj_setenv()
+{
+    putenv(strdup((f_name + "=").c_str()));
+    free(f_copy);
+}
 
 
 wpkg_tools::wpkg_tools()
@@ -206,7 +234,7 @@ void wpkg_tools::create_file(wpkg_control::file_list_t& files, wpkg_control::fil
  * \param[in] ctrl  The control file for that package.
  * \param[in] reset_wpkg_dir  Whether the directory should be reset first.
  */
-void wpkg_tools::create_package(const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl, bool reset_wpkg_dir = true)
+void wpkg_tools::create_package(const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl, bool reset_wpkg_dir )
 {
     wpkg_filename::uri_filename root(f_tmp_dir);
     wpkg_filename::uri_filename build_path(root.append_child(name));
@@ -276,9 +304,20 @@ void wpkg_tools::create_package(const std::string& name, std::shared_ptr<wpkg_co
 }
 
 
+namespace
+{
+    std::string int_to_string( const int val )
+    {
+        std::stringstream ss;
+        ss << val;
+        return ss.str();
+    }
+}
+
+
 void wpkg_tools::create_package( const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl, int expected_return_value, bool reset_wpkg_dir )
 {
-    ctrl->set_variable( "BUILD_RESULT", expected_return_value );
+    ctrl->set_variable( "BUILD_RESULT", int_to_string(expected_return_value) );
     create_package( name, ctrl, reset_wpkg_dir );
 }
 
@@ -402,7 +441,7 @@ void wpkg_tools::install_package( const std::string& name, std::shared_ptr<wpkg_
 
 void wpkg_tools::install_package( const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl, int expected_return_value )
 {
-    ctrl->set_variable( "INSTALL_RESULT", expected_return_value );
+    ctrl->set_variable( "INSTALL_RESULT", int_to_string(expected_return_value) );
     install_package( name, ctrl );
 }
 
@@ -456,7 +495,7 @@ void wpkg_tools::remove_package( const std::string& name, std::shared_ptr<wpkg_c
 
 void wpkg_tools::remove_package( const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl, int expected_return_value )
 {
-    ctrl->set_variable( "REMOVE_RESULT", expected_return_value );
+    ctrl->set_variable( "REMOVE_RESULT", int_to_string(expected_return_value) );
     remove_package( name, ctrl );
 }
 
@@ -511,7 +550,7 @@ void wpkg_tools::purge_package( const std::string& name, std::shared_ptr<wpkg_co
 
 void wpkg_tools::purge_package( const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl, int expected_return_value )
 {
-    ctrl->set_variable( "PURGE_RESULT", expected_return_value );
+    ctrl->set_variable( "PURGE_RESULT", int_to_string(expected_return_value) );
     purge_package( name, ctrl );
 }
 

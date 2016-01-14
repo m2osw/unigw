@@ -541,7 +541,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         }
     };
     {
-        unittest::obj_setenv env("ADVGETOPT_TEST_OPTIONS=--verbose - no default here");
+        test_common::obj_setenv env("ADVGETOPT_TEST_OPTIONS=--verbose - no default here");
         const char *sub_cargv[] =
         {
             "tests/unittests/AdvGetOptUnitTests::invalid_parameters",
@@ -558,7 +558,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(sub_argc, sub_argv, options_no_defaults_in_envvar, confs, "ADVGETOPT_TEST_OPTIONS"); }, advgetopt::getopt_exception_exiting);
     }
     {
-        unittest::obj_setenv env("ADVGETOPT_TEST_OPTIONS=--verbose no default here");
+        test_common::obj_setenv env("ADVGETOPT_TEST_OPTIONS=--verbose no default here");
         const char *sub_cargv[] =
         {
             "tests/unittests/AdvGetOptUnitTests::invalid_parameters",
@@ -575,7 +575,7 @@ void AdvGetOptUnitTests::invalid_parameters()
         CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(sub_argc, sub_argv, options_no_defaults_in_envvar, confs, "ADVGETOPT_TEST_OPTIONS"); }, advgetopt::getopt_exception_exiting);
     }
     {
-        unittest::obj_setenv env("ADVGETOPT_TEST_OPTIONS=--verbose -- foo bar blah");
+        test_common::obj_setenv env("ADVGETOPT_TEST_OPTIONS=--verbose -- foo bar blah");
         const char *sub_cargv[] =
         {
             "tests/unittests/AdvGetOptUnitTests::invalid_parameters",
@@ -672,12 +672,12 @@ void AdvGetOptUnitTests::invalid_parameters()
     };
     {
         // long
-        unittest::obj_setenv env("ADVGETOPT_TEST_OPTIONS=--verbose");
+        test_common::obj_setenv env("ADVGETOPT_TEST_OPTIONS=--verbose");
         CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc, argv, options_illegal_in_variable, confs, "ADVGETOPT_TEST_OPTIONS"); }, advgetopt::getopt_exception_exiting);
     }
     {
         // short
-        unittest::obj_setenv env("ADVGETOPT_TEST_OPTIONS=-v");
+        test_common::obj_setenv env("ADVGETOPT_TEST_OPTIONS=-v");
         CATCH_REQUIRE_THROWS_AS( { advgetopt::getopt opt(argc, argv, options_illegal_in_variable, confs, "ADVGETOPT_TEST_OPTIONS"); }, advgetopt::getopt_exception_exiting);
     }
 #endif
@@ -1764,7 +1764,7 @@ void AdvGetOptUnitTests::valid_config_files()
     {
         // here we have verbose twice which should hit the no_argument case
         // in the add_option() function
-        unittest::obj_setenv env("ADVGETOPT_TEST_OPTIONS= --verbose --number\t15\t--filenames foo bar blah --string weird -v");
+        test_common::obj_setenv env("ADVGETOPT_TEST_OPTIONS= --verbose --number\t15\t--filenames foo bar blah --string weird -v");
         advgetopt::getopt opt(argc, argv, valid_options, empty_confs, "ADVGETOPT_TEST_OPTIONS");
 
         // check that the result is valid
@@ -1811,7 +1811,7 @@ void AdvGetOptUnitTests::valid_config_files()
 
     // test that the environment variable has priority over a configuration file
     {
-        unittest::obj_setenv env(const_cast<char *>("ADVGETOPT_TEST_OPTIONS=--number 501 --filenames more files"));
+        test_common::obj_setenv env(const_cast<char *>("ADVGETOPT_TEST_OPTIONS=--number 501 --filenames more files"));
         memfile::memory_file config_file;
         config_file.create(memfile::memory_file::file_format_other);
         config_file.printf(
@@ -1870,7 +1870,7 @@ void AdvGetOptUnitTests::valid_config_files()
 
     // test order: conf files, environment var, command line
     {
-        unittest::obj_setenv env(const_cast<char *>("ADVGETOPT_TEST_OPTIONS=--number 501 --filenames more files"));
+        test_common::obj_setenv env(const_cast<char *>("ADVGETOPT_TEST_OPTIONS=--number 501 --filenames more files"));
         memfile::memory_file config_file;
         config_file.create(memfile::memory_file::file_format_other);
         config_file.printf(
@@ -1948,7 +1948,7 @@ void AdvGetOptUnitTests::valid_config_files()
 
     // test again, just in case: conf files, environment var, command line
     {
-        unittest::obj_setenv env(const_cast<char *>("ADVGETOPT_TEST_OPTIONS=--number 709 --filenames more files --string \"hard work in env\""));
+        test_common::obj_setenv env(const_cast<char *>("ADVGETOPT_TEST_OPTIONS=--number 709 --filenames more files --string \"hard work in env\""));
         memfile::memory_file config_file;
         config_file.create(memfile::memory_file::file_format_other);
         config_file.printf(
@@ -2103,7 +2103,7 @@ void AdvGetOptUnitTests::valid_config_files_extra()
 
     // yet again, just in case: conf files, environment var, command line
     {
-        unittest::obj_setenv env(const_cast<char *>("ADVGETOPT_TEST_OPTIONS=- --verbose -- more files --string \"hard work in env\""));
+        test_common::obj_setenv env(const_cast<char *>("ADVGETOPT_TEST_OPTIONS=- --verbose -- more files --string \"hard work in env\""));
         memfile::memory_file config_file;
         config_file.create(memfile::memory_file::file_format_other);
         config_file.printf(

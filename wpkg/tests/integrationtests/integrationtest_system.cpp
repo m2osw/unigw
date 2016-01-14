@@ -31,6 +31,8 @@
 #	pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
+using namespace test_common;
+
 //
 // System tests are used to test the full monty of the --build process:
 //
@@ -325,7 +327,7 @@ SystemUnitTests::SystemUnitTests() : wpkg_tools()
 
 void SystemUnitTests::create_projects(project_list_t& list)
 {
-    wpkg_filename::uri_filename root(integrationtest::tmp_dir);
+    wpkg_filename::uri_filename root(wpkg_tools::get_tmp_dir());
 
     wpkg_filename::uri_filename project;
     wpkg_filename::uri_filename filename;
@@ -392,7 +394,7 @@ void SystemUnitTests::create_projects(project_list_t& list)
 
 void SystemUnitTests::create_target()
 {
-    wpkg_filename::uri_filename root(integrationtest::tmp_dir);
+    wpkg_filename::uri_filename root(wpkg_tools::get_tmp_dir());
     wpkg_filename::uri_filename repository(root.append_child("repository"));
 
     wpkg_filename::uri_filename target_path(root.append_child("target"));
@@ -407,7 +409,7 @@ void SystemUnitTests::create_target()
     core_ctrl.write_file(core_ctrl_filename, true);
 
     // install the core.ctrl file in the target system
-    const std::string core_cmd(integrationtest::wpkg_tool + " --root " + target_path.path_only() + " --create-admindir " + core_ctrl_filename.path_only());
+    const std::string core_cmd(wpkg_tools::get_wpkg_tool() + " --root " + target_path.path_only() + " --create-admindir " + core_ctrl_filename.path_only());
     printf("Run --create-admindir command: \"%s\"\n", core_cmd.c_str());
     fflush(stdout);
     CATCH_REQUIRE(system(core_cmd.c_str()) == 0);
@@ -416,11 +418,11 @@ void SystemUnitTests::create_target()
 
 void SystemUnitTests::manual_builds()
 {
-    wpkg_filename::uri_filename root(integrationtest::tmp_dir);
+    wpkg_filename::uri_filename root(wpkg_tools::get_tmp_dir());
     root.os_mkdir_p();
     root = root.os_real_path();
 
-    wpkg_filename::uri_filename wpkg(integrationtest::wpkg_tool);
+    wpkg_filename::uri_filename wpkg(wpkg_tools::get_wpkg_tool());
     wpkg = wpkg.os_real_path();
 
     wpkg_filename::uri_filename target_path(root.append_child("target"));
@@ -491,11 +493,11 @@ void SystemUnitTests::manual_builds()
 
 void SystemUnitTests::automated_builds()
 {
-    wpkg_filename::uri_filename root(integrationtest::tmp_dir);
+    wpkg_filename::uri_filename root(wpkg_tools::get_tmp_dir());
     root.os_mkdir_p();
     root = root.os_real_path();
 
-    wpkg_filename::uri_filename wpkg(integrationtest::wpkg_tool);
+    wpkg_filename::uri_filename wpkg(wpkg_tools::get_wpkg_tool());
     wpkg = wpkg.os_real_path();
 
     wpkg_filename::uri_filename target_path(root.append_child("target"));

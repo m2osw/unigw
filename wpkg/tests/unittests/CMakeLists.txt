@@ -58,6 +58,7 @@ add_executable( ${PROJECT_NAME}
 )
 
 target_link_libraries( ${PROJECT_NAME}
+    tests_common
     debpackages_static
     expr_static
     wpkg_z_static
