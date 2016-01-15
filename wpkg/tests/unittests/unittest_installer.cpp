@@ -24,15 +24,40 @@
 #include "libdebpackages/wpkgar_install.h"
 #include "libdebpackages/wpkg_util.h"
 
+#include <iostream>
+
 #include <catch.hpp>
 
 using namespace test_common;
 using namespace wpkgar;
 
+
+namespace my_output
+{
+    void log_message( const wpkg_output::message_t& msg )
+    {
+        std::string message(msg.get_full_message(false));
+        std::cout << message;
+        if(message.length() > 0 && message[message.length() - 1] != '\n')
+        {
+            std::cout << std::endl;
+        }
+    }
+
+    void output_message( const wpkg_output::message_t& msg )
+    {
+        if( (msg.get_debug_flags() & wpkg_output::debug_flags::debug_progress) != 0)
+        {
+            std::cerr << msg.get_full_message(true) << std::endl;
+        }
+    }
+}
+
 class InstallerUnitTests : public wpkg_tools
 {
 public:
     InstallerUnitTests();
+    ~InstallerUnitTests();
 
     void install_package();
 };
@@ -40,6 +65,21 @@ public:
 
 InstallerUnitTests::InstallerUnitTests() : wpkg_tools()
 {
+    // Set up the output so it goes to cout/cerr respectively
+    //
+    auto output( wpkg_output::get_output() );
+    output->register_raw_log_listener(
+            [&]( const wpkg_output::message_t& msg ) { my_output::log_message( msg ); }
+            );
+    output->register_user_log_listener(
+            [&]( const wpkg_output::message_t& msg ) { my_output::output_message( msg ); }
+            );
+    // TODO: exercise the progress listener functionality
+}
+
+InstallerUnitTests::~InstallerUnitTests()
+{
+    wpkg_output::get_output()->clear_listeners();
 }
 
 
@@ -53,19 +93,33 @@ void InstallerUnitTests::install_package()
                     );
     create_package( "t1", ctrl, 0 );
 
-    init_database();
+    init_database( ctrl );
 
-    wpkgar_install::pointer_t manager( new wpkgar_manager );
-    manager->set_root_path  ( get_root()       );
-    manager->add_repository ( get_repository() );
+    wpkgar_manager::pointer_t manager( new wpkgar_manager );
+    manager->set_root_path     ( get_target_path()   );
+    manager->set_database_path ( get_database_path() );
+    manager->add_repository    ( get_repository()    );
 
     wpkgar_install::pointer_t installer( new wpkgar_install(manager) );
     auto package_list( installer->get_package_list() );
     wpkg_filename::uri_filename package_name( get_package_file_name( "t1", ctrl ) );
-    installer->add_package( package_name.full_path() );
+    package_list->add_package( package_name.full_path() );
 
     installer->set_installing();
-    CATCH_REQUIRE( installer->validate() );
+
+    // Should throw because the database is not locked
+    //
+    CATCH_REQUIRE_THROWS( installer->validate() );
+
+    wpkgar::wpkgar_lock the_lock( manager, "Installing unit test package..." );
+
+    const bool validated = installer->validate();
+    CATCH_REQUIRE( validated );
+    if( !validated )
+    {
+        std::cerr << "There was a problem--package did not validate!!!!" << std::endl;
+        return;
+    }
 
     installer::install_info_list_t install_list( installer->get_install_list() );
     CATCH_REQUIRE( !install_list.empty() );
@@ -73,7 +127,7 @@ void InstallerUnitTests::install_package()
     int explicit_count = 0;
     for( const auto& info : install_list )
     {
-        if( info.get_install_type() == installer::install_info_t::install_type_implicit )
+        if( info.get_install_type() == installer::install_info_t::install_type_explicit )
         {
             explicit_count++;
         }
@@ -89,8 +143,19 @@ void InstallerUnitTests::install_package()
         {
             break;
         }
-        CATCH_REQUIRE( i != wpkgar_install::WPKGAR_ERROR );
-        CATCH_REQUIRE( installer->configure(i) );
+
+        CATCH_REQUIRE( wpkgar_install::WPKGAR_ERROR != i );
+        if( i < 0 )
+        {
+            break;
+        }
+
+        const bool configured = installer->configure(i);
+        CATCH_REQUIRE( configured );
+        if( !configured )
+        {
+            break;
+        }
     }
 }
 

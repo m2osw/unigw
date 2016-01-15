@@ -225,6 +225,11 @@ wpkg_filename::uri_filename wpkg_tools::get_target_path()
     return get_root().append_child("target");
 }
 
+wpkg_filename::uri_filename wpkg_tools::get_database_path()
+{
+    return get_target_path().append_child("var/lib/wpkg");
+}
+
 wpkg_filename::uri_filename wpkg_tools::get_repository()
 {
     return get_root().append_child("repository");
@@ -341,9 +346,8 @@ void wpkg_tools::create_package( const std::string& name, control_file_pointer_t
 }
 
 
-void wpkg_tools::init_database()
+void wpkg_tools::init_database( control_file_pointer_t ctrl )
 {
-    wpkg_filename::uri_filename root(get_root());
     wpkg_filename::uri_filename target_path(get_target_path());
     wpkg_filename::uri_filename repository(get_repository());
 
@@ -372,7 +376,9 @@ void wpkg_tools::init_database()
                 + " --create-admindir " + wpkg_util::make_safe_console_string(core_ctrl_filename.path_only()));
         printf("Create AdminDir Command: \"%s\"\n", core_cmd.c_str());
         fflush(stdout);
-        CATCH_REQUIRE(execute_cmd(core_cmd.c_str()) == 0);
+        const int r(execute_cmd(core_cmd.c_str()));
+        std::cout << "  Create database result = " << WEXITSTATUS(r) << std::endl << std::flush;
+        CATCH_REQUIRE(WEXITSTATUS(r) == 0);
     }
     else
     {
@@ -426,7 +432,7 @@ std::string wpkg_tools::get_package_file_name( const std::string& name, control_
  */
 void wpkg_tools::install_package( const std::string& name, control_file_pointer_t ctrl )
 {
-    init_database();
+    init_database( ctrl );
 
     // The command string (empty to start)
     //

@@ -96,6 +96,10 @@ wpkgar_install::wpkgar_install( wpkgar_manager::pointer_t manager )
 }
 
 
+const int wpkgar_install::WPKGAR_ERROR = -1;
+const int wpkgar_install::WPKGAR_EOP   = -2;
+
+
 void wpkgar_install::set_installing()
 {
     f_task->set_task( task::task_installing_packages );

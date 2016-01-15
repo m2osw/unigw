@@ -67,8 +67,8 @@ class DEBIAN_PACKAGE_EXPORT wpkgar_install
 {
 public:
     // returned by unpack()
-    static const int WPKGAR_ERROR = -1;
-    static const int WPKGAR_EOP   = -2;
+    static const int WPKGAR_ERROR;
+    static const int WPKGAR_EOP;
 
     typedef std::shared_ptr<wpkgar_install> pointer_t;
 

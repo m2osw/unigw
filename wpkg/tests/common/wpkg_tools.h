@@ -59,13 +59,14 @@ protected:
 
     static wpkg_filename::uri_filename get_root();
     static wpkg_filename::uri_filename get_target_path();
+    static wpkg_filename::uri_filename get_database_path();
     static wpkg_filename::uri_filename get_repository();
 
     std::string             escape_string( const std::string& orig_field );
     control_file_pointer_t  get_new_control_file(const std::string& test_name);
     std::string 			get_package_file_name( const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl );
 
-    void	init_database();
+    void	init_database( control_file_pointer_t ctrl );
 
     void    create_file     ( wpkg_control::file_list_t& files, wpkg_control::file_list_t::size_type idx, wpkg_filename::uri_filename path );
     void    create_package  ( const std::string& name, control_file_pointer_t ctrl, bool reset_wpkg_dir = true);
