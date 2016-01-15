@@ -57,23 +57,31 @@ protected:
     typedef std::vector<std::string>                    string_list_t;
     typedef std::shared_ptr<wpkg_control::control_file> control_file_pointer_t;
 
-    static std::string   f_tmp_dir;
-    static std::string   f_wpkg_tool;
+    static wpkg_filename::uri_filename get_root();
+    static wpkg_filename::uri_filename get_target_path();
+    static wpkg_filename::uri_filename get_repository();
 
     std::string             escape_string( const std::string& orig_field );
     control_file_pointer_t  get_new_control_file(const std::string& test_name);
+    std::string 			get_package_file_name( const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl );
+
+    void	init_database();
 
     void    create_file     ( wpkg_control::file_list_t& files, wpkg_control::file_list_t::size_type idx, wpkg_filename::uri_filename path );
-    void    create_package  ( const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl, bool reset_wpkg_dir = true);
-    void    create_package  ( const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl, int expected_return_value, bool reset_wpkg_dir = true);
-    void    install_package ( const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl );
-    void    install_package ( const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl, int expected_return_value );
-    void    remove_package  ( const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl );
-    void    remove_package  ( const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl, int expected_return_value );
-    void    purge_package   ( const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl );
-    void    purge_package   ( const std::string& name, std::shared_ptr<wpkg_control::control_file> ctrl, int expected_return_value );
+    void    create_package  ( const std::string& name, control_file_pointer_t ctrl, bool reset_wpkg_dir = true);
+    void    create_package  ( const std::string& name, control_file_pointer_t ctrl, int expected_return_value, bool reset_wpkg_dir = true);
+    void    install_package ( const std::string& name, control_file_pointer_t ctrl );
+    void    install_package ( const std::string& name, control_file_pointer_t ctrl, int expected_return_value );
+    void    remove_package  ( const std::string& name, control_file_pointer_t ctrl );
+    void    remove_package  ( const std::string& name, control_file_pointer_t ctrl, int expected_return_value );
+    void    purge_package   ( const std::string& name, control_file_pointer_t ctrl );
+    void    purge_package   ( const std::string& name, control_file_pointer_t ctrl, int expected_return_value );
 
     int     execute_cmd( const std::string& cmd );
+
+private:
+    static std::string   f_tmp_dir;
+    static std::string   f_wpkg_tool;
 };
 
 }
