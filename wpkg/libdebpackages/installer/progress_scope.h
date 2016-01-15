@@ -55,8 +55,10 @@ class DEBIAN_PACKAGE_EXPORT progress_scope_t
 {
 public:
 	progress_scope_t( T* inst
-				  , const std::string& what
-                  , const P max )
+                    , const std::string& what
+                    , const P max
+                    )
+        : f_inst(inst)
     {
         f_inst->add_progess_record( what, max );
     }

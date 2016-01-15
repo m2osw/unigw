@@ -22,6 +22,8 @@
 // Tell catch we want it to add the runner code in this file.
 #define CATCH_CONFIG_RUNNER
 
+#include "integrationtest_main.h"
+
 #include <catch.hpp>
 
 #include "tools/license.h"
@@ -35,13 +37,7 @@
 #   define getpid _getpid
 #endif
 
-
-namespace integrationtest
-{
-    std::string   tmp_dir;
-    std::string   wpkg_tool;
-}
-
+using namespace test_common;
 
 namespace
 {
@@ -165,12 +161,13 @@ int integrationtest_main(int argc, char *argv[])
 
     if( !configData.tmp.empty() )
     {
-        integrationtest::tmp_dir = configData.tmp;
+
+        wpkg_tools::set_tmp_dir( configData.tmp );
         remove_from_args( arg_list, "--tmp", "-t" );
     }
     if( !configData.wpkg.empty() )
     {
-        integrationtest::wpkg_tool = configData.wpkg;
+        wpkg_tools::set_wpkg_tool( configData.wpkg );
         remove_from_args( arg_list, "--wpkg", "-w" );
     }
 

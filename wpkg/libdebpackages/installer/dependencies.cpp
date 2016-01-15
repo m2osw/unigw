@@ -95,6 +95,7 @@ dependencies::dependencies
         //, f_architecture()                    -- auto-init
         , f_task(task)
 {
+    f_manager->load_package( "core" );
     f_architecture = f_manager->get_field
                         ( "core"
                         , wpkg_control::control_file::field_architecture_factory_t::canonicalized_name()
