@@ -296,10 +296,13 @@ void wpkg_tools::create_package(const std::string& name, std::shared_ptr<wpkg_co
         const int expected_return_value(strtol(expected_result.c_str(), 0, 0));
         printf("  Build result = %d (expected %d)\n", WEXITSTATUS(r), expected_return_value);
         CATCH_REQUIRE(WEXITSTATUS(r) == expected_return_value);
+
+        ctrl->delete_variable("BUILD_RESULT");
     }
     else
     {
-        CATCH_REQUIRE(execute_cmd(cmd.c_str()) == 0);
+        const int r(execute_cmd(cmd.c_str()));
+        CATCH_REQUIRE(WEXITSTATUS(r) == 0);
     }
 }
 
@@ -431,10 +434,12 @@ void wpkg_tools::install_package( const std::string& name, std::shared_ptr<wpkg_
         const int expected_return_value(strtol(expected_result.c_str(), 0, 0));
         printf("  Install result = %d (expected %d)\n", WEXITSTATUS(r), expected_return_value);
         CATCH_REQUIRE(WEXITSTATUS(r) == expected_return_value);
+        ctrl->delete_variable("INSTALL_RESULT");
     }
     else
     {
-        CATCH_REQUIRE(execute_cmd(cmd.c_str()) == 0);
+        const int r(execute_cmd(cmd.c_str()));
+        CATCH_REQUIRE(WEXITSTATUS(r) == 0);
     }
 }
 
@@ -485,10 +490,12 @@ void wpkg_tools::remove_package( const std::string& name, std::shared_ptr<wpkg_c
         const int expected_return_value(strtol(expected_result.c_str(), 0, 0));
         printf("  Remove result = %d (expected %d)\n", WEXITSTATUS(r), expected_return_value);
         CATCH_REQUIRE(WEXITSTATUS(r) == expected_return_value);
+        ctrl->delete_variable("REMOVE_RESULT");
     }
     else
     {
-        CATCH_REQUIRE(execute_cmd(cmd.c_str()) == 0);
+        const int r(execute_cmd(cmd.c_str()));
+        CATCH_REQUIRE(WEXITSTATUS(r) == 0);
     }
 }
 
@@ -540,10 +547,12 @@ void wpkg_tools::purge_package( const std::string& name, std::shared_ptr<wpkg_co
         const int expected_return_value(strtol(expected_result.c_str(), 0, 0));
         printf("  Purge result = %d (expected %d)\n", WEXITSTATUS(r), expected_return_value);
         CATCH_REQUIRE(WEXITSTATUS(r) == expected_return_value);
+        ctrl->delete_variable("PURGE_RESULT");
     }
     else
     {
-        CATCH_REQUIRE(execute_cmd(cmd.c_str()) == 0);
+        const int r(execute_cmd(cmd.c_str()));
+        CATCH_REQUIRE(WEXITSTATUS(r) == 0);
     }
 }
 
