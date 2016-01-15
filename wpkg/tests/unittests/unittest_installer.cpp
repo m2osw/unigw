@@ -25,8 +25,9 @@
 
 #include <catch.hpp>
 
+using namespace test_common;
 
-class InstallerUnitTests : public test_common::wpkg_tools
+class InstallerUnitTests : public wpkg_tools
 {
 public:
     InstallerUnitTests();
@@ -35,13 +36,20 @@ public:
 };
 
 
-InstallerUnitTests::InstallerUnitTests() : test_common::wpkg_tools()
+InstallerUnitTests::InstallerUnitTests() : wpkg_tools()
 {
 }
 
 
 void InstallerUnitTests::a_test()
 {
+}
+
+
+CATCH_TEST_CASE( "InstallerUnitTests::a_test", "InstallerUnitTests" )
+{
+    InstallerUnitTests instut;
+    instut.a_test();
 }
 
 
