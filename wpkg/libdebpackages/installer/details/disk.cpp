@@ -55,10 +55,13 @@ const wpkg_filename::uri_filename& disk_t::get_path() const
     return f_path;
 }
 
-bool disk_t::match(const wpkg_filename::uri_filename& path)
+
+bool disk_t::match( const wpkg_filename::uri_filename& path )
 {
+    // TODO: Alexis, what is the point of this test?!
     return f_path.full_path() == path.full_path().substr(0, f_path.full_path().length());
 }
+
 
 void disk_t::add_size(int64_t size)
 {
@@ -77,25 +80,36 @@ void disk_t::add_size(int64_t size)
     // as usual)
 }
 
-//int64_t disk_t::size() const
-//{
-//    return f_size * f_block_size;
-//}
+
+int64_t disk_t::get_size() const
+{
+    return f_size * f_block_size;
+}
+
 
 void disk_t::set_block_size(uint64_t block_size)
 {
     f_block_size = block_size;
 }
 
+
+uint64_t disk_t::get_block_size() const
+{
+    return f_block_size;
+}
+
+
 void disk_t::set_free_space(uint64_t space)
 {
     f_free_space = space;
 }
 
-//uint64_t disk_t::free_space() const
-//{
-//    return f_free_space;
-//}
+
+uint64_t disk_t::get_free_space() const
+{
+    return f_free_space;
+}
+
 
 void disk_t::set_readonly()
 {
@@ -107,6 +121,13 @@ void disk_t::set_readonly()
     }
     f_readonly = true;
 }
+
+
+bool disk_t::is_readonly() const
+{
+    return f_readonly;
+}
+
 
 bool disk_t::is_valid() const
 {
@@ -122,16 +143,16 @@ bool disk_t::is_valid() const
 
 
 disk_list_t::disk_list_t
-        ( wpkgar_manager::pointer_t manager
-        , package_list::pointer_t package_list
+        ( package_list::pointer_t package_list
         , flags::pointer_t flags
         )
-    : f_manager(manager)
-    , f_package_list(package_list)
+    : f_package_list(package_list)
     , f_flags(flags)
-    //f_disks() -- auto-init
-    , f_default_disk(NULL)
+    //f_disks()     -- auto-init
     //f_filenames() -- auto-init
+#if defined(MO_WINDOWS) || defined(MO_CYGWIN)
+    , f_default_disk(NULL)
+#endif
 {
     wpkg_output::log("Enumerating available volumes and drives on the current system.")
         .level(wpkg_output::level_info)
@@ -289,6 +310,15 @@ disk_list_t::disk_list_t
 #   error This platform is not yet supported!
 #endif
 }
+
+
+#if defined(MO_WINDOWS) || defined(MO_CYGWIN)
+disk_t* dist_list_t::get_default_disk()
+{
+    return f_default_disk;
+}
+#endif
+
 
 disk_t *disk_list_t::find_disk(const std::string& path)
 {

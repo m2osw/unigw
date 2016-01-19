@@ -73,15 +73,6 @@ include_directories(
 set( LIBDEBPACKAGES_INCLUDE_FILES
 	"${CMAKE_CURRENT_SOURCE_DIR}/debian_packages.h.in"
 	"${CMAKE_CURRENT_BINARY_DIR}/debian_packages.h"
-    installer/details/disk.h
-    installer/dependencies.h
-    installer/flags.h
-    installer/install_info.h
-    installer/package_item.h
-    installer/package_list.h
-    installer/progress_scope.h
-    installer/task.h
-    installer/tree_generator.h
     advgetopt.h
     case_insensitive_string.h
     compatibility.h
@@ -114,15 +105,6 @@ set( LIBDEBPACKAGES_INCLUDE_FILES
 )
 
 set( LIBDEBPACKAGES_SOURCE_FILES
-    installer/details/disk.cpp
-    installer/dependencies.cpp
-    installer/flags.cpp
-    installer/install_info.cpp
-    installer/package_item.cpp
-    installer/package_list.cpp
-    installer/progress_scope.cpp
-    installer/task.cpp
-    installer/tree_generator.cpp
     advgetopt.cpp
     case_insensitive_string.cpp
     compatibility.cpp
@@ -154,6 +136,13 @@ set( LIBDEBPACKAGES_SOURCE_FILES
     wpkg_stream.cpp
     wpkg_util.cpp
 )
+
+add_subdirectory( installer )
+
+installer_include_files()
+
+list( APPEND LIBDEBPACKAGES_INCLUDE_FILES ${INC_FILES} )
+list( APPEND LIBDEBPACKAGES_SOURCE_FILES  ${SRC_FILES} )
 
 add_library( ${PROJECT_NAME} STATIC
     ${LIBDEBPACKAGES_INCLUDE_FILES}

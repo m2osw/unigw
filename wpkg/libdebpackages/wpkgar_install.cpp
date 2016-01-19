@@ -1309,7 +1309,7 @@ void wpkgar_install::validate_packager_version()
 void wpkgar_install::validate_installed_size_and_overwrite()
 {
 #if !defined(MO_DARWIN) && !defined(MO_SUNOS) && !defined(MO_FREEBSD)
-    installer::details::disk_list_t     disks( f_manager, f_package_list, f_flags );
+    installer::details::disk_list_t     disks( f_package_list, f_flags );
 #endif
 
     auto& packages( f_package_list->get_package_list() );
@@ -1409,7 +1409,14 @@ void wpkgar_install::validate_installed_size_and_overwrite()
 
             memfile::memory_file *data(0);
             f_manager->get_wpkgar_file(outer_pkg.get_filename(), data);
-            disks.compute_size_and_verify_overwrite( idx, outer_pkg, root, data, upgrade, factor );
+            disks.compute_size_and_verify_overwrite
+                    ( idx
+                    , outer_pkg
+                    , root
+                    , data
+                    , upgrade
+                    , factor
+                    );
         }
 #endif //!MO_DARWIN && !MO_SUNOS && !MO_FREEBSD
     }

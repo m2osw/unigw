@@ -65,17 +65,25 @@ namespace details
 class DEBIAN_PACKAGE_EXPORT disk_t
 {
 public:
-    disk_t(const wpkg_filename::uri_filename& path);
+    disk_t( const wpkg_filename::uri_filename& path );
 
     const wpkg_filename::uri_filename& get_path() const;
-    bool match(const wpkg_filename::uri_filename& path);
-    void add_size(int64_t size);
-    //int64_t size() const;
-    void set_block_size(uint64_t block);
-    void set_free_space(uint64_t space);
-    //uint64_t free_space() const;
-    void set_readonly();
-    bool is_valid() const;
+
+    bool        match(const wpkg_filename::uri_filename& path);
+
+    void        add_size(int64_t size);
+    int64_t     get_size() const;
+
+    void        set_block_size(uint64_t block);
+    uint64_t    get_block_size() const;
+
+    void        set_free_space(uint64_t space);
+    uint64_t    get_free_space() const;
+
+    void        set_readonly();
+    bool        is_readonly() const;
+
+    bool        is_valid() const;
 
 private:
     wpkg_filename::uri_filename     f_path;
@@ -103,11 +111,10 @@ class DEBIAN_PACKAGE_EXPORT disk_list_t
 {
 public:
     disk_list_t
-        ( wpkgar_manager::pointer_t manager
-        , package_list::pointer_t package_list
+        ( package_list::pointer_t package_list
         , flags::pointer_t flags
         );
-    void add_size(const std::string& path, int64_t size);
+    void add_size( const std::string& path, int64_t size );
     void compute_size_and_verify_overwrite
         ( const package_item_t::list_t::size_type idx
         , const package_item_t& item
@@ -118,17 +125,22 @@ public:
         );
     bool are_valid() const;
 
+#if defined(MO_WINDOWS) || defined(MO_CYGWIN)
+    disk_t* get_default_disk();
+#endif
+
 private:
     typedef std::map<std::string, memfile::memory_file::file_info> filename_info_map_t;
 
     disk_t *find_disk(const std::string& path);
 
-    wpkgar_manager::pointer_t       f_manager;
     package_list::pointer_t         f_package_list;
     flags::pointer_t                f_flags;
     std::vector<disk_t>             f_disks;
-    disk_t *                        f_default_disk; // used in win32 only
     filename_info_map_t             f_filenames;
+#if defined(MO_WINDOWS) || defined(MO_CYGWIN)
+    disk_t *                        f_default_disk; // used in win32 only
+#endif
 };
 
 }   // details namespace

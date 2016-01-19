@@ -349,15 +349,20 @@ void wpkg_tools::create_package( const std::string& name, control_file_pointer_t
 void wpkg_tools::init_database( control_file_pointer_t ctrl )
 {
     wpkg_filename::uri_filename target_path(get_target_path());
-    wpkg_filename::uri_filename repository(get_repository());
+    wpkg_filename::uri_filename repository_path(get_repository());
+
+    if( !repository_path.is_dir() )
+    {
+        repository_path.os_mkdir_p();
+    }
 
     if(!target_path.is_dir() || !target_path.append_child("var/lib/wpkg/core").exists())
     {
         target_path.os_mkdir_p();
-        wpkg_filename::uri_filename core_ctrl_filename(repository.append_child("core.ctrl"));
+        wpkg_filename::uri_filename core_ctrl_filename(repository_path.append_child("core.ctrl"));
         memfile::memory_file core_ctrl;
         core_ctrl.create(memfile::memory_file::file_format_other);
-        if(ctrl->variable_is_defined("INSTALL_ARCHITECTURE"))
+        if( ctrl && ctrl->variable_is_defined("INSTALL_ARCHITECTURE") )
         {
             core_ctrl.printf("Architecture: %s\n", ctrl->get_variable("INSTALL_ARCHITECTURE").c_str());
         }
@@ -366,7 +371,7 @@ void wpkg_tools::init_database( control_file_pointer_t ctrl )
             core_ctrl.printf("Architecture: %s\n", debian_packages_architecture());
         }
         core_ctrl.printf("Maintainer: Alexis Wilke <alexis@m2osw.com>\n");
-        if(ctrl->variable_is_defined("INSTALL_EXTRACOREFIELDS"))
+        if( ctrl && ctrl->variable_is_defined("INSTALL_EXTRACOREFIELDS") )
         {
             core_ctrl.printf("%s", ctrl->get_variable("INSTALL_EXTRACOREFIELDS").c_str());
         }
@@ -384,11 +389,11 @@ void wpkg_tools::init_database( control_file_pointer_t ctrl )
     {
         // In case we are running after creation of root and repository, update the index
         //
-        wpkg_filename::uri_filename index_file(repository.append_child("index.tar.gz"));
+        wpkg_filename::uri_filename index_file(repository_path.append_child("index.tar.gz"));
         std::string cmd;
         cmd = f_wpkg_tool;
         cmd += " --create-index " + wpkg_util::make_safe_console_string(index_file.path_only());
-        cmd += " --repository "   + wpkg_util::make_safe_console_string(repository.path_only());
+        cmd += " --repository "   + wpkg_util::make_safe_console_string(repository_path.path_only());
         std::cout << "Build index command: \"" << cmd << "\"" << std::endl << std::flush;
         const int r(execute_cmd(cmd.c_str()));
         std::cout << "  Build index result = " << WEXITSTATUS(r) << std::endl << std::flush;
