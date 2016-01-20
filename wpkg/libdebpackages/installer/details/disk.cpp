@@ -370,6 +370,9 @@ void disk_list_t::add_size(const std::string& path, int64_t size)
     }
 }
 
+
+// TODO: add docs!
+//
 void disk_list_t::compute_size_and_verify_overwrite
     ( const package_item_t::list_t::size_type idx
     , const package_item_t& item

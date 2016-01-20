@@ -201,6 +201,13 @@ void InstallerUnitTests::install_simple_package()
 }
 
 
+CATCH_TEST_CASE( "InstallerUnitTests::install_package", "InstallerUnitTests" )
+{
+    InstallerUnitTests instut;
+    instut.install_simple_package();
+}
+
+
 void InstallerUnitTests::test_disk_t()
 {
     installer::details::disk_t d( "/" );
@@ -246,6 +253,13 @@ void InstallerUnitTests::test_disk_t()
 }
 
 
+CATCH_TEST_CASE( "InstallerUnitTests::test_disk_t", "InstallerUnitTests" )
+{
+    InstallerUnitTests instut;
+    instut.test_disk_t();
+}
+
+
 void InstallerUnitTests::compute_size_and_verify_overwrite
     ( installer::details::disk_list_t& disk_list
     , const std::string&        name
@@ -280,14 +294,24 @@ void InstallerUnitTests::test_disk_list_t()
     flags::pointer_t				the_flags( new flags() );
     installer::details::disk_list_t	disk_list( pkg_list, the_flags );
 
+    // Test other methods
+    //
 #if defined(MO_WINDOWS) || defined(MO_CYGWIN)
     // TODO: some more testing of the default disk would be nice,
     // but for now, just test its existence.
     CATCH_REQUIRE( disk_list.get_default_disk() );
 #endif
-
+    //
     CATCH_REQUIRE( disk_list.are_valid() );
+    //
+    disk_list.add_size( "foo", 1234 );
+    CATCH_REQUIRE( wpkg_output::get_output_error_count() > 0 );
+    wpkg_output::get_output()->reset_error_count();
+    CATCH_REQUIRE( wpkg_output::get_output_error_count() == 0 );
 
+
+    // Now test size and verify_overwrite
+    //
     // t1
     //
     control_file_pointer_t ctrl(get_new_control_file(__FUNCTION__));
@@ -318,7 +342,6 @@ void InstallerUnitTests::test_disk_list_t()
     compute_size_and_verify_overwrite( disk_list, "t2", ctrl_t2, 1 /*factor*/ );
     CATCH_REQUIRE( wpkg_output::get_output_error_count() > 0 );
     wpkg_output::get_output()->reset_error_count();
-    CATCH_REQUIRE( wpkg_output::get_output_error_count() == 0 );
 
     // t1 v1.1
     //
@@ -337,20 +360,6 @@ void InstallerUnitTests::test_disk_list_t()
     compute_size_and_verify_overwrite( disk_list, "t1", ctrl_t1_v11, 1 /*factor*/ );
     CATCH_REQUIRE( wpkg_output::get_output_error_count() > 0 );
     wpkg_output::get_output()->reset_error_count();
-}
-
-
-CATCH_TEST_CASE( "InstallerUnitTests::install_package", "InstallerUnitTests" )
-{
-    InstallerUnitTests instut;
-    instut.install_simple_package();
-}
-
-
-CATCH_TEST_CASE( "InstallerUnitTests::test_disk_t", "InstallerUnitTests" )
-{
-    InstallerUnitTests instut;
-    instut.test_disk_t();
 }
 
 
