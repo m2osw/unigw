@@ -21,6 +21,8 @@
  */
 #pragma once
 
+#include "libdebpackages/debian_export.h"
+
 #include <map>
 #include <memory>
 
@@ -30,7 +32,7 @@ namespace wpkgar
 namespace installer
 {
 
-class flags
+class DEBIAN_PACKAGE_EXPORT flags
     : public std::enable_shared_from_this<flags>
 {
 public:

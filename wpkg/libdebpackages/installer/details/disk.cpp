@@ -313,7 +313,7 @@ disk_list_t::disk_list_t
 
 
 #if defined(MO_WINDOWS) || defined(MO_CYGWIN)
-disk_t* dist_list_t::get_default_disk()
+disk_t* disk_list_t::get_default_disk()
 {
     return f_default_disk;
 }

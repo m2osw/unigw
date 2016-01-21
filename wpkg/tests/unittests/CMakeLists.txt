@@ -57,6 +57,12 @@ add_executable( ${PROJECT_NAME}
     ${CMAKE_SOURCE_DIR}/tools/license.cpp
 )
 
+StaticCompile()
+
+if( MSVC )
+    set_target_properties( ${PROJECT_NAME} PROPERTIES FOLDER ${TEST_FOLDER} )
+endif()
+
 target_link_libraries( ${PROJECT_NAME}
     tests_common
     debpackages_static

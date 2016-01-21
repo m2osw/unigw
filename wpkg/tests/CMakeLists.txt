@@ -54,6 +54,7 @@ endif()
 find_package( Catch )
 
 if( CATCH_FOUND )
+    set( TEST_FOLDER "tests" )
     add_definitions( -DCATCH_CONFIG_PREFIX_ALL )
 
     # Include for every folder below

@@ -48,5 +48,10 @@ add_library( ${PROJECT_NAME} STATIC
     wpkg_tools.cpp
 )
 
+StaticCompile()
+
+if( MSVC )
+    set_target_properties( ${PROJECT_NAME} PROPERTIES FOLDER ${TEST_FOLDER} )
+endif()
 
 # vim: ts=4 sw=4 et

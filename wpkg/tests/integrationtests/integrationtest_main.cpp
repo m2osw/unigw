@@ -28,13 +28,11 @@
 
 #include "tools/license.h"
 #include "libdebpackages/debian_packages.h"
+#include "libdebpackages/compatibility.h"
 #include "time.h"
 #if defined(MO_LINUX) || defined(MO_DARWIN) || defined(MO_SUNOS) || defined(MO_FREEBSD)
 #   include <sys/types.h>
 #   include <unistd.h>
-#elif defined(MO_WINDOWS)
-#   include <process.h>
-#   define getpid _getpid
 #endif
 
 using namespace test_common;
