@@ -49,44 +49,42 @@ endif()
 # If you use the tip, you will get errors complaining that the "Clara" class
 # doesn't exist.
 #
-# If Catch can't be found, no unit nor integration tests will be compiled.
+# NOTE: I added the catch folder under tests, so that way you don't have to
+# muss about trying to find the right version.
 #
-find_package( Catch )
+set( CATCH_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/catch" )
+set( TEST_FOLDER "tests" )
+add_definitions( -DCATCH_CONFIG_PREFIX_ALL )
 
-if( CATCH_FOUND )
-    set( TEST_FOLDER "tests" )
-    add_definitions( -DCATCH_CONFIG_PREFIX_ALL )
+# Include for every folder below
+include_directories(
+    "${wpkg_project_SOURCE_DIR}"
+    "${wpkg_project_BINARY_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_BINARY_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/common"
+    "${debpackages_BINARY_DIR}"
+    "${debpackages_SOURCE_DIR}"
+    "${expr_BINARY_DIR}"
+    "${expr_SOURCE_DIR}"
+    "${utf8_BINARY_DIR}"
+    "${utf8_SOURCE_DIR}"
+    "${wpkg_bz2_BINARY_DIR}"
+    "${wpkg_bz2_SOURCE_DIR}"
+    "${wpkg_tld_BINARY_DIR}"
+    "${wpkg_tld_SOURCE_DIR}/include"
+    "${wpkg_z_BINARY_DIR}"
+    "${wpkg_z_SOURCE_DIR}"
+    "${CATCH_INCLUDE_DIR}"
+)
 
-    # Include for every folder below
-    include_directories(
-        "${wpkg_project_SOURCE_DIR}"
-        "${wpkg_project_BINARY_DIR}"
-        "${CMAKE_CURRENT_SOURCE_DIR}"
-        "${CMAKE_CURRENT_BINARY_DIR}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/common"
-        "${debpackages_BINARY_DIR}"
-        "${debpackages_SOURCE_DIR}"
-        "${expr_BINARY_DIR}"
-        "${expr_SOURCE_DIR}"
-        "${utf8_BINARY_DIR}"
-        "${utf8_SOURCE_DIR}"
-        "${wpkg_bz2_BINARY_DIR}"
-        "${wpkg_bz2_SOURCE_DIR}"
-        "${wpkg_tld_BINARY_DIR}"
-        "${wpkg_tld_SOURCE_DIR}/include"
-        "${wpkg_z_BINARY_DIR}"
-        "${wpkg_z_SOURCE_DIR}"
-        "${CATCH_INCLUDE_DIR}"
-    )
+set( TMPDIR "${CMAKE_BINARY_DIR}/tmp" )
+if( NOT EXISTS ${TMPDIR} )
+    file( MAKE_DIRECTORY ${TMPDIR} )
+endif()
 
-    set( TMPDIR "${CMAKE_BINARY_DIR}/tmp" )
-    if( NOT EXISTS ${TMPDIR} )
-        file( MAKE_DIRECTORY ${TMPDIR} )
-    endif()
-
-    add_subdirectory( common           )
-    add_subdirectory( unittests        )
-    add_subdirectory( integrationtests )
-endif( CATCH_FOUND )
+add_subdirectory( common           )
+add_subdirectory( unittests        )
+add_subdirectory( integrationtests )
 
 # vim: ts=4 sw=4 et

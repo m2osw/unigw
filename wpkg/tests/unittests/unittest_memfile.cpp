@@ -25,6 +25,8 @@
 #include <time.h>
 #include <catch.hpp>
 
+#include <iostream>
+
 
 // seed: 1367790804
 

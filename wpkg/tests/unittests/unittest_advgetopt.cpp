@@ -27,6 +27,8 @@
 #include <math.h>
 #include <time.h>
 
+#include <iostream>
+
 #include <catch.hpp>
 
 class AdvGetOptUnitTests

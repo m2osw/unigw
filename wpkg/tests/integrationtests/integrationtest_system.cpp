@@ -22,8 +22,12 @@
 #include "integrationtest_main.h"
 #include "libdebpackages/debian_packages.h"
 #include "libdebpackages/wpkg_control.h"
+
 #include <stdexcept>
+#include <iostream>
+
 #include <string.h>
+
 #include <catch.hpp>
 
 // for the WEXITSTATUS()

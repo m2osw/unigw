@@ -27,6 +27,7 @@
 #include <time.h>
 #include <catch.hpp>
 
+#include <iostream>
 
 #define ASSERT_MESSAGE( M, T ) \
     { \
