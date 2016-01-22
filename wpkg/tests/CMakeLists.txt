@@ -52,7 +52,12 @@ endif()
 # NOTE: I added the catch folder under tests, so that way you don't have to
 # muss about trying to find the right version.
 #
-set( CATCH_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/catch" )
+find_package( Catch )
+
+if( CATCH_NOTFOUND )
+    set( CATCH_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/catch" )
+endif()
+
 set( TEST_FOLDER "tests" )
 add_definitions( -DCATCH_CONFIG_PREFIX_ALL )
 
