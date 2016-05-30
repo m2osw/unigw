@@ -22,6 +22,8 @@
 // Tell catch we want it to add the runner code in this file.
 #define CATCH_CONFIG_RUNNER
 
+#include "unittest_main.h"
+
 #include <catch.hpp>
 
 #include "tools/license.h"
@@ -34,12 +36,7 @@
 #   include <unistd.h>
 #endif
 
-
-namespace unittest
-{
-    std::string   tmp_dir;
-}
-
+using namespace test_common;
 
 namespace
 {
@@ -49,6 +46,7 @@ namespace
         bool        license;
         int         seed;
         std::string tmp;
+        std::string wpkg;
         bool        version;
 
         UnitTestCLData()
@@ -56,6 +54,7 @@ namespace
             , license(false)
             , seed(0)
             //, tmp
+            //, wpkg;
             , version(false)
         {
         }
@@ -102,6 +101,11 @@ int unittest_main(int argc, char *argv[])
         .describe( "path to a temporary directory" )
         .shortOpt( "t")
         .longOpt( "tmp" )
+        .hint( "path" );
+    cli.bind( &UnitTestCLData::wpkg )
+        .describe( "path to the wpkg executable" )
+        .shortOpt( "w")
+        .longOpt( "wpkg" )
         .hint( "path" );
     cli.bind( &UnitTestCLData::version )
         .describe( "print out the wpkg project version these unit tests pertain to" )
@@ -156,8 +160,13 @@ int unittest_main(int argc, char *argv[])
 
     if( !configData.tmp.empty() )
     {
-        unittest::tmp_dir = configData.tmp;
+        wpkg_tools::set_tmp_dir( configData.tmp );
         remove_from_args( arg_list, "--tmp", "-t" );
+    }
+    if( !configData.wpkg.empty() )
+    {
+        wpkg_tools::set_wpkg_tool( configData.wpkg );
+        remove_from_args( arg_list, "--wpkg", "-w" );
     }
 
     std::vector<char *> new_argv;

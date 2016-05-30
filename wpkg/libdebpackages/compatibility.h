@@ -18,8 +18,7 @@
  *    Authors
  *    Alexis Wilke   alexis@m2osw.com
  */
-#ifndef COMPATIBILITY_H
-#define COMPATIBILITY_H
+#pragma once
 
 /** \file
  * \brief Compatibility definitions to ease implementation.
@@ -37,37 +36,44 @@
 #include    <stdio.h>
 #include    <string.h>
 #include    <sys/stat.h>
-#if defined(MO_WINDOWS)
-#include    <io.h>
-#include    <wchar.h>
-#include    <direct.h>
 
+#if defined(MO_WINDOWS)
+#	include    <io.h>
+#	include    <wchar.h>
+#	include    <direct.h>
+//
 // MS-Windows does not supply a function that easily parses dates
 // We use the FreeBSD version in wpkg, here is the function declaration
+//
 extern "C" DEBIAN_PACKAGE_EXPORT char * strptime(const char *buf, const char *fmt, struct tm *tm);
 #endif
+
 #if defined(MO_WINDOWS) || defined(MO_CYGWIN)
-#include    <windows.h>
+#	include    <windows.h>
 #endif
 
 
 #ifdef _MSC_VER
-typedef int mode_t;
+    typedef int mode_t;
 
 #   if _MSC_VER < 1900
-DEBIAN_PACKAGE_EXPORT int snprintf(char *output, size_t size, const char *format, ...);
+    DEBIAN_PACKAGE_EXPORT int snprintf(char *output, size_t size, const char *format, ...);
 #   endif
-DEBIAN_PACKAGE_EXPORT int strcasecmp(const char *a, const char *b);
-DEBIAN_PACKAGE_EXPORT int strncasecmp(const char *a, const char *b, size_t c);
+    DEBIAN_PACKAGE_EXPORT int strcasecmp(const char *a, const char *b);
+    DEBIAN_PACKAGE_EXPORT int strncasecmp(const char *a, const char *b, size_t c);
 
-#define WEXITSTATUS(code) ((code) == -1 ? (code) : (code) & 0x0FF)
+#	define WEXITSTATUS(code) ((code) == -1 ? (code) : (code) & 0x0FF)
 
 // avoid warnings
-#define close   _close
-#define getcwd  _wgetcwd
+#	define close   _close
+#	define getcwd  _wgetcwd
+#	undef  strdup
+#	define strdup  _strdup
+#	undef  putenv
+#	define putenv _putenv
 //#define open    _wopen -- cannot do that one because ifstream uses open() too
 #else
-#define os_open open
+#	define os_open open
 #endif
 
 #ifdef MO_WINDOWS
@@ -229,7 +235,4 @@ typedef raii_handle_t<HANDLE, standard_handle_trait> standard_handle_t;
 DEBIAN_PACKAGE_EXPORT bool same_file(const std::string& a, const std::string& b);
 DEBIAN_PACKAGE_EXPORT size_t strftime_utf8(char *s, size_t max, const char *format, const struct tm *tm);
 
-
-#endif
-// #ifndef COMPATIBILITY_H
 // vim: ts=4 sw=4 et

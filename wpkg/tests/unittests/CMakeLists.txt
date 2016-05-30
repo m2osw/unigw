@@ -38,72 +38,47 @@
 # in the final output
 project(unittest)
 
-if( NOT CMAKE_MODULE_PATH )
-    set( CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake )
+include_directories(
+    "${PROJECT_BINARY_DIR}"
+    "${PROJECT_SOURCE_DIR}"
+)
+
+add_executable( ${PROJECT_NAME}
+    unittest_main.cpp
+    unittest_advgetopt.cpp
+    unittest_architecture.cpp
+    unittest_control.cpp
+    unittest_expr.cpp
+    unittest_installer.cpp
+    unittest_libutf8.cpp
+    unittest_memfile.cpp
+    unittest_uri_filename.cpp
+    unittest_version.cpp
+    ${CMAKE_SOURCE_DIR}/tools/license.cpp
+)
+
+StaticCompile()
+
+if( MSVC )
+    set_target_properties( ${PROJECT_NAME} PROPERTIES FOLDER ${TEST_FOLDER} )
 endif()
 
-# The version of Catch that these tests are keyed to is from git: 1e2fld1
-# Find it at https://github.com/philsquared/Catch.git
-# For Ubuntu Linux, just use the catch package version 1.0+m10git1e2f1d16-1
-#
-# If you use the tip, you will get errors complaining that the "Clara" class
-# doesn't exist.
-#
-find_package( Catch )
+target_link_libraries( ${PROJECT_NAME}
+    tests_common
+    debpackages_static
+    expr_static
+    wpkg_z_static
+    wpkg_bz2_static
+)
 
-if( CATCH_FOUND )
+unset( DEBUG_WORD )
+if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
+    set( DEBUG_WORD "_d" )
+endif()
 
-    add_definitions( -DCATCH_CONFIG_PREFIX_ALL )
-
-    include_directories(
-        "${CMAKE_BINARY_DIR}"
-        "${PROJECT_BINARY_DIR}"
-        "${PROJECT_BINARY_DIR}/../../libdebpackages"
-        "${PROJECT_BINARY_DIR}/../../libtld"
-        "${PROJECT_SOURCE_DIR}"
-        "${PROJECT_SOURCE_DIR}/../.."
-        "${PROJECT_SOURCE_DIR}/../../bzip2"
-        "${PROJECT_SOURCE_DIR}/../../libdebpackages"
-        "${PROJECT_SOURCE_DIR}/../../libutf8"
-        "${PROJECT_SOURCE_DIR}/../../libexpr"
-        "${PROJECT_BINARY_DIR}/../../libexpr"
-        "${PROJECT_SOURCE_DIR}/../../libtld/include"
-        "${PROJECT_SOURCE_DIR}/../../zlib"
-        "${CATCH_INCLUDE_DIR}"
-    )
-
-    add_executable( ${PROJECT_NAME}
-        unittest_main.cpp
-        unittest_advgetopt.cpp
-        unittest_architecture.cpp
-        unittest_control.cpp
-        unittest_expr.cpp
-        unittest_libutf8.cpp
-        unittest_memfile.cpp
-        unittest_uri_filename.cpp
-        unittest_version.cpp
-        ../../tools/license.cpp
-    )
-
-    target_link_libraries( ${PROJECT_NAME}
-        debpackages_static
-        expr_static
-        wpkg_z_static
-        wpkg_bz2_static
-    )
-
-    set( TMPDIR "${CMAKE_BINARY_DIR}/tmp" )
-    if( NOT EXISTS ${TMPDIR} )
-        file( MAKE_DIRECTORY ${TMPDIR} )
-    endif()
-
-    unset( DEBUG_WORD )
-    if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
-        set( DEBUG_WORD "_d" )
-    endif()
-    add_test( unittests ${PROJECT_NAME} --tmp ${TMPDIR} )
-           
-
-endif( CATCH_FOUND )
+add_test( unittests ${PROJECT_NAME}
+    --tmp ${TMPDIR}
+    --wpkg ${CMAKE_BINARY_DIR}/tools/wpkg_static${DEBUG_WORD}${CMAKE_EXECUTABLE_SUFFIX}
+)
 
 # vim: ts=4 sw=4 et

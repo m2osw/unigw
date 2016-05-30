@@ -34,6 +34,9 @@
 namespace wpkgar
 {
 
+namespace installer
+{
+
 namespace details
 {
 
@@ -52,10 +55,13 @@ const wpkg_filename::uri_filename& disk_t::get_path() const
     return f_path;
 }
 
-bool disk_t::match(const wpkg_filename::uri_filename& path)
+
+bool disk_t::match( const wpkg_filename::uri_filename& path )
 {
+    // TODO: Alexis, what is the point of this test?!
     return f_path.full_path() == path.full_path().substr(0, f_path.full_path().length());
 }
+
 
 void disk_t::add_size(int64_t size)
 {
@@ -74,25 +80,36 @@ void disk_t::add_size(int64_t size)
     // as usual)
 }
 
-//int64_t disk_t::size() const
-//{
-//    return f_size * f_block_size;
-//}
+
+int64_t disk_t::get_size() const
+{
+    return f_size * f_block_size;
+}
+
 
 void disk_t::set_block_size(uint64_t block_size)
 {
     f_block_size = block_size;
 }
 
+
+uint64_t disk_t::get_block_size() const
+{
+    return f_block_size;
+}
+
+
 void disk_t::set_free_space(uint64_t space)
 {
     f_free_space = space;
 }
 
-//uint64_t disk_t::free_space() const
-//{
-//    return f_free_space;
-//}
+
+uint64_t disk_t::get_free_space() const
+{
+    return f_free_space;
+}
+
 
 void disk_t::set_readonly()
 {
@@ -104,6 +121,13 @@ void disk_t::set_readonly()
     }
     f_readonly = true;
 }
+
+
+bool disk_t::is_readonly() const
+{
+    return f_readonly;
+}
+
 
 bool disk_t::is_valid() const
 {
@@ -118,12 +142,17 @@ bool disk_t::is_valid() const
 
 
 
-disk_list_t::disk_list_t( wpkgar_manager::pointer_t manager, std::shared_ptr<wpkgar_install> install )
-    : f_manager(manager),
-      f_install(install),
-      //f_disks() -- auto-init
-      f_default_disk(NULL)
-      //f_filenames() -- auto-init
+disk_list_t::disk_list_t
+        ( package_list::pointer_t package_list
+        , flags::pointer_t flags
+        )
+    : f_package_list(package_list)
+    , f_flags(flags)
+    //f_disks()     -- auto-init
+    //f_filenames() -- auto-init
+#if defined(MO_WINDOWS) || defined(MO_CYGWIN)
+    , f_default_disk(NULL)
+#endif
 {
     wpkg_output::log("Enumerating available volumes and drives on the current system.")
         .level(wpkg_output::level_info)
@@ -282,6 +311,15 @@ disk_list_t::disk_list_t( wpkgar_manager::pointer_t manager, std::shared_ptr<wpk
 #endif
 }
 
+
+#if defined(MO_WINDOWS) || defined(MO_CYGWIN)
+disk_t* disk_list_t::get_default_disk()
+{
+    return f_default_disk;
+}
+#endif
+
+
 disk_t *disk_list_t::find_disk(const std::string& path)
 {
     // we want to keep the longest as it represents the real mount point
@@ -332,12 +370,17 @@ void disk_list_t::add_size(const std::string& path, int64_t size)
     }
 }
 
-void disk_list_t::compute_size_and_verify_overwrite(const wpkgar_install::wpkgar_package_list_t::size_type idx,
-                                                    const installer::package_item_t& item,
-                                                    const wpkg_filename::uri_filename& root,
-                                                    memfile::memory_file *data,
-                                                    memfile::memory_file *upgrade,
-                                                    const int factor)
+
+// TODO: add docs!
+//
+void disk_list_t::compute_size_and_verify_overwrite
+    ( const package_item_t::list_t::size_type idx
+    , const package_item_t& item
+    , const wpkg_filename::uri_filename& root
+    , memfile::memory_file *data
+    , memfile::memory_file *upgrade
+    , int factor
+    )
 {
     const wpkg_filename::uri_filename package_name(item.get_filename());
     memfile::memory_file::file_info info;
@@ -463,7 +506,7 @@ void disk_list_t::compute_size_and_verify_overwrite(const wpkgar_install::wpkgar
                 {
                     // first check whether this is a file in an Essential package
                     // because if so we ALWAYS prevent the overwrite
-                    if(f_install->find_essential_file(info.get_filename(), idx))
+                    if(f_package_list->find_essential_file(info.get_filename(), idx))
                     {
                         // use a fatal error because that's pretty much what it is
                         // (i.e. there isn't a way to prevent the error from occurring)
@@ -482,7 +525,7 @@ void disk_list_t::compute_size_and_verify_overwrite(const wpkgar_install::wpkgar
                         if(!item.is_conffile(path))
                         {
                             // bad bad bad!
-                            if(f_install->get_parameter(wpkgar_install::wpkgar_install_force_overwrite, false))
+                            if(f_flags->get_parameter(flags::param_force_overwrite, false))
                             {
                                 wpkg_output::log("file %1 from package %2 already exists on your target system and it will get overwritten.")
                                         .quoted_arg(info.get_filename())
@@ -511,7 +554,7 @@ void disk_list_t::compute_size_and_verify_overwrite(const wpkgar_install::wpkgar
                 // are we upgrading?
                 if(upgrade_files.find(info.get_filename()) == upgrade_files.end())
                 {
-                    if(f_install->get_parameter(wpkgar_install::wpkgar_install_force_overwrite_dir, false))
+                    if(f_flags->get_parameter(flags::param_force_overwrite_dir, false))
                     {
                         // super bad!
                         if(a)
@@ -609,7 +652,9 @@ bool disk_list_t::are_valid() const
 
 }   // details namespace
 
-}   // namespace wpkgar
+}   // installer namespace
+
+}   // wpkgar namespace
 
 #endif
 

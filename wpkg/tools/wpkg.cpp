@@ -3013,88 +3013,92 @@ void init_installer
         throw std::runtime_error("--" + option + " requires at least one parameter");
     }
 
+    auto flags( installer->get_flags() );
+
     // add the force, no-force/refuse parameters
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_architecture,
+    flags->set_parameter(wpkgar::installer::flags::param_force_architecture,
         (cl.opt().is_defined("force-architecture") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-architecture")
                             && !cl.opt().is_defined("refuse-architecture")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_breaks,
+    flags->set_parameter(wpkgar::installer::flags::param_force_breaks,
         (cl.opt().is_defined("force-breaks") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-breaks")
                             && !cl.opt().is_defined("refuse-breaks")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_configure_any,
+    flags->set_parameter(wpkgar::installer::flags::param_force_configure_any,
         (cl.opt().is_defined("force-configure-any") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-configure-any")
                             && !cl.opt().is_defined("refuse-configure-any")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_conflicts,
+    flags->set_parameter(wpkgar::installer::flags::param_force_conflicts,
         (cl.opt().is_defined("force-conflicts") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-conflicts")
                             && !cl.opt().is_defined("refuse-conflicts")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_depends,
+    flags->set_parameter(wpkgar::installer::flags::param_force_depends,
         (cl.opt().is_defined("force-depends") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-depends")
                             && !cl.opt().is_defined("refuse-depends")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_depends_version,
+    flags->set_parameter(wpkgar::installer::flags::param_force_depends_version,
         (cl.opt().is_defined("force-depends-version") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-depends-version")
                             && !cl.opt().is_defined("refuse-depends-version")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_distribution,
+    flags->set_parameter(wpkgar::installer::flags::param_force_distribution,
         (cl.opt().is_defined("force-distribution") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-distribution")
                             && !cl.opt().is_defined("refuse-distribution")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_downgrade,
+    flags->set_parameter(wpkgar::installer::flags::param_force_downgrade,
         (cl.opt().is_defined("force-downgrade") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-downgrade")
                             && !cl.opt().is_defined("refuse-downgrade")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_file_info,
+    flags->set_parameter(wpkgar::installer::flags::param_force_file_info,
         (cl.opt().is_defined("force-file-info") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-file-info")
                             && !cl.opt().is_defined("refuse-file-info")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_hold,
+    flags->set_parameter(wpkgar::installer::flags::param_force_hold,
         (cl.opt().is_defined("force-hold") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-hold")
                             && !cl.opt().is_defined("refuse-hold")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_upgrade_any_version,
+    flags->set_parameter(wpkgar::installer::flags::param_force_upgrade_any_version,
         (cl.opt().is_defined("force-upgrade-any-version") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-upgrade-any-version")
                             && !cl.opt().is_defined("refuse-upgrade-any-version")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_overwrite,
+    flags->set_parameter(wpkgar::installer::flags::param_force_overwrite,
         (cl.opt().is_defined("force-overwrite") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-overwrite")
                             && !cl.opt().is_defined("refuse-overwrite")
                             && !cl.opt().is_defined("refuse-all"));
     // overwriting directories is just way too ugly to include in --force-all
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_overwrite_dir,
+    flags->set_parameter(wpkgar::installer::flags::param_force_overwrite_dir,
         (cl.opt().is_defined("force-overwrite-dir") /*|| cl.opt().is_defined("force-all")*/)
                             && !cl.opt().is_defined("no-force-overwrite-dir")
                             && !cl.opt().is_defined("refuse-overwrite-dir")
                             && !cl.opt().is_defined("refuse-all"));
     // the rollback is kind of a positive thing so we don't use it on --force-all
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_rollback,
+    flags->set_parameter(wpkgar::installer::flags::param_force_rollback,
         (cl.opt().is_defined("force-rollback") /*|| cl.opt().is_defined("force-all")*/)
                             && !cl.opt().is_defined("no-force-rollback")
                             && !cl.opt().is_defined("refuse-rollback")
                             && !cl.opt().is_defined("refuse-all"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_force_vendor,
+    flags->set_parameter(wpkgar::installer::flags::param_force_vendor,
         (cl.opt().is_defined("force-vendor") || cl.opt().is_defined("force-all"))
                             && !cl.opt().is_defined("no-force-vendor")
                             && !cl.opt().is_defined("refuse-vendor")
                             && !cl.opt().is_defined("refuse-all"));
 
     // some additional parameters
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_skip_same_version, cl.opt().is_defined("skip-same-version"));
-    installer->set_parameter(wpkgar::wpkgar_install::wpkgar_install_recursive, cl.opt().is_defined("recursive"));
+    flags->set_parameter(wpkgar::installer::flags::param_skip_same_version, cl.opt().is_defined("skip-same-version"));
+    flags->set_parameter(wpkgar::installer::flags::param_recursive, cl.opt().is_defined("recursive"));
+
+    auto package_list( installer->get_package_list() );
 
     // add the list of verify-fields expressions if any
     if(cl.opt().is_defined("verify-fields"))
@@ -3114,7 +3118,7 @@ void init_installer
             for(int i(0); i < max; ++i)
             {
                 const std::string& name( cl.get_string( option, i ) );
-                installer->add_package( name, std::string(), cl.opt().is_defined( "force-reinstall" ) );
+                package_list->add_package( name, std::string(), cl.opt().is_defined( "force-reinstall" ) );
             }
 
             if( installer->count() == 0 )
@@ -3136,7 +3140,7 @@ void init_installer
         }
         else
         {
-            installer->add_package(package_name.full_path());
+            package_list->add_package(package_name.full_path());
         }
     }
     catch( const std::exception& e )
@@ -5913,16 +5917,15 @@ void list(command_line& cl)
     wpkgar::wpkgar_manager::pointer_t manager( new wpkgar::wpkgar_manager );
     init_manager(cl, manager, "list");
     wpkgar::wpkgar_lock lock_wpkg(manager, "Listing");
-    wpkgar::wpkgar_manager::package_list_t list;
-    manager->list_installed_packages(list);
+    wpkgar::wpkgar_manager::package_list_t the_list;
+    manager->list_installed_packages(the_list);
 
     bool first(true);
-    for(wpkgar::wpkgar_manager::package_list_t::const_iterator it(list.begin());
-            it != list.end(); ++it)
+    for( auto& pkg : the_list )
     {
         if(*pattern != '\0')
         {
-            const wpkg_filename::uri_filename filename(it->c_str());
+            const wpkg_filename::uri_filename filename(pkg.c_str());
             if(!filename.glob(pattern))
             {
                 // it doesn't match, skip it
@@ -5941,10 +5944,10 @@ void list(command_line& cl)
         try {
             char flags[4];
             memcpy(flags, "i- \0", sizeof(flags));
-            manager->load_package(*it);
-            if(manager->field_is_defined(*it, wpkg_control::control_file::field_xselection_factory_t::canonicalized_name()))
+            manager->load_package(pkg);
+            if(manager->field_is_defined(pkg, wpkg_control::control_file::field_xselection_factory_t::canonicalized_name()))
             {
-                const wpkg_control::control_file::field_xselection_t::selection_t selection(wpkg_control::control_file::field_xselection_t::validate_selection(manager->get_field(*it, wpkg_control::control_file::field_xselection_factory_t::canonicalized_name())));
+                const wpkg_control::control_file::field_xselection_t::selection_t selection(wpkg_control::control_file::field_xselection_t::validate_selection(manager->get_field(pkg, wpkg_control::control_file::field_xselection_factory_t::canonicalized_name())));
                 if(selection == wpkg_control::control_file::field_xselection_t::selection_hold)
                 {
                     flags[0] = 'h';
@@ -5954,7 +5957,7 @@ void list(command_line& cl)
                     flags[0] = 'j';
                 }
             }
-            const wpkgar::wpkgar_manager::package_status_t status(manager->package_status(*it));
+            const wpkgar::wpkgar_manager::package_status_t status(manager->package_status(pkg));
             switch(status)
             {
             case wpkgar::wpkgar_manager::not_installed:
@@ -6018,16 +6021,16 @@ void list(command_line& cl)
                 break;
 
             }
-            const std::string version(manager->get_field(*it, "Version"));
+            const std::string version(manager->get_field(pkg, "Version"));
             std::string long_description;
-            const std::string description(manager->get_description(*it, "Description", long_description));
+            const std::string description(manager->get_description(pkg, "Description", long_description));
             printf("%s %-37.37s %-32.32s %-70.70s\n", flags,
-                    it->c_str(), version.c_str(), description.c_str());
+                    pkg.c_str(), version.c_str(), description.c_str());
         }
         catch(const std::exception& e)
         {
             fprintf(stderr, "error:%s: installed package \"%s\" could not be loaded (%s).\n",
-                    cl.opt().get_program_name().c_str(), it->c_str(), e.what());
+                    cl.opt().get_program_name().c_str(), pkg.c_str(), e.what());
         }
     }
     if(first)

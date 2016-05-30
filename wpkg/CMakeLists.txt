@@ -192,19 +192,18 @@ endfunction()
 
 
 ## Libraries
-add_subdirectory( bzip2              )
-add_subdirectory( zlib               )
-add_subdirectory( controlled_vars    )
-add_subdirectory( libtld             )
-add_subdirectory( libutf8            )
-add_subdirectory( libexpr            )
-add_subdirectory( libdebpackages     )
+add_subdirectory( bzip2           )
+add_subdirectory( zlib            )
+add_subdirectory( controlled_vars )
+add_subdirectory( libtld          )
+add_subdirectory( libutf8         )
+add_subdirectory( libexpr         )
+add_subdirectory( libdebpackages  )
 
 ## Tools and others
-add_subdirectory( tools )
-add_subdirectory( tests/unittests )
-add_subdirectory( tests/integrationtests )
-add_subdirectory( documentation )
+add_subdirectory( tools           )
+add_subdirectory( tests           )
+add_subdirectory( documentation   )
 
 ## Make sure we have "_d" for debug binaries
 get_property( LIBRARY_TARGETS GLOBAL PROPERTY ALL_LIBRARY_TARGETS )

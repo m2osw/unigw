@@ -22,26 +22,20 @@
 // Tell catch we want it to add the runner code in this file.
 #define CATCH_CONFIG_RUNNER
 
+#include "integrationtest_main.h"
+
 #include <catch.hpp>
 
 #include "tools/license.h"
 #include "libdebpackages/debian_packages.h"
+#include "libdebpackages/compatibility.h"
 #include "time.h"
 #if defined(MO_LINUX) || defined(MO_DARWIN) || defined(MO_SUNOS) || defined(MO_FREEBSD)
 #   include <sys/types.h>
 #   include <unistd.h>
-#elif defined(MO_WINDOWS)
-#   include <process.h>
-#   define getpid _getpid
 #endif
 
-
-namespace integrationtest
-{
-    std::string   tmp_dir;
-    std::string   wpkg_tool;
-}
-
+using namespace test_common;
 
 namespace
 {
@@ -165,20 +159,21 @@ int integrationtest_main(int argc, char *argv[])
 
     if( !configData.tmp.empty() )
     {
-        integrationtest::tmp_dir = configData.tmp;
+
+        wpkg_tools::set_tmp_dir( configData.tmp );
         remove_from_args( arg_list, "--tmp", "-t" );
     }
     if( !configData.wpkg.empty() )
     {
-        integrationtest::wpkg_tool = configData.wpkg;
+        wpkg_tools::set_wpkg_tool( configData.wpkg );
         remove_from_args( arg_list, "--wpkg", "-w" );
     }
 
     std::vector<char *> new_argv;
-    std::for_each( arg_list.begin(), arg_list.end(), [&new_argv]( const std::string& arg )
+    for( const auto& arg : arg_list )
     {
         new_argv.push_back( const_cast<char *>(arg.c_str()) );
-    });
+    }
 
     return Catch::Session().run( static_cast<int>(new_argv.size()), &new_argv[0] );
 }

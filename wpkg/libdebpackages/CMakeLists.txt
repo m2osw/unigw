@@ -60,7 +60,6 @@ project( debpackages_static )
 include_directories(
     "${CMAKE_BINARY_DIR}"
     "${CMAKE_CURRENT_BINARY_DIR}"
-    "${CMAKE_CURRENT_BINARY_DIR}/libdebpackages"
     "${wpkg_tld_BINARY_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/.."
@@ -72,12 +71,8 @@ include_directories(
 )
 
 set( LIBDEBPACKAGES_INCLUDE_FILES
-    "${PROJECT_SOURCE_DIR}/debian_packages.h.in"
-    "${PROJECT_BINARY_DIR}/debian_packages.h"
-    installer/details/disk.h
-    installer/install_info.h
-    installer/package_item.h
-    installer/tree_generator.h
+	"${CMAKE_CURRENT_SOURCE_DIR}/debian_packages.h.in"
+	"${CMAKE_CURRENT_BINARY_DIR}/debian_packages.h"
     advgetopt.h
     case_insensitive_string.h
     compatibility.h
@@ -110,10 +105,6 @@ set( LIBDEBPACKAGES_INCLUDE_FILES
 )
 
 set( LIBDEBPACKAGES_SOURCE_FILES
-    installer/details/disk.cpp
-    installer/install_info.cpp
-    installer/package_item.cpp
-    installer/tree_generator.cpp
     advgetopt.cpp
     case_insensitive_string.cpp
     compatibility.cpp
@@ -145,6 +136,13 @@ set( LIBDEBPACKAGES_SOURCE_FILES
     wpkg_stream.cpp
     wpkg_util.cpp
 )
+
+add_subdirectory( installer )
+
+installer_include_files()
+
+list( APPEND LIBDEBPACKAGES_INCLUDE_FILES ${INC_FILES} )
+list( APPEND LIBDEBPACKAGES_SOURCE_FILES  ${SRC_FILES} )
 
 add_library( ${PROJECT_NAME} STATIC
     ${LIBDEBPACKAGES_INCLUDE_FILES}
@@ -199,7 +197,6 @@ project( debpackages )
 
 include_directories(
     "${CMAKE_CURRENT_BINARY_DIR}"
-    "${CMAKE_CURRENT_BINARY_DIR}/libdebpackages"
     "${wpkg_tld_BINARY_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/.."
@@ -244,7 +241,7 @@ install(
     ARCHIVE DESTINATION lib COMPONENT development
 )
 install(
-    DIRECTORY ${PROJECT_SOURCE_DIR}/
+	DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
     DESTINATION include/wpkg/libdebpackages
     COMPONENT headers
     FILES_MATCHING PATTERN *.h
