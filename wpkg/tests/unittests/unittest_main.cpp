@@ -94,7 +94,7 @@ int unittest_main(int argc, char *argv[])
         .longOpt( "license" )
         .longOpt( "licence" );
     cli.bind( &UnitTestCLData::seed )
-        .describe( "value to seed the randomizerd" )
+        .describe( "value to seed the randomizer" )
         .shortOpt( "S")
         .longOpt( "seed" )
         .hint("the_seed");
