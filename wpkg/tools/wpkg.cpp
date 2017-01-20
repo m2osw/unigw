@@ -6776,13 +6776,13 @@ void show(command_line& cl)
                 {
                     char buf[32];
                     snprintf(buf, sizeof(buf), "%%%ds", width);
-#if (__GNUC__ >= 4) && (__GNUC_MINOR__ >= 6)
+#if (__GNUC__ >= 4)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 #endif
                     // buf is under control
                     printf(buf, value.c_str());
-#if (__GNUC__ >= 4) && (__GNUC_MINOR__ >= 6)
+#if (__GNUC__ >= 4)
 #pragma GCC diagnostic pop
 #endif
                 }

@@ -22,6 +22,8 @@
 
 #include "wpkg_tools.h"
 
+using namespace test_common;
+
 #include <string>
 #include <cstring>
 #include <cstdlib>

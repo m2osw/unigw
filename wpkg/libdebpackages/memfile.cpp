@@ -63,6 +63,7 @@
 #include    <ctime>
 #include    <algorithm>
 #include    <iostream>
+#include    <memory>
 #if defined(MO_WINDOWS)
 #include    "libdebpackages/comptr.h"
 #include    <objidl.h>
@@ -1476,7 +1477,7 @@ void memory_file::read_file(const wpkg_filename::uri_filename& filename, file_in
             info->set_file_type(memory_file::file_info::regular_file);
             info->set_mode(0644);
         }
-        std::auto_ptr<tcp_client_server::tcp_client> http_client;
+        std::unique_ptr<tcp_client_server::tcp_client> http_client;
         bool redirect;
         std::string location;
         int content_length(-1);

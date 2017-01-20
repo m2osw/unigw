@@ -58,6 +58,7 @@ configure_file(
 project( debpackages_static )
 
 include_directories(
+    SYSTEM
     "${CMAKE_BINARY_DIR}"
     "${CMAKE_CURRENT_BINARY_DIR}"
     "${wpkg_tld_BINARY_DIR}"

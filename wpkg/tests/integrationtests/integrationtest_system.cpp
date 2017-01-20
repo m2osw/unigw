@@ -321,14 +321,14 @@ class SystemTests
 SystemTests::SystemTests()
 {
     // make sure that the temporary directory is not empty, may be relative
-    if(integrationtest::tmp_dir.empty())
+    if(wpkg_tools::get_tmp_dir().empty())
     {
         fprintf(stderr, "\nerror:integrationtest_system: a temporary directory is required to run the system integration tests.\n");
         throw std::runtime_error("--tmp <directory> missing");
     }
 
     // path to the wpkg tool must not be empty either, may be relative
-    if(integrationtest::wpkg_tool.empty())
+    if(wpkg_tools::get_wpkg_tool().empty())
     {
         fprintf(stderr, "\nerror:integrationtest_system: the path to the wpkg tool is required; we do not use chdir() so a relative path will do.\n");
         throw std::runtime_error("--wpkg <path-to-wpkg> missing");
@@ -336,7 +336,7 @@ SystemTests::SystemTests()
 
     // delete everything before running ANY ONE TEST
     // (i.e. the setUp() function is called before each and every test)
-    wpkg_filename::uri_filename root(integrationtest::tmp_dir);
+    wpkg_filename::uri_filename root(wpkg_tools::get_tmp_dir());
     try
     {
         root.os_unlink_rf();
@@ -361,7 +361,7 @@ SystemTests::SystemTests()
 
 void SystemTests::create_projects(project_list_t& list)
 {
-    wpkg_filename::uri_filename root(integrationtest::tmp_dir);
+    wpkg_filename::uri_filename root(wpkg_tools::get_tmp_dir());
 
     wpkg_filename::uri_filename project;
     wpkg_filename::uri_filename filename;
@@ -428,7 +428,7 @@ void SystemTests::create_projects(project_list_t& list)
 
 void SystemTests::create_target()
 {
-    wpkg_filename::uri_filename root(integrationtest::tmp_dir);
+    wpkg_filename::uri_filename root(wpkg_tools::get_tmp_dir());
     wpkg_filename::uri_filename repository(root.append_child("repository"));
 
     wpkg_filename::uri_filename target_path(root.append_child("target"));
@@ -443,7 +443,7 @@ void SystemTests::create_target()
     core_ctrl.write_file(core_ctrl_filename, true);
 
     // install the core.ctrl file in the target system
-    const std::string core_cmd(integrationtest::wpkg_tool + " --root " + target_path.path_only() + " --create-admindir " + core_ctrl_filename.path_only());
+    const std::string core_cmd(wpkg_tools::get_wpkg_tool() + " --root " + target_path.path_only() + " --create-admindir " + core_ctrl_filename.path_only());
     printf("Run --create-admindir command: \"%s\"\n", core_cmd.c_str());
     fflush(stdout);
     CATCH_REQUIRE(system(core_cmd.c_str()) == 0);
@@ -452,11 +452,11 @@ void SystemTests::create_target()
 
 void SystemTests::manual_builds()
 {
-    wpkg_filename::uri_filename root(integrationtest::tmp_dir);
+    wpkg_filename::uri_filename root(wpkg_tools::get_tmp_dir());
     root.os_mkdir_p();
     root = root.os_real_path();
 
-    wpkg_filename::uri_filename wpkg(integrationtest::wpkg_tool);
+    wpkg_filename::uri_filename wpkg(wpkg_tools::get_wpkg_tool());
     wpkg = wpkg.os_real_path();
 
     wpkg_filename::uri_filename target_path(root.append_child("target"));
@@ -527,11 +527,11 @@ void SystemTests::manual_builds()
 
 void SystemTests::automated_builds()
 {
-    wpkg_filename::uri_filename root(integrationtest::tmp_dir);
+    wpkg_filename::uri_filename root(wpkg_tools::get_tmp_dir());
     root.os_mkdir_p();
     root = root.os_real_path();
 
-    wpkg_filename::uri_filename wpkg(integrationtest::wpkg_tool);
+    wpkg_filename::uri_filename wpkg(wpkg_tools::get_wpkg_tool());
     wpkg = wpkg.os_real_path();
 
     wpkg_filename::uri_filename target_path(root.append_child("target"));

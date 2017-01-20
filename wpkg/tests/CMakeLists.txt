@@ -63,6 +63,7 @@ add_definitions( -DCATCH_CONFIG_PREFIX_ALL )
 
 # Include for every folder below
 include_directories(
+    SYSTEM
     "${wpkg_project_SOURCE_DIR}"
     "${wpkg_project_BINARY_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
