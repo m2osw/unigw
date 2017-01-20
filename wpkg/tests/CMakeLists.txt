@@ -52,7 +52,11 @@ endif()
 # NOTE: I added the catch folder under tests, so that way you don't have to
 # muss about trying to find the right version.
 #
-find_package( Catch )
+unset( CATCH_FOUND )
+option( USE_LOCAL_CATCH "Use the bundled 'catch.cpp' file so tests can be provided." ON )
+if( NOT ${USE_LOCAL_CATCH} )
+    find_package( Catch )
+endif()
 
 if( NOT CATCH_FOUND )
     set( CATCH_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/catch" )
